@@ -1,0 +1,106 @@
+name: Validate Skill
+
+on:
+  pull_request:
+    paths:
+      - 'skills/**'
+
+jobs:
+  validate:
+    name: Validate Skill Manifest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install validator dependencies
+        run: npm install --no-save ajv ajv-formats
+
+      - name: Find changed skill directories
+        id: changed
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'skills/**' | grep -oP 'skills/[^/]+' | sort -u)
+          echo "dirs=$CHANGED" >> $GITHUB_OUTPUT
+          echo "Changed skill dirs: $CHANGED"
+
+      - name: Validate skill manifests
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const Ajv = require('ajv');
+          const addFormats = require('ajv-formats');
+
+          const ajv = new Ajv({ allErrors: true });
+          addFormats(ajv);
+
+          const schema = JSON.parse(fs.readFileSync('skill-schema.json', 'utf8'));
+          const validate = ajv.compile(schema);
+
+          const changedDirs = process.env.CHANGED_DIRS
+            ? process.env.CHANGED_DIRS.trim().split('\n').filter(Boolean)
+            : [];
+
+          if (changedDirs.length === 0) {
+            console.log('No skill directories changed.');
+            process.exit(0);
+          }
+
+          let hasErrors = false;
+
+          for (const dir of changedDirs) {
+            if (!fs.existsSync(dir)) continue;
+            console.log(`\nValidating: ${dir}`);
+
+            // Check required files
+            const required = ['skill.json', 'extension.mjs', 'README.md'];
+            for (const file of required) {
+              const filePath = path.join(dir, file);
+              if (!fs.existsSync(filePath)) {
+                console.error(`  ✗ Missing required file: ${file}`);
+                hasErrors = true;
+              } else {
+                console.log(`  ✓ Found ${file}`);
+              }
+            }
+
+            // Validate skill.json schema
+            const manifestPath = path.join(dir, 'skill.json');
+            if (fs.existsSync(manifestPath)) {
+              const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+              const valid = validate(manifest);
+              if (!valid) {
+                console.error(`  ✗ skill.json schema errors:`);
+                for (const err of validate.errors) {
+                  console.error(`    - ${err.instancePath} ${err.message}`);
+                }
+                hasErrors = true;
+              } else {
+                console.log(`  ✓ skill.json is valid`);
+
+                // Check directory name matches skill name
+                const dirName = path.basename(dir);
+                if (manifest.name !== dirName) {
+                  console.error(`  ✗ skill name "${manifest.name}" must match directory name "${dirName}"`);
+                  hasErrors = true;
+                } else {
+                  console.log(`  ✓ Skill name matches directory`);
+                }
+              }
+            }
+          }
+
+          if (hasErrors) {
+            console.error('\n❌ Validation failed. Please fix the errors above.');
+            process.exit(1);
+          } else {
+            console.log('\n✅ All skill validations passed!');
+          }
+          EOF
+        env:
+          CHANGED_DIRS: ${{ steps.changed.outputs.dirs }}

@@ -1,0 +1,81 @@
+name: Update Registry
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'skills/**'
+
+jobs:
+  update-registry:
+    name: Rebuild registry.json
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Rebuild registry.json
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          const skillsDir = 'skills';
+          const skills = [];
+
+          if (!fs.existsSync(skillsDir)) {
+            console.log('No skills directory found.');
+          } else {
+            const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
+            for (const entry of entries) {
+              if (!entry.isDirectory()) continue;
+              const manifestPath = path.join(skillsDir, entry.name, 'skill.json');
+              if (!fs.existsSync(manifestPath)) continue;
+
+              const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+              skills.push({
+                name: manifest.name,
+                version: manifest.version,
+                description: manifest.description,
+                tags: manifest.tags,
+                author: manifest.author,
+                path: `${skillsDir}/${entry.name}`,
+                entry: manifest.entry || 'extension.mjs',
+                license: manifest.license || 'MIT',
+                homepage: manifest.homepage || null,
+                repository: manifest.repository || null,
+              });
+              console.log(`  + ${manifest.name}@${manifest.version}`);
+            }
+          }
+
+          const registry = {
+            version: '1',
+            updatedAt: new Date().toISOString(),
+            skills: skills.sort((a, b) => a.name.localeCompare(b.name)),
+          };
+
+          fs.writeFileSync('registry.json', JSON.stringify(registry, null, 2) + '\n');
+          console.log(`\nRegistry updated: ${skills.length} skill(s)`);
+          EOF
+
+      - name: Commit updated registry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add registry.json
+          if git diff --cached --quiet; then
+            echo "No changes to registry.json"
+          else
+            git commit -m "chore: update registry.json [skip ci]"
+            git push
+          fi
