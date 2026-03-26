@@ -31,11 +31,13 @@ Follow these steps to get the marketplace live on GitHub Pages.
 
 ## Step 3 — Enable GitHub Pages
 
+> ℹ️ **You don't need a separate GitHub Pages site.** GitHub automatically provides a Pages URL for any repository — yours will be `https://CrestronEng.github.io/CrestronAISkills` once enabled. No extra setup required.
+
 1. In your repo, go to **Settings → Pages**
 2. Under **Source**, select **"GitHub Actions"**
 3. Click **Save**
 
-> The next push to `main` will automatically build and deploy the web UI.
+That's it — GitHub will host the web UI at that URL automatically after the first deploy.
 
 ---
 
