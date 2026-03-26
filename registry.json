@@ -1,12 +1,16 @@
 {
   "version": "1",
-  "updatedAt": "2026-03-26T00:00:00Z",
+  "updatedAt": "2026-03-26T21:48:30Z",
   "skills": [
     {
       "name": "example-skill",
       "version": "1.0.0",
       "description": "A starter example skill demonstrating the CrestronAISkills structure and extension API.",
-      "tags": ["example", "demo", "starter"],
+      "tags": [
+        "example",
+        "demo",
+        "starter"
+      ],
       "author": "CrestronEng",
       "path": "skills/example-skill",
       "entry": "extension.mjs",
