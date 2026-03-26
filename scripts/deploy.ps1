@@ -5,7 +5,7 @@
 $ErrorActionPreference = "Stop"
 
 $RepoUrl = "https://github.com/CrestronEng/CrestronAISkills"
-$RegistryUrl = "https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main/registry.json"
+$RegistryUrl = "/registry.json"
 $BaseDir = Split-Path -Parent $PSScriptRoot
 
 Set-Location $BaseDir
