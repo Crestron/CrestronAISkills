@@ -16,7 +16,7 @@ const SKILLS_BASE_URL =
     process.env.CRESTRON_SKILLS_BASE_URL ||
     "https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main/skills";
 
-const EXTENSIONS_DIR = join(homedir(), ".copilot", "extensions");
+const EXTENSIONS_DIR = join(homedir(), ".copilot", "instructions");
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -64,15 +64,23 @@ function formatSkillDetail(skill) {
 function getInstalledSkills() {
     if (!existsSync(EXTENSIONS_DIR)) return [];
     return readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
-        .filter((e) => e.isDirectory() && existsSync(join(EXTENSIONS_DIR, e.name, "skill.json")))
+        .filter((e) => e.isFile() && e.name.endsWith(".md"))
         .map((e) => {
+            const skillName = e.name.replace(/\.md$/, "");
             try {
-                const manifest = JSON.parse(
-                    readFileSync(join(EXTENSIONS_DIR, e.name, "skill.json"), "utf8")
-                );
-                return { name: e.name, version: manifest.version, description: manifest.description };
+                const content = readFileSync(join(EXTENSIONS_DIR, e.name), "utf8");
+                const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+                let version = "unknown";
+                let description = "";
+                if (fmMatch) {
+                    const vMatch = fmMatch[1].match(/^version:\s*(.+)$/m);
+                    const dMatch = fmMatch[1].match(/^description:\s*(.+)$/m);
+                    if (vMatch) version = vMatch[1].trim();
+                    if (dMatch) description = dMatch[1].trim();
+                }
+                return { name: skillName, version, description };
             } catch {
-                return { name: e.name, version: "unknown", description: "" };
+                return { name: skillName, version: "unknown", description: "" };
             }
         });
 }
@@ -103,7 +111,7 @@ const session = await joinSession({
         {
             name: "search_skills",
             description:
-                "Search the CrestronAISkills marketplace for Copilot CLI skills. " +
+                "Search the CrestronAISkills marketplace for Copilot skills. " +
                 "Use this when the user wants to find, discover, or browse skills. " +
                 "Returns a list of matching skills with name, description, and tags.",
             parameters: {
@@ -174,7 +182,7 @@ const session = await joinSession({
             name: "get_skill_info",
             description:
                 "Get detailed information about a specific skill in the CrestronAISkills marketplace, " +
-                "including its description, version, tags, author, and install instructions.",
+                "including its description, version, tags, author, and instructions.",
             parameters: {
                 type: "object",
                 properties: {
@@ -220,9 +228,9 @@ const session = await joinSession({
         {
             name: "install_skill",
             description:
-                "Download and install a skill from the CrestronAISkills marketplace into the local " +
-                "Copilot CLI extensions directory (~/.copilot/extensions/). " +
-                "After installation, the user must restart Copilot CLI for the skill to load.",
+                "Download and install a Copilot skill from the CrestronAISkills marketplace into the local " +
+                "instructions directory (~/.copilot/instructions/). " +
+                "The skill will be available in your next Copilot session.",
             parameters: {
                 type: "object",
                 properties: {
@@ -254,9 +262,9 @@ const session = await joinSession({
                     return `Skill "${args.name}" not found. Use search_skills to browse available skills.`;
                 }
 
-                const destDir = join(EXTENSIONS_DIR, skill.name);
+                const destFile = join(EXTENSIONS_DIR, `${skill.name}.md`);
 
-                if (existsSync(destDir) && !args.force) {
+                if (existsSync(destFile) && !args.force) {
                     return (
                         `Skill "${skill.name}" is already installed. ` +
                         `Use force: true to reinstall/update, or list_installed_skills to see all installed skills.`
@@ -264,25 +272,16 @@ const session = await joinSession({
                 }
 
                 try {
-                    mkdirSync(destDir, { recursive: true });
+                    mkdirSync(EXTENSIONS_DIR, { recursive: true });
 
-                    // Always download skill.json and extension.mjs
                     const baseUrl = `${SKILLS_BASE_URL}/${skill.name}`;
-                    await downloadFile(`${baseUrl}/skill.json`, join(destDir, "skill.json"));
-                    await downloadFile(`${baseUrl}/extension.mjs`, join(destDir, "extension.mjs"));
-
-                    // Download README if available
-                    try {
-                        await downloadFile(`${baseUrl}/README.md`, join(destDir, "README.md"));
-                    } catch {
-                        // README is optional at install time
-                    }
+                    await downloadFile(`${baseUrl}/skill.md`, destFile);
 
                     return [
                         `✅ Installed **${skill.name}** v${skill.version} successfully!`,
-                        `📁 Location: ${destDir}`,
+                        `📁 Location: ${destFile}`,
                         "",
-                        `⚠️  Please restart Copilot CLI for the skill to load.`,
+                        `The skill instructions are now available in your Copilot sessions.`,
                     ].join("\n");
                 } catch (err) {
                     return `❌ Installation failed: ${err.message}`;
@@ -296,8 +295,8 @@ const session = await joinSession({
         {
             name: "list_installed_skills",
             description:
-                "List all Copilot CLI skills currently installed from the CrestronAISkills marketplace " +
-                "on this machine (located in ~/.copilot/extensions/).",
+                "List all Copilot skills currently installed from the CrestronAISkills marketplace " +
+                "on this machine (located in ~/.copilot/instructions/).",
             parameters: {
                 type: "object",
                 properties: {},

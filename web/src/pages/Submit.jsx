@@ -58,16 +58,24 @@ const s = {
     },
 };
 
-const SKILL_JSON_TEMPLATE = `{
-  "name": "your-skill-name",
-  "version": "1.0.0",
-  "description": "What your skill does (10-200 chars)",
-  "tags": ["tag1", "tag2"],
-  "author": "your-github-username",
-  "entry": "extension.mjs",
-  "license": "MIT",
-  "homepage": "https://github.com/you/your-skill"
-}`;
+const SKILL_MD_TEMPLATE = `---
+name: your-skill-name
+version: 1.0.0
+description: What your skill does (10-200 chars)
+tags: [tag1, tag2]
+author: your-github-username
+license: MIT
+---
+
+# Your Skill Name
+
+## Role & Purpose
+Describe the role Copilot takes when using this skill...
+
+## Behavior Guidelines
+- Guideline 1
+- Guideline 2
+`;
 
 export default function Submit({ onLoginClick }) {
     const user = getStoredUser();
@@ -75,7 +83,7 @@ export default function Submit({ onLoginClick }) {
     const [form, setForm] = useState({
         name: "",
         description: "",
-        manifest: SKILL_JSON_TEMPLATE,
+        manifest: SKILL_MD_TEMPLATE,
     });
 
     const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -88,10 +96,8 @@ export default function Submit({ onLoginClick }) {
             `**Skill name:** \`${form.name}\`\n\n` +
             `**Description:** ${form.description}\n\n` +
             `### Checklist\n` +
-            `- [ ] I have added \`skills/${form.name}/skill.json\`\n` +
-            `- [ ] I have added \`skills/${form.name}/extension.mjs\`\n` +
-            `- [ ] I have added \`skills/${form.name}/README.md\`\n` +
-            `- [ ] My skill passes local testing\n` +
+            `- [ ] I have added \`skills/${form.name}/skill.md\` with valid frontmatter\n` +
+            `- [ ] My skill instructions are clear and focused\n` +
             `- [ ] I have read [CONTRIBUTING.md](CONTRIBUTING.md)\n`
         );
         const url = `${REPO_URL}/compare/main...${user?.login}:main?expand=1&title=${encodeURIComponent(prTitle)}&body=${prBody}`;
@@ -151,7 +157,7 @@ export default function Submit({ onLoginClick }) {
                 </div>
 
                 <div>
-                    <label style={s.label}>skill.json Preview</label>
+                    <label style={s.label}>skill.md Preview</label>
                     <textarea
                         style={s.textarea}
                         value={form.manifest}
@@ -159,7 +165,7 @@ export default function Submit({ onLoginClick }) {
                         rows={12}
                     />
                     <p style={s.hint}>
-                        Edit this as a reference — the actual files must be in your PR branch.
+                        Edit this as a reference — the actual file must be in your PR branch.
                     </p>
                 </div>
 

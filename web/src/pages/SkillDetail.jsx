@@ -144,30 +144,25 @@ export default function SkillDetail() {
                 <div style={s.installTitle}>Installation</div>
 
                 <p style={{ ...s.hint, marginBottom: "12px" }}>
-                    <strong>Option 1:</strong> Install via the marketplace extension (inside Copilot CLI):
-                </p>
-                <div style={s.codeBlock}>install the {skill.name} skill from the marketplace</div>
-
-                <p style={{ ...s.hint, marginBottom: "12px" }}>
-                    <strong>Option 2:</strong> Manual install:
+                    <strong>Option 1</strong> — Copy to your repo's <code>.github/</code> folder or personal instructions folder:
                 </p>
                 <div style={s.codeBlock}>
-                    # Create directory{"\n"}
-                    mkdir -p ~/.copilot/extensions/{skill.name}{"\n\n"}
-                    # Download skill files{"\n"}
-                    curl -o ~/.copilot/extensions/{skill.name}/skill.json {rawBase}/skill.json{"\n"}
-                    curl -o ~/.copilot/extensions/{skill.name}/extension.mjs {rawBase}/extension.mjs{"\n\n"}
-                    # Then restart Copilot CLI
+                    # Download skill to your repo's .github/ folder{"\n"}
+                    curl -o .github/{skill.name}.md {rawBase}/skill.md{"\n\n"}
+                    # Or copy to personal Copilot instructions folder{"\n"}
+                    curl -o ~/.copilot/instructions/{skill.name}.md {rawBase}/skill.md
                 </div>
 
-                <p style={s.hint}>After installing, restart Copilot CLI for the skill to load.</p>
+                <p style={{ ...s.hint, marginBottom: "12px" }}>
+                    <strong>Option 2</strong> — View and copy manually:
+                </p>
 
                 <div style={s.links}>
+                    <a href={`${skillRepoPath}/skill.md`} target="_blank" rel="noopener noreferrer" style={s.linkBtn}>
+                        View skill content ↗
+                    </a>
                     <a href={skillRepoPath} target="_blank" rel="noopener noreferrer" style={s.linkBtn}>
                         View source ↗
-                    </a>
-                    <a href={`${rawBase}/README.md`} target="_blank" rel="noopener noreferrer" style={s.linkBtn}>
-                        README ↗
                     </a>
                 </div>
             </div>

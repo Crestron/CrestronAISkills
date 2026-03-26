@@ -1,76 +1,16 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/CrestronAISkills/skill-schema",
-  "title": "CrestronAISkills Skill Manifest",
-  "description": "Schema for skill.json manifest files in the CrestronAISkills registry",
+  "title": "Copilot Skill Frontmatter",
+  "description": "YAML frontmatter required in every skill.md file",
   "type": "object",
-  "required": ["name", "version", "description", "tags", "author", "entry"],
-  "additionalProperties": false,
+  "required": ["name", "version", "description", "tags", "author"],
   "properties": {
-    "name": {
-      "type": "string",
-      "description": "Unique skill identifier (kebab-case, lowercase)",
-      "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$",
-      "minLength": 3,
-      "maxLength": 64
-    },
-    "version": {
-      "type": "string",
-      "description": "Semantic version (e.g. 1.0.0)",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
-    },
-    "description": {
-      "type": "string",
-      "description": "Short description of what this skill does",
-      "minLength": 10,
-      "maxLength": 200
-    },
-    "tags": {
-      "type": "array",
-      "description": "Searchable tags (lowercase)",
-      "items": {
-        "type": "string",
-        "pattern": "^[a-z][a-z0-9-]*$"
-      },
-      "minItems": 1,
-      "maxItems": 10,
-      "uniqueItems": true
-    },
-    "author": {
-      "type": "string",
-      "description": "GitHub username of the skill author",
-      "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$"
-    },
-    "entry": {
-      "type": "string",
-      "description": "Entry point filename (must be extension.mjs)",
-      "const": "extension.mjs"
-    },
-    "homepage": {
-      "type": "string",
-      "description": "URL to the skill's homepage or documentation",
-      "format": "uri"
-    },
-    "license": {
-      "type": "string",
-      "description": "SPDX license identifier",
-      "default": "MIT"
-    },
-    "minCopilotVersion": {
-      "type": "string",
-      "description": "Minimum required Copilot CLI version",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
-    },
-    "keywords": {
-      "type": "array",
-      "description": "Additional search keywords",
-      "items": { "type": "string" },
-      "maxItems": 20
-    },
-    "repository": {
-      "type": "string",
-      "description": "URL to the skill's source repository",
-      "format": "uri"
-    }
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$", "description": "Unique kebab-case skill identifier" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "Semantic version" },
+    "description": { "type": "string", "minLength": 10, "maxLength": 200 },
+    "tags": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "author": { "type": "string", "description": "GitHub username" },
+    "license": { "type": "string", "default": "MIT" },
+    "homepage": { "type": "string", "format": "uri" }
   }
 }

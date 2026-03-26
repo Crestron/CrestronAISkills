@@ -1,6 +1,6 @@
 # CrestronAISkills
 
-> A community-powered registry and marketplace for GitHub Copilot CLI skills — search, discover, and install skills directly from your terminal or the web.
+> A community-powered registry and marketplace for GitHub Copilot skills — search, discover, and use Copilot instruction skills directly from the web or by copying a single markdown file.
 
 [![Registry](https://img.shields.io/badge/skills-registry-blue)](registry.json)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -9,48 +9,32 @@
 
 ## 🚀 What Is This?
 
-CrestronAISkills is a **skills marketplace** for [GitHub Copilot CLI](https://docs.github.com/copilot/concepts/agents/about-copilot-cli). It provides:
+CrestronAISkills is a **skills marketplace** for [GitHub Copilot](https://docs.github.com/copilot). It provides:
 
 - 🔍 **Search** skills by keyword, tag, or author
-- 👀 **Browse** skill details, documentation, and install commands
-- ⬇️ **Install** skills into your Copilot CLI with one command
+- 👀 **Browse** skill details and Copilot instructions
+- ⬇️ **Install** skills with a single `curl` command
 - 📤 **Publish** your own skills via a pull request
 
 ---
 
 ## 🛠️ Using the Marketplace
 
-### Option 1 — In-Terminal (Copilot CLI Extension)
-
-The marketplace ships as a Copilot CLI extension. Once installed, search and install skills without leaving your terminal:
-
-```
-# Search for skills
-search for skills about home automation in the marketplace
-
-# Get skill details
-show me details for the example-skill in the marketplace
-
-# Install a skill
-install the example-skill from the marketplace
-```
-
-**Installing the marketplace extension:**
-
-1. Copy `.github/extensions/marketplace/` to `~/.copilot/extensions/marketplace/`
-2. Restart Copilot CLI
-
-### Option 2 — Web UI
+### Option 1 — Web UI
 
 Browse the marketplace at: **https://CrestronEng.github.io/CrestronAISkills**
 
----
+### Option 2 — Manual Download
 
-## 📦 Installing a Skill Manually
+Download any skill's `skill.md` directly and add it to your repo or personal instructions folder:
 
-1. Find the skill in `skills/<skill-name>/`
-2. Copy the folder to `~/.copilot/extensions/<skill-name>/`
-3. Restart Copilot CLI
+```bash
+# Copy to your repo's .github/ folder
+curl -o .github/<skill-name>.md https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main/skills/<skill-name>/skill.md
+
+# Or copy to your personal Copilot instructions folder
+curl -o ~/.copilot/instructions/<skill-name>.md https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main/skills/<skill-name>/skill.md
+```
 
 ---
 
@@ -60,7 +44,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 **Quick summary:**
 1. Fork this repo
-2. Create `skills/<your-skill-name>/` with `skill.json`, `extension.mjs`, and `README.md`
+2. Create `skills/<your-skill-name>/skill.md` with YAML frontmatter and Copilot instructions
 3. Open a pull request — CI will validate your skill automatically
 
 ---
@@ -70,16 +54,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 ```
 CrestronAISkills/
 ├── registry.json              # Master index of all skills (auto-generated)
-├── skill-schema.json          # JSON Schema for skill.json validation
+├── skill-schema.json          # JSON Schema for skill.md frontmatter validation
 ├── skills/
 │   └── <skill-name>/
-│       ├── skill.json         # Skill manifest
-│       ├── extension.mjs      # Copilot CLI extension entry point
-│       └── README.md          # Skill documentation
+│       └── skill.md           # Copilot skill (frontmatter + instructions)
 ├── web/                       # React web UI (GitHub Pages)
 └── .github/
     ├── extensions/
-    │   └── marketplace/       # Copilot CLI marketplace extension
+    │   └── marketplace/       # Copilot marketplace discovery extension
     └── workflows/             # CI/CD pipelines
 ```
 

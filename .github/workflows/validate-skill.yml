@@ -13,14 +13,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install validator dependencies
-        run: npm install --no-save ajv ajv-formats
-
       - name: Find changed skill directories
         id: changed
         run: |
@@ -28,79 +20,86 @@ jobs:
           echo "dirs=$CHANGED" >> $GITHUB_OUTPUT
           echo "Changed skill dirs: $CHANGED"
 
-      - name: Validate skill manifests
+      - name: Validate skill.md frontmatter
         run: |
-          node - <<'EOF'
-          const fs = require('fs');
-          const path = require('path');
-          const Ajv = require('ajv');
-          const addFormats = require('ajv-formats');
+          CHANGED_DIRS="${{ steps.changed.outputs.dirs }}"
+          if [ -z "$CHANGED_DIRS" ]; then
+            echo "No skill directories changed."
+            exit 0
+          fi
 
-          const ajv = new Ajv({ allErrors: true });
-          addFormats(ajv);
+          has_errors=0
 
-          const schema = JSON.parse(fs.readFileSync('skill-schema.json', 'utf8'));
-          const validate = ajv.compile(schema);
+          while IFS= read -r dir; do
+            [ -z "$dir" ] && continue
+            [ ! -d "$dir" ] && continue
+            echo ""
+            echo "Validating: $dir"
 
-          const changedDirs = process.env.CHANGED_DIRS
-            ? process.env.CHANGED_DIRS.trim().split('\n').filter(Boolean)
-            : [];
+            skill_md="$dir/skill.md"
+            if [ ! -f "$skill_md" ]; then
+              echo "  ✗ Missing required file: skill.md"
+              has_errors=1
+              continue
+            fi
+            echo "  ✓ Found skill.md"
 
-          if (changedDirs.length === 0) {
-            console.log('No skill directories changed.');
-            process.exit(0);
-          }
+            # Extract frontmatter fields
+            in_fm=0
+            name_val=""
+            version_val=""
+            description_val=""
+            tags_val=""
+            author_val=""
 
-          let hasErrors = false;
+            while IFS= read -r line; do
+              if [ "$line" = "---" ] && [ "$in_fm" = "0" ]; then
+                in_fm=1
+                continue
+              fi
+              if [ "$line" = "---" ] && [ "$in_fm" = "1" ]; then
+                break
+              fi
+              if [ "$in_fm" = "1" ]; then
+                key=$(echo "$line" | grep -oP '^[a-z]+(?=:)')
+                val=$(echo "$line" | sed 's/^[a-z]*: *//')
+                case "$key" in
+                  name)        name_val="$val" ;;
+                  version)     version_val="$val" ;;
+                  description) description_val="$val" ;;
+                  tags)        tags_val="$val" ;;
+                  author)      author_val="$val" ;;
+                esac
+              fi
+            done < "$skill_md"
 
-          for (const dir of changedDirs) {
-            if (!fs.existsSync(dir)) continue;
-            console.log(`\nValidating: ${dir}`);
+            # Check required fields
+            for field_name in name version description tags author; do
+              eval val=\$${field_name}_val
+              if [ -z "$val" ]; then
+                echo "  ✗ Missing required frontmatter field: $field_name"
+                has_errors=1
+              else
+                echo "  ✓ $field_name: $val"
+              fi
+            done
 
-            // Check required files
-            const required = ['skill.json', 'extension.mjs', 'README.md'];
-            for (const file of required) {
-              const filePath = path.join(dir, file);
-              if (!fs.existsSync(filePath)) {
-                console.error(`  ✗ Missing required file: ${file}`);
-                hasErrors = true;
-              } else {
-                console.log(`  ✓ Found ${file}`);
-              }
-            }
+            # Check directory name matches skill name
+            dir_name=$(basename "$dir")
+            if [ -n "$name_val" ] && [ "$name_val" != "$dir_name" ]; then
+              echo "  ✗ skill name \"$name_val\" must match directory name \"$dir_name\""
+              has_errors=1
+            elif [ -n "$name_val" ]; then
+              echo "  ✓ Skill name matches directory"
+            fi
 
-            // Validate skill.json schema
-            const manifestPath = path.join(dir, 'skill.json');
-            if (fs.existsSync(manifestPath)) {
-              const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-              const valid = validate(manifest);
-              if (!valid) {
-                console.error(`  ✗ skill.json schema errors:`);
-                for (const err of validate.errors) {
-                  console.error(`    - ${err.instancePath} ${err.message}`);
-                }
-                hasErrors = true;
-              } else {
-                console.log(`  ✓ skill.json is valid`);
+          done <<< "$CHANGED_DIRS"
 
-                // Check directory name matches skill name
-                const dirName = path.basename(dir);
-                if (manifest.name !== dirName) {
-                  console.error(`  ✗ skill name "${manifest.name}" must match directory name "${dirName}"`);
-                  hasErrors = true;
-                } else {
-                  console.log(`  ✓ Skill name matches directory`);
-                }
-              }
-            }
-          }
-
-          if (hasErrors) {
-            console.error('\n❌ Validation failed. Please fix the errors above.');
-            process.exit(1);
-          } else {
-            console.log('\n✅ All skill validations passed!');
-          }
-          EOF
-        env:
-          CHANGED_DIRS: ${{ steps.changed.outputs.dirs }}
+          if [ "$has_errors" = "1" ]; then
+            echo ""
+            echo "❌ Validation failed. Please fix the errors above."
+            exit 1
+          else
+            echo ""
+            echo "✅ All skill validations passed!"
+          fi

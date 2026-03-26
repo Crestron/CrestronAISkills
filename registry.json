@@ -5,17 +5,18 @@
     {
       "name": "example-skill",
       "version": "1.0.0",
-      "description": "A starter example skill demonstrating the CrestronAISkills structure and extension API.",
+      "description": "A starter example showing how to write a Copilot skill for Crestron AV and smart home systems",
       "tags": [
         "example",
         "demo",
-        "starter"
+        "starter",
+        "crestron",
+        "av"
       ],
       "author": "CrestronEng",
       "path": "skills/example-skill",
-      "entry": "extension.mjs",
       "license": "MIT",
-      "homepage": "https://github.com/CrestronEng/CrestronAISkills/tree/main/skills/example-skill"
+      "homepage": null
     }
   ]
 }

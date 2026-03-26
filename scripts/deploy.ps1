@@ -14,25 +14,53 @@ Write-Host "`n=== Step 1: Pull latest changes from main ===" -ForegroundColor Cy
 git pull origin main
 
 Write-Host "`n=== Step 2: Rebuild registry.json ===" -ForegroundColor Cyan
-node -e @"
-const fs = require('fs');
-const path = require('path');
-const skillsDir = 'skills';
-const skills = [];
-if (fs.existsSync(skillsDir)) {
-  for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const mp = path.join(skillsDir, entry.name, 'skill.json');
-    if (!fs.existsSync(mp)) continue;
-    const m = JSON.parse(fs.readFileSync(mp, 'utf8'));
-    skills.push({ name: m.name, version: m.version, description: m.description, tags: m.tags, author: m.author, path: skillsDir+'/'+entry.name, entry: m.entry||'extension.mjs', license: m.license||'MIT', homepage: m.homepage||null });
-    console.log('  +', m.name + '@' + m.version);
-  }
+$skillsDir = "skills"
+$skills = @()
+if (Test-Path $skillsDir) {
+    foreach ($entry in Get-ChildItem $skillsDir -Directory) {
+        $skillMd = Join-Path $skillsDir $entry.Name "skill.md"
+        if (-not (Test-Path $skillMd)) { continue }
+        # Parse YAML frontmatter between the first two --- markers
+        $lines = Get-Content $skillMd
+        $fm = @{}
+        $inFm = $false
+        foreach ($line in $lines) {
+            if ($line -eq '---' -and -not $inFm) { $inFm = $true; continue }
+            if ($line -eq '---' -and $inFm) { break }
+            if ($inFm) {
+                if ($line -match '^(\w+):\s*(.*)$') {
+                    $key = $Matches[1]
+                    $val = $Matches[2].Trim()
+                    if ($val -match '^\[(.+)\]$') {
+                        $fm[$key] = ($Matches[1] -split ',') | ForEach-Object { $_.Trim().Trim('"').Trim("'") }
+                    } else {
+                        $fm[$key] = $val.Trim('"').Trim("'")
+                    }
+                }
+            }
+        }
+        $skillEntry = [ordered]@{
+            name        = $fm['name']
+            version     = $fm['version']
+            description = $fm['description']
+            tags        = @($fm['tags'])
+            author      = $fm['author']
+            path        = "$skillsDir/$($entry.Name)"
+            license     = if ($fm['license']) { $fm['license'] } else { 'MIT' }
+            homepage    = if ($fm['homepage']) { $fm['homepage'] } else { $null }
+        }
+        $skills += $skillEntry
+        Write-Host "  + $($fm['name'])@$($fm['version'])"
+    }
 }
-const registry = { version: '1', updatedAt: new Date().toISOString(), skills: skills.sort((a,b) => a.name.localeCompare(b.name)) };
-fs.writeFileSync('registry.json', JSON.stringify(registry, null, 2) + '\n');
-console.log('Registry updated:', skills.length, 'skill(s)');
-"@
+$skills = $skills | Sort-Object { $_['name'] }
+$registry = [ordered]@{
+    version   = "1"
+    updatedAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+    skills    = $skills
+}
+$registry | ConvertTo-Json -Depth 10 | Set-Content "registry.json" -Encoding UTF8
+Write-Host "Registry updated: $($skills.Count) skill(s)"
 
 Write-Host "`n=== Step 3: Commit registry.json back to main ===" -ForegroundColor Cyan
 git add registry.json
