@@ -10,7 +10,7 @@ on:
 jobs:
   update-registry:
     name: Rebuild registry.json
-    runs-on: ubuntu-latest
+    runs-on: Sabtain_crestron_ai_skills
     permissions:
       contents: write
 
