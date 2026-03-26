@@ -8,7 +8,7 @@ Thank you for contributing! This guide explains how to create and submit a skill
 
 A skill is a **GitHub Copilot CLI extension** — a Node.js `.mjs` file that registers custom tools, hooks, and behaviors into Copilot CLI sessions. Skills in this registry must:
 
-- Have a valid `skill.json` manifest
+- Have a valid `skill.md` manifest
 - Include an `extension.mjs` entry point
 - Include a `README.md` documentation file
 - Pass automated CI validation
