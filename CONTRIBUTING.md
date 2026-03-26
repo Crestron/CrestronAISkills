@@ -20,7 +20,7 @@ A skill is a **GitHub Copilot CLI extension** — a Node.js `.mjs` file that reg
 ### 1. Fork & Clone
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/CrestronAISkills
+git clone https://github.com/CrestronEng/CrestronAISkills
 cd CrestronAISkills
 ```
 
@@ -45,7 +45,7 @@ skills/
   "author": "your-github-username",
   "entry": "extension.mjs",
   "license": "MIT",
-  "homepage": "https://github.com/YOUR-USERNAME/your-repo"
+  "homepage": "https://github.com/CrestronEng/your-repo"
 }
 ```
 
@@ -143,4 +143,4 @@ Update the `version` field in `skill.json` and open a PR with your changes. Foll
 
 ## Questions?
 
-Open a [GitHub Discussion](https://github.com/CrestronAISkills/CrestronAISkills/discussions) or file an [issue](https://github.com/CrestronAISkills/CrestronAISkills/issues).
+Open a [GitHub Discussion](https://github.com/CrestronEng/CrestronAISkills/discussions) or file an [issue](https://github.com/CrestronEng/CrestronAISkills/issues).

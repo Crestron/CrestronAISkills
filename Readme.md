@@ -42,7 +42,7 @@ install the example-skill from the marketplace
 
 ### Option 2 — Web UI
 
-Browse the marketplace at: **https://YOUR-ORG.github.io/CrestronAISkills**
+Browse the marketplace at: **https://CrestronEng.github.io/CrestronAISkills**
 
 ---
 

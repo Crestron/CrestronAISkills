@@ -10,11 +10,11 @@ import { homedir } from "node:os";
 
 const REGISTRY_URL =
     process.env.CRESTRON_REGISTRY_URL ||
-    "https://raw.githubusercontent.com/CrestronAISkills/CrestronAISkills/main/registry.json";
+    "https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main/registry.json";
 
 const SKILLS_BASE_URL =
     process.env.CRESTRON_SKILLS_BASE_URL ||
-    "https://raw.githubusercontent.com/CrestronAISkills/CrestronAISkills/main/skills";
+    "https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main/skills";
 
 const EXTENSIONS_DIR = join(homedir(), ".copilot", "extensions");
 

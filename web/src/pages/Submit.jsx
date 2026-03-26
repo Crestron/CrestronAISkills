@@ -5,7 +5,7 @@ import { getStoredUser } from "../utils/github.js";
 const REPO_URL =
     typeof __REPO_URL__ !== "undefined"
         ? __REPO_URL__
-        : "https://github.com/CrestronAISkills/CrestronAISkills";
+        : "https://github.com/CrestronEng/CrestronAISkills";
 
 const s = {
     page: { maxWidth: "760px", margin: "0 auto", padding: "40px 24px" },

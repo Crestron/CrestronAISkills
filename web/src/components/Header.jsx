@@ -5,7 +5,7 @@ import { getStoredUser, logout } from "../utils/github.js";
 const REPO_URL =
     typeof __REPO_URL__ !== "undefined"
         ? __REPO_URL__
-        : "https://github.com/CrestronAISkills/CrestronAISkills";
+        : "https://github.com/CrestronEng/CrestronAISkills";
 
 const s = {
     header: {

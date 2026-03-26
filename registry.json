@@ -7,11 +7,11 @@
       "version": "1.0.0",
       "description": "A starter example skill demonstrating the CrestronAISkills structure and extension API.",
       "tags": ["example", "demo", "starter"],
-      "author": "crestron-community",
+      "author": "CrestronEng",
       "path": "skills/example-skill",
       "entry": "extension.mjs",
       "license": "MIT",
-      "homepage": "https://github.com/CrestronAISkills/CrestronAISkills/tree/main/skills/example-skill"
+      "homepage": "https://github.com/CrestronEng/CrestronAISkills/tree/main/skills/example-skill"
     }
   ]
 }
