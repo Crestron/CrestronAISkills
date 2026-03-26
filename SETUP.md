@@ -2,6 +2,8 @@
 
 Follow these steps to get the marketplace live on GitHub Pages.
 
+> ⚠️ **Organisation IP Allow List:** If your GitHub org has an IP allow list enabled, GitHub-hosted Actions runners will be blocked. See [Deployment Options](#deployment-options) below for how to handle this.
+
 ---
 
 ## Step 1 — Create a GitHub OAuth App
@@ -31,30 +33,58 @@ Follow these steps to get the marketplace live on GitHub Pages.
 
 ## Step 3 — Enable GitHub Pages
 
-> ℹ️ **You don't need a separate GitHub Pages site.** GitHub automatically provides a Pages URL for any repository — yours will be `https://CrestronEng.github.io/CrestronAISkills` once enabled. No extra setup required.
+> ℹ️ **You don't need a separate GitHub Pages site.** GitHub automatically provides a Pages URL for any repository — yours will be `https://CrestronEng.github.io/CrestronAISkills` once enabled.
 
-> ℹ️ **Nothing to configure in the repo** — the `deploy-web.yml` workflow already handles building the React app, setting the correct base path, and deploying to Pages automatically on every push to `main`. This is a one-time flip in GitHub settings only.
-
-1. In your repo, go to **https://github.com/CrestronEng/CrestronAISkills/settings/pages**
-2. Under **Source**, select **"GitHub Actions"**
+1. Go to **https://github.com/CrestronEng/CrestronAISkills/settings/pages**
+2. Under **Source**, select **"GitHub Actions"** *(if using self-hosted runner or GitHub Actions)*
+   — OR — select **"Deploy from a branch"** → branch: `gh-pages` *(if deploying locally with the deploy script)*
 3. Click **Save**
-
-That's it — after the next push, GitHub Actions will build and deploy the site automatically. No further repo changes needed.
 
 ---
 
-## Step 4 — Push to GitHub
+## Step 4 — Deploy
 
-From your local repo folder, run:
+Choose the option that works for your environment:
 
-```bash
-git push origin main
+---
+
+### Option A — Self-Hosted Runner (Recommended for orgs with IP allow lists)
+
+Set up your own machine as a GitHub Actions runner so workflows run on your IP (which is already allowed).
+
+1. Go to **https://github.com/CrestronEng/CrestronAISkills/settings/actions/runners**
+2. Click **"New self-hosted runner"**
+3. Select your OS and follow the installation instructions shown on screen
+4. Once the runner is online, push any change to `main` to trigger the workflows:
+   ```bash
+   git commit --allow-empty -m "trigger: run workflows" && git push origin main
+   ```
+
+---
+
+### Option B — Local Deploy Script (No runner needed)
+
+Run everything on your machine. No GitHub Actions required.
+
+**On Windows (PowerShell):**
+```powershell
+# From the repo root
+.\scripts\deploy.ps1
 ```
 
-This triggers the GitHub Actions workflows which will:
+**On macOS/Linux:**
+```bash
+# From the repo root
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
+```
+
+This will:
 - ✅ Rebuild `registry.json` from all skills
 - ✅ Build the React web UI
-- ✅ Deploy to GitHub Pages at **https://CrestronEng.github.io/CrestronAISkills**
+- ✅ Push the built site to the `gh-pages` branch
+
+> Make sure GitHub Pages is set to **"Deploy from a branch" → `gh-pages`** (not "GitHub Actions") when using this option.
 
 ---
 
@@ -82,15 +112,24 @@ Then restart Copilot CLI. You can now say things like:
 
 ---
 
+## Deployment Options
+
+| Option | How | GitHub Pages Source setting |
+|--------|-----|-----------------------------|
+| **Self-hosted runner** | Install runner on your machine, push to `main` | "GitHub Actions" |
+| **Local deploy script** | Run `scripts/deploy.ps1` or `scripts/deploy.sh` | "Deploy from a branch" → `gh-pages` |
+
+---
+
 ## Summary
 
-| Step | Action | Where |
-|------|--------|-------|
-| 1 | Create GitHub OAuth App | https://github.com/settings/developers |
-| 2 | Add `VITE_GITHUB_CLIENT_ID` secret | GitHub repo → Settings → Secrets |
-| 3 | Enable GitHub Pages (source: GitHub Actions) | GitHub repo → Settings → Pages |
-| 4 | `git push origin main` | Your terminal |
-| 5 | Install marketplace extension locally | Your terminal |
+| Step | Action |
+|------|--------|
+| 1 | Create GitHub OAuth App at https://github.com/settings/developers |
+| 2 | Add `VITE_GITHUB_CLIENT_ID` secret in repo Settings → Secrets |
+| 3 | Enable GitHub Pages in repo Settings → Pages |
+| 4 | Deploy via self-hosted runner OR local deploy script |
+| 5 | Install marketplace extension locally (optional) |
 
 ---
 
