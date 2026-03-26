@@ -50,6 +50,16 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        id: pages
+        continue-on-error: true
+
+      - name: Fail with helpful message if Pages not enabled
+        if: steps.pages.outcome == 'failure'
+        run: |
+          echo "::error::GitHub Pages is not enabled for this repository."
+          echo "::error::Go to https://github.com/${{ github.repository }}/settings/pages"
+          echo "::error::Set Source to 'GitHub Actions', then re-run this workflow."
+          exit 1
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
