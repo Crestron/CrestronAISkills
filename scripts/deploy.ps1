@@ -49,7 +49,7 @@ Write-Host "`n=== Step 4: Build web app ===" -ForegroundColor Cyan
 Set-Location "$BaseDir\web"
 $env:VITE_REGISTRY_URL = $RegistryUrl
 $env:VITE_REPO_URL = $RepoUrl
-$env:VITE_BASE_PATH = "/CrestronAISkills/"
+$env:VITE_BASE_PATH = "/"
 npm run build
 Copy-Item "..\registry.json" "dist\registry.json" -Force
 Set-Location $BaseDir
@@ -84,3 +84,4 @@ if ($changes) {
 
 Set-Location $BaseDir
 git worktree remove $deployDir --force
+

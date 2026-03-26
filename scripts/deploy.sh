@@ -48,7 +48,7 @@ echo "=== Step 4: Build web app ==="
 cd web
 VITE_REGISTRY_URL="$REGISTRY_URL" \
 VITE_REPO_URL="$REPO_URL" \
-VITE_BASE_PATH="/CrestronAISkills/" \
+VITE_BASE_PATH="/" \
 npm run build
 cp ../registry.json dist/registry.json
 cd ..
@@ -79,3 +79,4 @@ else
 fi
 cd -
 git worktree remove /tmp/gh-pages-deploy --force
+
