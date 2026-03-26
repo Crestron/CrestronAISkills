@@ -1,6 +1,5 @@
 # Local deploy script for Windows PowerShell
-# Use this instead of GitHub Actions if runners are blocked.
-# Rebuilds registry.json, builds the web app, and deploys to the gh-pages branch.
+# Run this after merging a skill PR to rebuild the registry and redeploy the site.
 # Requirements: Node.js 18+, git
 
 $ErrorActionPreference = "Stop"
@@ -11,7 +10,10 @@ $BaseDir = Split-Path -Parent $PSScriptRoot
 
 Set-Location $BaseDir
 
-Write-Host "`n=== Step 1: Rebuild registry.json ===" -ForegroundColor Cyan
+Write-Host "`n=== Step 1: Pull latest changes from main ===" -ForegroundColor Cyan
+git pull origin main
+
+Write-Host "`n=== Step 2: Rebuild registry.json ===" -ForegroundColor Cyan
 node -e @"
 const fs = require('fs');
 const path = require('path');
@@ -32,7 +34,18 @@ fs.writeFileSync('registry.json', JSON.stringify(registry, null, 2) + '\n');
 console.log('Registry updated:', skills.length, 'skill(s)');
 "@
 
-Write-Host "`n=== Step 2: Build web app ===" -ForegroundColor Cyan
+Write-Host "`n=== Step 3: Commit registry.json back to main ===" -ForegroundColor Cyan
+git add registry.json
+$staged = git diff --cached --name-only
+if ($staged) {
+    git commit -m "chore: update registry.json [skip ci]"
+    git push origin main
+    Write-Host "  registry.json committed and pushed to main" -ForegroundColor Green
+} else {
+    Write-Host "  No registry changes to commit." -ForegroundColor Yellow
+}
+
+Write-Host "`n=== Step 4: Build web app ===" -ForegroundColor Cyan
 Set-Location "$BaseDir\web"
 $env:VITE_REGISTRY_URL = $RegistryUrl
 $env:VITE_REPO_URL = $RepoUrl
@@ -41,7 +54,7 @@ npm run build
 Copy-Item "..\registry.json" "dist\registry.json" -Force
 Set-Location $BaseDir
 
-Write-Host "`n=== Step 3: Deploy to gh-pages branch ===" -ForegroundColor Cyan
+Write-Host "`n=== Step 5: Deploy to gh-pages branch ===" -ForegroundColor Cyan
 $deployDir = "$env:TEMP\gh-pages-deploy-$(Get-Random)"
 $branch = "gh-pages"
 

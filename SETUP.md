@@ -2,7 +2,7 @@
 
 Follow these steps to get the marketplace live on GitHub Pages.
 
-> ⚠️ **Organisation IP Allow List:** If your GitHub org has an IP allow list enabled, GitHub-hosted Actions runners will be blocked. See [Deployment Options](#deployment-options) below for how to handle this.
+> ⚠️ **Organisation IP Allow List:** If your GitHub org has an IP allow list enabled, GitHub-hosted Actions runners will be blocked. See [Deployment Options](#step-4--deploy) below.
 
 ---
 
@@ -15,109 +15,113 @@ Follow these steps to get the marketplace live on GitHub Pages.
    - **Homepage URL:** `https://CrestronEng.github.io/CrestronAISkills`
    - **Authorization callback URL:** `https://github.com/login/device/code`
 4. Click **Register application**
-5. On the next page, copy the **Client ID** (looks like `Ov23liXXXXXXXXXXX`)
+5. Copy the **Client ID** (looks like `Ov23liXXXXXXXXXXX`)
 
 ---
 
 ## Step 2 — Add the Client ID as a Repository Secret
 
-1. Go to your repo on GitHub: **https://github.com/CrestronEng/CrestronAISkills**
-2. Click **Settings → Secrets and variables → Actions**
-3. Click **"New repository secret"**
-4. Set:
+1. Go to **https://github.com/CrestronEng/CrestronAISkills/settings/secrets/actions**
+2. Click **"New repository secret"**
+3. Set:
    - **Name:** `VITE_GITHUB_CLIENT_ID`
-   - **Value:** *(paste your Client ID from Step 1)*
-5. Click **Add secret**
+   - **Value:** *(paste your Client ID)*
+4. Click **Add secret**
 
 ---
 
 ## Step 3 — Enable GitHub Pages
 
-> ℹ️ **You don't need a separate GitHub Pages site.** GitHub automatically provides a Pages URL for any repository — yours will be `https://CrestronEng.github.io/CrestronAISkills` once enabled.
+> ℹ️ You don't need a separate GitHub Pages site — GitHub provides it free for any repo.
 
 1. Go to **https://github.com/CrestronEng/CrestronAISkills/settings/pages**
-2. Under **Source**, select **"GitHub Actions"** *(if using self-hosted runner or GitHub Actions)*
-   — OR — select **"Deploy from a branch"** → branch: `gh-pages` *(if deploying locally with the deploy script)*
+2. Set **Source** based on your deploy method:
+   - Using **GitHub Actions runner** → select `"GitHub Actions"`
+   - Using **local deploy script** → select `"Deploy from a branch"` → branch: `gh-pages`
 3. Click **Save**
 
 ---
 
 ## Step 4 — Deploy
 
-Choose the option that works for your environment:
+### Option A — Local Deploy Script *(use this if GitHub Actions runners are blocked)*
 
----
+After merging any PR that adds or updates a skill, run this from the repo root on your machine:
 
-### Option A — Self-Hosted Runner (Recommended for orgs with IP allow lists)
-
-Set up your own machine as a GitHub Actions runner so workflows run on your IP (which is already allowed).
-
-1. Go to **https://github.com/CrestronEng/CrestronAISkills/settings/actions/runners**
-2. Click **"New self-hosted runner"**
-3. Select your OS and follow the installation instructions shown on screen
-4. Once the runner is online, push any change to `main` to trigger the workflows:
-   ```bash
-   git commit --allow-empty -m "trigger: run workflows" && git push origin main
-   ```
-
----
-
-### Option B — Local Deploy Script (No runner needed)
-
-Run everything on your machine. No GitHub Actions required.
-
-**On Windows (PowerShell):**
+**Windows (PowerShell):**
 ```powershell
-# From the repo root
 .\scripts\deploy.ps1
 ```
 
-**On macOS/Linux:**
+**macOS/Linux:**
 ```bash
-# From the repo root
 chmod +x scripts/deploy.sh
 ./scripts/deploy.sh
 ```
 
-This will:
-- ✅ Rebuild `registry.json` from all skills
-- ✅ Build the React web UI
-- ✅ Push the built site to the `gh-pages` branch
+The script does everything automatically:
+1. Pulls latest `main`
+2. Rebuilds `registry.json` from all skills in `skills/`
+3. Commits & pushes updated `registry.json` back to `main`
+4. Builds the React web app
+5. Deploys built files to the `gh-pages` branch
 
-> Make sure GitHub Pages is set to **"Deploy from a branch" → `gh-pages`** (not "GitHub Actions") when using this option.
+> **This keeps both the website AND the Copilot CLI extension in sync** — the CLI reads `registry.json` from `main`, the website is served from `gh-pages`.
+
+---
+
+### Option B — Self-Hosted Runner *(automated, runs on your machine)*
+
+Set up your machine as a GitHub Actions runner so workflows trigger automatically on every merge.
+
+1. Go to **https://github.com/CrestronEng/CrestronAISkills/settings/actions/runners**
+2. Click **"New self-hosted runner"** and follow the setup instructions
+3. Once online, workflows run automatically — no manual steps needed
+
+---
+
+### Option C — Allow GitHub Actions IPs *(fully automated, best long term)*
+
+Ask your org admin to go to:
+**https://github.com/organizations/CrestronEng/settings/security**
+→ IP allow list → enable **"Allow GitHub Actions"**
+
+Once done, change Pages source back to **"GitHub Actions"** and workflows run fully automatically on every push to `main`.
 
 ---
 
 ## Step 5 — Install the Marketplace Extension (Optional)
 
-To use the marketplace directly inside Copilot CLI:
+Use the marketplace directly inside Copilot CLI:
 
-**On Windows (PowerShell):**
+**Windows (PowerShell):**
 ```powershell
 $dest = "$HOME\.copilot\extensions\marketplace"
 New-Item -ItemType Directory -Force -Path $dest
 Copy-Item ".github\extensions\marketplace\extension.mjs" "$dest\extension.mjs"
 ```
 
-**On macOS/Linux:**
+**macOS/Linux:**
 ```bash
 mkdir -p ~/.copilot/extensions/marketplace
 cp .github/extensions/marketplace/extension.mjs ~/.copilot/extensions/marketplace/
 ```
 
-Then restart Copilot CLI. You can now say things like:
+Restart Copilot CLI, then try:
 - *"search for skills about automation in the marketplace"*
 - *"install the example-skill from the marketplace"*
 - *"list my installed marketplace skills"*
 
 ---
 
-## Deployment Options
+## Maintainer Workflow (after merging a contributor PR)
 
-| Option | How | GitHub Pages Source setting |
-|--------|-----|-----------------------------|
-| **Self-hosted runner** | Install runner on your machine, push to `main` | "GitHub Actions" |
-| **Local deploy script** | Run `scripts/deploy.ps1` or `scripts/deploy.sh` | "Deploy from a branch" → `gh-pages` |
+```
+1. Contributor opens PR → you review → merge to main
+2. Run: .\scripts\deploy.ps1   (Windows)
+        ./scripts/deploy.sh    (macOS/Linux)
+3. Site and registry update automatically ✅
+```
 
 ---
 
@@ -125,14 +129,10 @@ Then restart Copilot CLI. You can now say things like:
 
 | Step | Action |
 |------|--------|
-| 1 | Create GitHub OAuth App at https://github.com/settings/developers |
-| 2 | Add `VITE_GITHUB_CLIENT_ID` secret in repo Settings → Secrets |
-| 3 | Enable GitHub Pages in repo Settings → Pages |
-| 4 | Deploy via self-hosted runner OR local deploy script |
+| 1 | Create GitHub OAuth App |
+| 2 | Add `VITE_GITHUB_CLIENT_ID` repo secret |
+| 3 | Enable GitHub Pages |
+| 4 | Deploy (local script, self-hosted runner, or allow GitHub Actions) |
 | 5 | Install marketplace extension locally (optional) |
 
----
-
-## Web UI URL
-
-Once live: **https://CrestronEng.github.io/CrestronAISkills**
+**Web UI:** https://CrestronEng.github.io/CrestronAISkills
