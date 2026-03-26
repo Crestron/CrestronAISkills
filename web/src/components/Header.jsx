@@ -1,6 +1,9 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getStoredUser, logout } from "../utils/github.js";
+import Logo from "./Logo.jsx";
+
+const OAUTH_ENABLED = !!import.meta.env.VITE_GITHUB_CLIENT_ID;
 
 const REPO_URL =
     typeof __REPO_URL__ !== "undefined"
@@ -74,7 +77,7 @@ export default function Header({ onLoginClick, onRefreshAuth }) {
     return (
         <header style={s.header}>
             <Link to="/" style={s.brand}>
-                <span>🔧</span>
+                <Logo size={24} color="var(--link)" />
                 <span>CrestronAISkills</span>
             </Link>
             <nav style={s.nav}>
@@ -92,10 +95,14 @@ export default function Header({ onLoginClick, onRefreshAuth }) {
                             {user.login}
                         </button>
                     </>
-                ) : (
+                ) : OAUTH_ENABLED ? (
                     <button style={s.btn} onClick={onLoginClick}>
                         Login with GitHub
                     </button>
+                ) : (
+                    <Link to="/submit" style={s.btn}>
+                        Submit a Skill
+                    </Link>
                 )}
             </nav>
         </header>

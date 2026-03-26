@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchRegistry } from "../utils/registry.js";
 import SkillCard from "../components/SkillCard.jsx";
+import Logo from "../components/Logo.jsx";
 
 const REPO_URL =
     typeof __REPO_URL__ !== "undefined"
@@ -85,7 +86,10 @@ export default function Home() {
     return (
         <div>
             <div style={s.hero}>
-                <h1 style={s.heroTitle}>🔧 CrestronAISkills</h1>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+                    <Logo size={56} color="var(--link)" />
+                </div>
+                <h1 style={s.heroTitle}>CrestronAISkills</h1>
                 <p style={s.heroSub}>
                     The community marketplace for GitHub Copilot CLI skills. Search, install, and
                     publish skills directly from your terminal.

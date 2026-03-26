@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getStoredUser } from "../utils/github.js";
 
 const REPO_URL =
     typeof __REPO_URL__ !== "undefined"
@@ -49,12 +47,7 @@ const s = {
         alignSelf: "flex-start",
     },
     loginBox: {
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius)",
-        padding: "40px",
-        textAlign: "center",
-        color: "var(--text-muted)",
+        display: "none",
     },
 };
 
