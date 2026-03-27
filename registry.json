@@ -1,15 +1,18 @@
 {
   "version": "1",
-  "updatedAt": "2026-03-27T18:12:48.826Z",
+  "updatedAt": "2026-03-27T18:23:34.475Z",
   "skills": [
     {
       "name": "android-string-translator",
-      "version": null,
-      "description": "Translates Android strings.xml files into multiple locales. Use when: translating strings, localizing Android app, adding new locales, running string translation workflow, translating XML resources. Handles marker-based incremental updates (translate only new strings below a marker) and full from-scratch translation. Applies brand-name exclusion rules, abbreviation rules, critic/back-translation QA, and merges output with an existing baseline. Works with any Android project using standard values/strings.xml format.",
+      "version": "1.0.0",
+      "description": "Translates Android strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.",
       "tags": [
-        null
+        "android",
+        "localization",
+        "translation",
+        "strings"
       ],
-      "author": null,
+      "author": "CrestronEng",
       "path": "skills/android-string-translator",
       "license": "MIT",
       "homepage": null
