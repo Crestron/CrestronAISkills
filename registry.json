@@ -1,7 +1,22 @@
 {
   "version": "1",
-  "updatedAt": "2026-03-26T22:12:01.827Z",
+  "updatedAt": "2026-03-27T16:14:36.284Z",
   "skills": [
+    {
+      "name": "crpc-test-client",
+      "version": "1.0.0",
+      "description": "Used for testing Crestron Home CRPC requests and responses. Use this to get information about or confirm the format of a specific CRPC request.",
+      "tags": [
+        "crestron-home",
+        "crpc",
+        "testing",
+        "verification"
+      ],
+      "author": "cturner",
+      "path": "skills/crpc-test-client",
+      "license": "MIT",
+      "homepage": null
+    },
     {
       "name": "example-skill",
       "version": "1.0.0",
