@@ -1,70 +1,66 @@
 # CrestronAISkills - Check for skill updates
 # Run this script manually to check all installed skills for available updates.
-# Usage: ~/.copilot/skills/check-updates.ps1
+# Usage: powershell -File check-updates.ps1
 
 $RegistryUrl = "https://friendly-system-1qwlq3v.pages.github.io/registry.json"
-$InstallDir  = "$env:USERPROFILE\.copilot\instructions"
+$PagesUrl    = "https://friendly-system-1qwlq3v.pages.github.io"
+$ConfigDir   = "$env:USERPROFILE\.copilot\skills"
 
-if (-not (Test-Path $InstallDir)) {
-    Write-Host "No skills installed (directory not found: $InstallDir)" -ForegroundColor Yellow
+Write-Host "`nCrestronAISkills — Checking for updates..." -ForegroundColor Cyan
+Write-Host ("─" * 50)
+
+# Find installed skills via config files
+$configs = @()
+if (Test-Path $ConfigDir) {
+    $configs = Get-ChildItem $ConfigDir -Filter "*-config.json" -File
+}
+
+if ($configs.Count -eq 0) {
+    Write-Host "No installed skills found. Download and run install.ps1 from the marketplace." -ForegroundColor Yellow
     exit 0
 }
 
 # Fetch the registry
-Write-Host "Fetching registry from $RegistryUrl ..." -ForegroundColor Cyan
 try {
-    $registry = Invoke-RestMethod $RegistryUrl
+    $registry = Invoke-RestMethod $RegistryUrl -UseBasicParsing
 } catch {
     Write-Host "ERROR: Could not fetch registry: $_" -ForegroundColor Red
     exit 1
 }
 
-$mdFiles = Get-ChildItem $InstallDir -Filter "*.md" -File
-if ($mdFiles.Count -eq 0) {
-    Write-Host "No skill files found in $InstallDir" -ForegroundColor Yellow
-    exit 0
-}
+foreach ($configFile in $configs) {
+    $config = Get-Content $configFile.FullName | ConvertFrom-Json
+    $name    = $config.name
+    $version = $config.version
+    $destMd  = Join-Path $config.projectPath ".github\skills\$name.md"
 
-foreach ($file in $mdFiles) {
-    $lines    = Get-Content $file.FullName
-    $fm       = @{}
-    $inFm     = $false
-
-    foreach ($line in $lines) {
-        if ($line -eq '---' -and -not $inFm) { $inFm = $true; continue }
-        if ($line -eq '---' -and $inFm)      { break }
-        if ($inFm -and ($line -match '^(\w+):\s*(.*)$')) {
-            $fm[$Matches[1]] = $Matches[2].Trim().Trim('"').Trim("'")
-        }
-    }
-
-    if (-not $fm['name']) { continue }
-
-    $installedName    = $fm['name']
-    $installedVersion = $fm['version']
-
-    $entry = $registry.skills | Where-Object { $_.name -eq $installedName } | Select-Object -First 1
+    $entry = $registry.skills | Where-Object { $_.name -eq $name } | Select-Object -First 1
 
     if (-not $entry) {
-        Write-Host "  ⚠ $installedName — not found in registry (may be a local-only skill)" -ForegroundColor DarkYellow
+        Write-Host "  ? $name — not found in registry" -ForegroundColor DarkYellow
         continue
     }
 
-    if ($entry.version -eq $installedVersion) {
-        Write-Host "  ✅ $installedName is up to date (v$installedVersion)" -ForegroundColor Green
+    if ($entry.version -eq $version) {
+        Write-Host "  ✅ $name v$version — up to date" -ForegroundColor Green
     } else {
-        Write-Host "  ⚠ $installedName has an update: v$installedVersion → v$($entry.version)" -ForegroundColor Yellow
-        $answer = Read-Host "     Update $installedName? (y/n)"
+        Write-Host "  ⚠  $name — update available: v$version → v$($entry.version)" -ForegroundColor Yellow
+        Write-Host "     Project: $($config.projectPath)"
+        $answer = Read-Host "     Update now? (y/n)"
         if ($answer -match '^[Yy]') {
-            $skillUrl = "https://friendly-system-1qwlq3v.pages.github.io/skills/$installedName/skill.md"
+            $skillUrl = "$PagesUrl/skills/$name/skill.md"
             try {
-                Invoke-WebRequest $skillUrl -OutFile $file.FullName -UseBasicParsing
-                Write-Host "     ✅ Updated $installedName to v$($entry.version)" -ForegroundColor Green
+                Invoke-WebRequest $skillUrl -OutFile $destMd -UseBasicParsing
+                $config.version = $entry.version
+                $config | ConvertTo-Json | Set-Content $configFile.FullName -Encoding UTF8
+                Write-Host "     ✅ Updated to v$($entry.version)" -ForegroundColor Green
             } catch {
-                Write-Host "     ERROR: Could not download update: $_" -ForegroundColor Red
+                Write-Host "     ERROR: $_" -ForegroundColor Red
             }
         } else {
             Write-Host "     Skipped." -ForegroundColor DarkGray
         }
     }
 }
+
+Write-Host ""
