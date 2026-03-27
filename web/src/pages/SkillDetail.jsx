@@ -129,25 +129,26 @@ export default function SkillDetail() {
         const PAGES_URL = "https://friendly-system-1qwlq3v.pages.github.io";
         const REGISTRY_URL = `${PAGES_URL}/registry.json`;
 
-        // Fetch the install script template from Pages
-        let template = "";
-        try {
-            const resp = await fetch(`${PAGES_URL}/install-skill-template.ps1`);
-            template = resp.ok ? await resp.text() : "";
-        } catch (_) { /* proceed without template */ }
-
-        // Replace placeholders
-        const installScript = template
+        const replacePlaceholders = (tmpl) => tmpl
             .replace(/__SKILL_NAME__/g, skill.name)
             .replace(/__SKILL_VERSION__/g, skill.version)
             .replace(/__REGISTRY_URL__/g, REGISTRY_URL)
             .replace(/__PAGES_URL__/g, PAGES_URL);
 
+        // Fetch both installer templates in parallel
+        const [psResp, shResp] = await Promise.allSettled([
+            fetch(`${PAGES_URL}/install-skill-template.ps1`),
+            fetch(`${PAGES_URL}/install-skill-template.sh`),
+        ]);
+        const psTemplate = psResp.status === "fulfilled" && psResp.value.ok ? await psResp.value.text() : "";
+        const shTemplate = shResp.status === "fulfilled" && shResp.value.ok ? await shResp.value.text() : "";
+
         const zip = new JSZip();
         zip.file("skill.md", content);
-        zip.file("install.ps1", installScript);
-        const blob = await zip.generateAsync({ type: "blob" });
+        if (psTemplate) zip.file("install.ps1", replacePlaceholders(psTemplate));
+        if (shTemplate) zip.file("install.sh", replacePlaceholders(shTemplate));
 
+        const blob = await zip.generateAsync({ type: "blob" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;

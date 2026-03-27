@@ -106,6 +106,10 @@ if (Test-Path "$BaseDir\scripts\install-skill-template.ps1") {
     Copy-Item "$BaseDir\scripts\install-skill-template.ps1" "dist\install-skill-template.ps1" -Force
     Write-Host "  Copied install-skill-template.ps1"
 }
+if (Test-Path "$BaseDir\scripts\install-skill-template.sh") {
+    Copy-Item "$BaseDir\scripts\install-skill-template.sh" "dist\install-skill-template.sh" -Force
+    Write-Host "  Copied install-skill-template.sh"
+}
 
 Set-Location $BaseDir
 

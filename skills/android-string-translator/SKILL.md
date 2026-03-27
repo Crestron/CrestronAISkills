@@ -1,6 +1,10 @@
 ---
 name: android-string-translator
-description: 'Translates Android strings.xml files into multiple locales. Use when: translating strings, localizing Android app, adding new locales, running string translation workflow, translating XML resources. Handles marker-based incremental updates (translate only new strings below a marker) and full from-scratch translation. Applies brand-name exclusion rules, abbreviation rules, critic/back-translation QA, and merges output with an existing baseline. Works with any Android project using standard values/strings.xml format.'
+version: 1.0.0
+description: Translates Android strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.
+tags: [android, localization, translation, strings]
+author: CrestronEng
+license: MIT
 argument-hint: 'Optional: path to strings.xml or project name'
 ---
 
