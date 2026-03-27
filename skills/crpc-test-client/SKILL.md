@@ -4,6 +4,7 @@ version: 1.0.0
 description: Used for testing Crestron Home CRPC requests and responses. Use this to get information about or confirm the format of a specific CRPC request.
 tags: [crestron-home, crpc, testing, verification]
 author: cturner
+homepage: https://github.com/Crestron/mobile-phoenix-utils/tree/master/crpc_test
 ---
 # Crestron RPC (CRPC) Test Client
 
