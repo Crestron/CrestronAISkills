@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updatedAt": "2026-03-27T16:41:22.341Z",
+  "updatedAt": "2026-03-27T17:49:34.722Z",
   "skills": [
     {
       "name": "android-string-translator",
@@ -42,6 +42,19 @@
       ],
       "author": "CrestronEng",
       "path": "skills/example-skill",
+      "license": "MIT",
+      "homepage": null
+    },
+    {
+      "name": "hello-world",
+      "version": "1.0.0",
+      "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
+      "tags": [
+        "test",
+        "hello-world"
+      ],
+      "author": "CrestronEng",
+      "path": "skills/hello-world",
       "license": "MIT",
       "homepage": null
     }
