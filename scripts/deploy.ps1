@@ -80,6 +80,20 @@ $env:VITE_REPO_URL = $RepoUrl
 $env:VITE_BASE_PATH = "/"
 npm run build
 Copy-Item "..\registry.json" "dist\registry.json" -Force
+
+# Copy each skill.md into dist so Pages serves them without auth
+$skillsSrc = "$BaseDir\skills"
+if (Test-Path $skillsSrc) {
+    foreach ($entry in Get-ChildItem $skillsSrc -Directory) {
+        $src = "$skillsSrc\$($entry.Name)\skill.md"
+        if (Test-Path $src) {
+            $destDir = "dist\skills\$($entry.Name)"
+            New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+            Copy-Item $src "$destDir\skill.md" -Force
+            Write-Host "  Copied skill: $($entry.Name)"
+        }
+    }
+}
 Set-Location $BaseDir
 
 Write-Host "`n=== Step 5: Deploy to gh-pages branch ===" -ForegroundColor Cyan

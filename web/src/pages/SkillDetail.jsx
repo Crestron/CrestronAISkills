@@ -37,32 +37,65 @@ const s = {
     metaItem: { display: "flex", flexDirection: "column", gap: "4px" },
     metaLabel: { fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" },
     metaValue: { fontSize: "0.9rem", fontWeight: 500 },
-    installBox: {
+    downloadBox: {
         background: "var(--surface)",
         border: "1px solid var(--border)",
         borderRadius: "var(--radius)",
         padding: "24px",
         marginBottom: "28px",
     },
-    installTitle: { fontWeight: 700, marginBottom: "16px", fontSize: "1rem" },
-    codeBlock: {
+    downloadTitle: { fontWeight: 700, marginBottom: "16px", fontSize: "1rem" },
+    btnRow: { display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "16px" },
+    btnPrimary: {
+        background: "var(--accent)",
+        color: "#fff",
+        border: "none",
+        borderRadius: "var(--radius)",
+        padding: "10px 20px",
+        fontSize: "0.9rem",
+        fontWeight: 600,
+        cursor: "pointer",
+        textDecoration: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+    },
+    btnSecondary: {
+        background: "transparent",
+        color: "var(--text)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius)",
+        padding: "10px 20px",
+        fontSize: "0.9rem",
+        cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+    },
+    hint: { color: "var(--text-muted)", fontSize: "0.82rem", lineHeight: 1.6 },
+    contentBox: {
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius)",
+        padding: "24px",
+        marginBottom: "28px",
+    },
+    contentTitle: { fontWeight: 700, marginBottom: "16px", fontSize: "1rem" },
+    pre: {
         background: "var(--bg)",
         border: "1px solid var(--border)",
         borderRadius: "var(--radius)",
-        padding: "12px 16px",
+        padding: "16px",
         fontFamily: "monospace",
-        fontSize: "0.88rem",
-        color: "var(--link)",
-        marginBottom: "12px",
+        fontSize: "0.85rem",
+        lineHeight: 1.6,
         overflowX: "auto",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        color: "var(--text)",
     },
-    hint: { color: "var(--text-muted)", fontSize: "0.82rem", lineHeight: 1.5 },
-    links: { display: "flex", gap: "16px", marginTop: "12px" },
-    linkBtn: {
-        color: "var(--link)",
-        fontSize: "0.88rem",
-        textDecoration: "none",
-    },
+    links: { display: "flex", gap: "16px", marginTop: "16px" },
+    linkBtn: { color: "var(--link)", fontSize: "0.88rem", textDecoration: "none" },
     notFound: { textAlign: "center", padding: "80px 24px", color: "var(--text-muted)" },
 };
 
@@ -70,6 +103,8 @@ export default function SkillDetail() {
     const { name } = useParams();
     const [skill, setSkill] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [content, setContent] = useState(null);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         fetchRegistry()
@@ -79,6 +114,38 @@ export default function SkillDetail() {
             })
             .finally(() => setLoading(false));
     }, [name]);
+
+    useEffect(() => {
+        if (!skill) return;
+        fetch(`/skills/${skill.name}/skill.md`)
+            .then((r) => r.ok ? r.text() : null)
+            .then((text) => setContent(text))
+            .catch(() => setContent(null));
+    }, [skill]);
+
+    const handleDownload = () => {
+        if (!content) return;
+        const blob = new Blob([content], { type: "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${skill.name}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleCopy = () => {
+        if (!content) return;
+        navigator.clipboard.writeText(content).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        });
+    };
+
+    // Strip YAML frontmatter for display
+    const bodyContent = content
+        ? content.replace(/^---[\s\S]*?---\n?/, "").trim()
+        : null;
 
     if (loading) return <div style={{ ...s.page, color: "var(--text-muted)" }}>Loading…</div>;
 
@@ -91,7 +158,6 @@ export default function SkillDetail() {
         );
     }
 
-    const rawBase = `${REPO_URL.replace("github.com", "raw.githubusercontent.com")}/main/${skill.path}`;
     const skillRepoPath = `${REPO_URL}/tree/main/${skill.path}`;
 
     return (
@@ -140,32 +206,33 @@ export default function SkillDetail() {
                 )}
             </div>
 
-            <div style={s.installBox}>
-                <div style={s.installTitle}>Installation</div>
-
-                <p style={{ ...s.hint, marginBottom: "12px" }}>
-                    <strong>Option 1</strong> — Copy to your repo's <code>.github/</code> folder or personal instructions folder:
-                </p>
-                <div style={s.codeBlock}>
-                    # Download skill to your repo's .github/ folder{"\n"}
-                    curl -o .github/{skill.name}.md {rawBase}/skill.md{"\n\n"}
-                    # Or copy to personal Copilot instructions folder{"\n"}
-                    curl -o ~/.copilot/instructions/{skill.name}.md {rawBase}/skill.md
+            <div style={s.downloadBox}>
+                <div style={s.downloadTitle}>Get This Skill</div>
+                <div style={s.btnRow}>
+                    <button style={s.btnPrimary} onClick={handleDownload} disabled={!content}>
+                        ⬇ Download skill.md
+                    </button>
+                    <button style={s.btnSecondary} onClick={handleCopy} disabled={!content}>
+                        {copied ? "✓ Copied!" : "📋 Copy to clipboard"}
+                    </button>
                 </div>
-
-                <p style={{ ...s.hint, marginBottom: "12px" }}>
-                    <strong>Option 2</strong> — View and copy manually:
+                <p style={s.hint}>
+                    Place the downloaded file in <code>.github/copilot-instructions.md</code> (repo-wide) or
+                    your personal <code>~/.copilot/instructions/</code> folder, then restart Copilot.
                 </p>
-
                 <div style={s.links}>
-                    <a href={`${skillRepoPath}/skill.md`} target="_blank" rel="noopener noreferrer" style={s.linkBtn}>
-                        View skill content ↗
-                    </a>
                     <a href={skillRepoPath} target="_blank" rel="noopener noreferrer" style={s.linkBtn}>
                         View source ↗
                     </a>
                 </div>
             </div>
+
+            {bodyContent && (
+                <div style={s.contentBox}>
+                    <div style={s.contentTitle}>Skill Instructions</div>
+                    <pre style={s.pre}>{bodyContent}</pre>
+                </div>
+            )}
         </div>
     );
-}
+}
