@@ -1,0 +1,32 @@
+Locale Code,Language,Script,Region
+ar,Arabic,Arabic,All Arabic-speaking regions
+b+sr+Latn,Serbian,Latin,—
+cs,Czech,Latin,Czech Republic
+da,Danish,Latin,Denmark
+de,German,Latin,Germany
+el,Greek,Greek,Greece
+en-rGB,English,Latin,Great Britain
+es,Spanish,Latin,Spain
+es-rUS,Spanish,Latin,United States
+fi,Finnish,Latin,Finland
+fr,French,Latin,France
+fr-rCA,French,Latin,Canada
+hr,Croatian,Latin,Croatia
+hu,Hungarian,Latin,Hungary
+it,Italian,Latin,Italy
+iw,Hebrew,Hebrew,Israel (legacy code - modern is he)
+ja,Japanese,Kanji/Hiragana/Katakana,Japan
+ko,Korean,Hangul,South Korea
+nb,Norwegian Bokmål,Latin,Norway
+nl,Dutch,Latin,Netherlands
+pl,Polish,Latin,Poland
+pt,Portuguese,Latin,Portugal
+pt-rBR,Portuguese,Latin,Brazil
+ro,Romanian,Latin,Romania
+ru,Russian,Cyrillic,Russia
+sk,Slovak,Latin,Slovakia
+sv,Swedish,Latin,Sweden
+th,Thai,Thai,Thailand
+tr,Turkish,Latin,Turkey
+zh-rCN,Chinese (Simplified),Simplified Han,China (Mainland)
+zh-rTW,Chinese (Traditional),Traditional Han,Taiwan
