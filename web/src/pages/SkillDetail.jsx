@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import JSZip from "jszip";
 import { fetchRegistry } from "../utils/registry.js";
 
 const REPO_URL =
@@ -123,7 +124,39 @@ export default function SkillDetail() {
             .catch(() => setContent(null));
     }, [skill]);
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
+        if (!content) return;
+        const PAGES_URL = "https://friendly-system-1qwlq3v.pages.github.io";
+        const REGISTRY_URL = `${PAGES_URL}/registry.json`;
+
+        // Fetch the install script template from Pages
+        let template = "";
+        try {
+            const resp = await fetch(`${PAGES_URL}/install-skill-template.ps1`);
+            template = resp.ok ? await resp.text() : "";
+        } catch (_) { /* proceed without template */ }
+
+        // Replace placeholders
+        const installScript = template
+            .replace(/__SKILL_NAME__/g, skill.name)
+            .replace(/__SKILL_VERSION__/g, skill.version)
+            .replace(/__REGISTRY_URL__/g, REGISTRY_URL)
+            .replace(/__PAGES_URL__/g, PAGES_URL);
+
+        const zip = new JSZip();
+        zip.file("skill.md", content);
+        zip.file("install.ps1", installScript);
+        const blob = await zip.generateAsync({ type: "blob" });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${skill.name}.zip`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleDownloadMdOnly = () => {
         if (!content) return;
         const blob = new Blob([content], { type: "text/markdown" });
         const url = URL.createObjectURL(blob);
@@ -210,20 +243,22 @@ export default function SkillDetail() {
                 <div style={s.downloadTitle}>Get This Skill</div>
                 <div style={s.btnRow}>
                     <button style={s.btnPrimary} onClick={handleDownload} disabled={!content}>
-                        ⬇ Download skill.md
+                        ⬇ Download &amp; Install
                     </button>
                     <button style={s.btnSecondary} onClick={handleCopy} disabled={!content}>
                         {copied ? "✓ Copied!" : "📋 Copy to clipboard"}
                     </button>
                 </div>
                 <p style={s.hint}>
-                    Place the downloaded file in <code>.github/copilot-instructions.md</code> (repo-wide) or
-                    your personal <code>~/.copilot/instructions/</code> folder, then restart Copilot.
+                    Download the zip and run <code>install.ps1</code> to install the skill and set up automatic weekly updates.
                 </p>
                 <div style={s.links}>
                     <a href={skillRepoPath} target="_blank" rel="noopener noreferrer" style={s.linkBtn}>
                         View source ↗
                     </a>
+                    <button style={{ ...s.linkBtn, background: "none", border: "none", padding: 0, cursor: "pointer" }} onClick={handleDownloadMdOnly} disabled={!content}>
+                        ⬇ Download skill.md only
+                    </button>
                 </div>
             </div>
 

@@ -18,10 +18,12 @@ $skillsDir = "skills"
 $skills = @()
 if (Test-Path $skillsDir) {
     foreach ($entry in Get-ChildItem $skillsDir -Directory) {
-        $skillMd = Join-Path $skillsDir $entry.Name "skill.md"
-        if (-not (Test-Path $skillMd)) { continue }
+        # Accept skill.md or SKILL.md (case-insensitive)
+        $skillMd = Get-ChildItem (Join-Path $skillsDir $entry.Name) -Filter "skill.md" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $skillMd) { continue }
+        $skillMdPath = $skillMd.FullName
         # Parse YAML frontmatter between the first two --- markers
-        $lines = Get-Content $skillMd
+        $lines = Get-Content $skillMdPath
         $fm = @{}
         $inFm = $false
         foreach ($line in $lines) {
@@ -85,15 +87,26 @@ Copy-Item "..\registry.json" "dist\registry.json" -Force
 $skillsSrc = "$BaseDir\skills"
 if (Test-Path $skillsSrc) {
     foreach ($entry in Get-ChildItem $skillsSrc -Directory) {
-        $src = "$skillsSrc\$($entry.Name)\skill.md"
-        if (Test-Path $src) {
+        $src = Get-ChildItem (Join-Path $skillsSrc $entry.Name) -Filter "skill.md" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($src) {
             $destDir = "dist\skills\$($entry.Name)"
             New-Item -ItemType Directory -Force -Path $destDir | Out-Null
-            Copy-Item $src "$destDir\skill.md" -Force
+            Copy-Item $src.FullName "$destDir\skill.md" -Force
             Write-Host "  Copied skill: $($entry.Name)"
         }
     }
 }
+
+# Copy update scripts to dist so they're downloadable from Pages
+if (Test-Path "$BaseDir\scripts\check-updates.ps1") {
+    Copy-Item "$BaseDir\scripts\check-updates.ps1" "dist\check-updates.ps1" -Force
+    Write-Host "  Copied check-updates.ps1"
+}
+if (Test-Path "$BaseDir\scripts\install-skill-template.ps1") {
+    Copy-Item "$BaseDir\scripts\install-skill-template.ps1" "dist\install-skill-template.ps1" -Force
+    Write-Host "  Copied install-skill-template.ps1"
+}
+
 Set-Location $BaseDir
 
 Write-Host "`n=== Step 5: Deploy to gh-pages branch ===" -ForegroundColor Cyan
