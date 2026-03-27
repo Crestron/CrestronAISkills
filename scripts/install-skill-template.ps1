@@ -7,38 +7,49 @@ $skillVersion = "__SKILL_VERSION__"
 $registryUrl  = "__REGISTRY_URL__"
 $pagesUrl     = "__PAGES_URL__"
 
-Write-Host "Installing skill: $skillName v$skillVersion" -ForegroundColor Cyan
+Write-Host "`nCrestronAISkills — Installing: $skillName v$skillVersion" -ForegroundColor Cyan
+Write-Host ("─" * 50)
 
-# 1. Create install directory
-$installDir = "$env:USERPROFILE\.copilot\instructions"
-if (-not (Test-Path $installDir)) {
-    New-Item -ItemType Directory -Force -Path $installDir | Out-Null
-    Write-Host "  Created $installDir"
+# 1. Ask user for project path
+$defaultPath = (Get-Location).Path
+$inputPath = Read-Host "Enter your project root path (press Enter for current directory)`n  [$defaultPath]"
+if ([string]::IsNullOrWhiteSpace($inputPath)) { $inputPath = $defaultPath }
+if (-not (Test-Path $inputPath)) {
+    Write-Host "ERROR: Path not found: $inputPath" -ForegroundColor Red
+    exit 1
+}
+$projectPath = (Resolve-Path $inputPath).Path
+Write-Host "  Project path: $projectPath"
+
+# 2. Create .github\skills\ folder in the project
+$skillsFolder = Join-Path $projectPath ".github\skills"
+if (-not (Test-Path $skillsFolder)) {
+    New-Item -ItemType Directory -Force -Path $skillsFolder | Out-Null
+    Write-Host "  Created $skillsFolder"
 }
 
-# 2. Copy skill.md from the zip (same directory as this script)
-$scriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sourceMd   = Join-Path $scriptDir "skill.md"
-$destMd     = "$installDir\$skillName.md"
+# 3. Copy skill.md from the zip (same directory as this script)
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$sourceMd  = Join-Path $scriptDir "skill.md"
+$destMd    = Join-Path $skillsFolder "$skillName.md"
 Copy-Item $sourceMd $destMd -Force
 Write-Host "  Installed skill to $destMd"
 
-# 3. Ensure BurntToast is available for update notifications
+# 4. Ensure BurntToast is available for update notifications
 if (-not (Get-Module -ListAvailable -Name BurntToast)) {
     Write-Host "  Installing BurntToast module for update notifications..."
     Install-Module BurntToast -Scope CurrentUser -Force
 }
 
-# 4. Create the skills config directory and write config file
-$skillsDir  = "$env:USERPROFILE\.copilot\skills"
-if (-not (Test-Path $skillsDir)) {
-    New-Item -ItemType Directory -Force -Path $skillsDir | Out-Null
-}
+# 5. Save config (includes project path for auto-updater)
+$configDir = "$env:USERPROFILE\.copilot\skills"
+if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Force -Path $configDir | Out-Null }
 
-$configPath = "$skillsDir\$skillName-config.json"
+$configPath = "$configDir\$skillName-config.json"
 $config = [ordered]@{
     name        = $skillName
     version     = $skillVersion
+    projectPath = $projectPath
     registryUrl = $registryUrl
     pagesUrl    = $pagesUrl
     installedAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
@@ -46,36 +57,35 @@ $config = [ordered]@{
 $config | ConvertTo-Json | Set-Content $configPath -Encoding UTF8
 Write-Host "  Config saved to $configPath"
 
-# 5. Write per-skill update script
-$updateScriptPath = "$skillsDir\update-$skillName.ps1"
+# 6. Write per-skill update script
+$updateScriptPath = "$configDir\update-$skillName.ps1"
 $updateScriptContent = @'
 # Auto-generated update script for __SKILL_NAME__
 $config = Get-Content "$env:USERPROFILE\.copilot\skills\__SKILL_NAME__-config.json" | ConvertFrom-Json
-$registry = Invoke-RestMethod $config.registryUrl
-$latest = ($registry.skills | Where-Object { $_.name -eq $config.name })
+try { $registry = Invoke-RestMethod $config.registryUrl } catch { exit 1 }
+$latest = $registry.skills | Where-Object { $_.name -eq $config.name } | Select-Object -First 1
 if (-not $latest) { exit }
 if ($latest.version -ne $config.version) {
+    $destMd   = Join-Path $config.projectPath ".github\skills\$($config.name).md"
     $skillUrl = "$($config.pagesUrl)/skills/$($config.name)/skill.md"
-    Invoke-WebRequest $skillUrl -OutFile "$env:USERPROFILE\.copilot\instructions\$($config.name).md"
+    Invoke-WebRequest $skillUrl -OutFile $destMd -UseBasicParsing
     $config.version = $latest.version
     $config | ConvertTo-Json | Set-Content "$env:USERPROFILE\.copilot\skills\$($config.name)-config.json"
     Import-Module BurntToast -ErrorAction SilentlyContinue
     New-BurntToastNotification -Text "CrestronAISkills", "Skill '$($config.name)' updated to v$($latest.version)" -ErrorAction SilentlyContinue
-    Write-Host "Updated $($config.name) to v$($latest.version)"
-} else {
-    Write-Host "$($config.name) is already up to date (v$($config.version))"
 }
 '@
-# Replace the placeholder with the actual skill name
 $updateScriptContent = $updateScriptContent -replace '__SKILL_NAME__', $skillName
 Set-Content $updateScriptPath $updateScriptContent -Encoding UTF8
 Write-Host "  Update script saved to $updateScriptPath"
 
-# 6. Register weekly Task Scheduler task
+# 7. Register weekly Task Scheduler task (no admin required)
 $action   = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -File `"$updateScriptPath`""
 $trigger  = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At "9:00AM"
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1) -RunOnlyIfNetworkAvailable
 Register-ScheduledTask -TaskName "CrestronSkill-$skillName" -Action $action -Trigger $trigger -Settings $settings -RunLevel Limited -Force | Out-Null
 Write-Host "  Scheduled task 'CrestronSkill-$skillName' registered (weekly, Monday 9am)"
 
-Write-Host "`n✅ Skill installed! Auto-updates scheduled every Monday at 9am." -ForegroundColor Green
+Write-Host "`n✅ Done! Skill installed to:" -ForegroundColor Green
+Write-Host "   $destMd" -ForegroundColor White
+Write-Host "   Auto-updates will run every Monday at 9am.`n" -ForegroundColor DarkGray
