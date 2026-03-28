@@ -64,6 +64,10 @@ cat > "$CONFIG_PATH" <<EOF
 EOF
 echo "  Config saved to $CONFIG_PATH"
 
+# 4b. Download check-updates.ps1 / check-updates.sh to config dir
+curl -sf -H "Authorization: token $GH_TOKEN" "$PAGES_URL/check-updates.ps1" -o "$CONFIG_DIR/check-updates.ps1" && echo "  check-updates.ps1 saved to $CONFIG_DIR/check-updates.ps1" || echo "  Warning: could not download check-updates.ps1"
+curl -sf -H "Authorization: token $GH_TOKEN" "$PAGES_URL/check-updates.sh" -o "$CONFIG_DIR/check-updates.sh" && chmod +x "$CONFIG_DIR/check-updates.sh" && echo "  check-updates.sh saved to $CONFIG_DIR/check-updates.sh" || echo "  Warning: could not download check-updates.sh"
+
 # 5. Write update script
 UPDATE_SCRIPT="$CONFIG_DIR/update-$SKILL_NAME.sh"
 cat > "$UPDATE_SCRIPT" <<'UPDATESCRIPT'

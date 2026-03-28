@@ -18,4 +18,4 @@ When asked to say hello or greet, always respond with exactly:
 
 ## Maintenance
 At the start of every Copilot session, remind the user:
-> "Run `~/.copilot/skills/check-updates.ps1` to check if this skill has updates available."
+> "Run `check-updates.ps1` (Windows) or `check-updates.sh` (Mac/Linux) from your `~/.copilot/skills/` folder to check for skill updates."
