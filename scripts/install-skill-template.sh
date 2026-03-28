@@ -42,11 +42,11 @@ if [ ! -d "$PROJECT_PATH" ]; then echo "ERROR: Path not found: $PROJECT_PATH"; e
 PROJECT_PATH=$(cd "$PROJECT_PATH" && pwd)
 echo "  Project path: $PROJECT_PATH"
 
-# 3. Install skill.md to .github/skills/
-SKILLS_FOLDER="$PROJECT_PATH/.github/skills"
+# 3. Install skill.md to .github/skills/<name>/
+SKILLS_FOLDER="$PROJECT_PATH/.github/skills/$SKILL_NAME"
 mkdir -p "$SKILLS_FOLDER"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEST_MD="$SKILLS_FOLDER/$SKILL_NAME.md"
+DEST_MD="$SKILLS_FOLDER/skill.md"
 cp "$SCRIPT_DIR/skill.md" "$DEST_MD"
 echo "  Installed to $DEST_MD"
 
@@ -81,7 +81,8 @@ REGISTRY=$(curl -sf -H "Authorization: token $GH_TOKEN" "$REGISTRY_URL")
 if [ -z "$REGISTRY" ]; then exit 1; fi
 LATEST_VER=$(echo "$REGISTRY" | python3 -c "import json,sys; r=json.load(sys.stdin); s=[x for x in r['skills'] if x['name']=='$SKILL_NAME']; print(s[0]['version'] if s else '')" 2>/dev/null)
 if [ -z "$LATEST_VER" ] || [ "$LATEST_VER" = "$INSTALLED_VER" ]; then exit 0; fi
-DEST_MD="$PROJECT_PATH/.github/skills/$SKILL_NAME.md"
+DEST_MD="$PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
+mkdir -p "$(dirname "$DEST_MD")"
 curl -sf -H "Authorization: token $GH_TOKEN" "$PAGES_URL/skills/$SKILL_NAME/skill.md" -o "$DEST_MD"
 sed -i.bak "s/\"version\": \"$INSTALLED_VER\"/\"version\": \"$LATEST_VER\"/" "$CONFIG_FILE" && rm -f "${CONFIG_FILE}.bak"
 # Notify
