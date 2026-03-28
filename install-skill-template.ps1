@@ -86,3 +86,4 @@ Write-Host "  Task Scheduler: CrestronSkill-$skillName (weekly Monday 9am)"
 
 Write-Host "`n✅ Done! Installed to: $destMd" -ForegroundColor Green
 Write-Host "   Auto-updates scheduled every Monday at 9am.`n" -ForegroundColor DarkGray
+
