@@ -2,8 +2,8 @@
 # Run this script manually to check all installed skills for available updates.
 # Usage: powershell -File check-updates.ps1
 
-$RegistryUrl = "https://friendly-system-1qwlq3v.pages.github.io/registry.json"
-$PagesUrl    = "https://friendly-system-1qwlq3v.pages.github.io"
+$RegistryUrl = "https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/gh-pages/registry.json"
+$PagesUrl    = "https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/gh-pages"
 $ConfigDir   = "$env:USERPROFILE\.copilot\skills"
 
 Write-Host "`nCrestronAISkills — Checking for updates..." -ForegroundColor Cyan
