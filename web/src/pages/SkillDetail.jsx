@@ -126,8 +126,9 @@ export default function SkillDetail() {
 
     const handleDownload = async () => {
         if (!content) return;
-        const PAGES_URL = "https://friendly-system-1qwlq3v.pages.github.io";
-        const REGISTRY_URL = `${PAGES_URL}/registry.json`;
+        const RAW_BASE_URL = "https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/gh-pages";
+        const PAGES_URL = RAW_BASE_URL;
+        const REGISTRY_URL = `${RAW_BASE_URL}/registry.json`;
 
         const replacePlaceholders = (tmpl) => tmpl
             .replace(/__SKILL_NAME__/g, skill.name)
