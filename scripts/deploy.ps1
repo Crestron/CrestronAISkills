@@ -102,6 +102,10 @@ if (Test-Path "$BaseDir\scripts\check-updates.ps1") {
     Copy-Item "$BaseDir\scripts\check-updates.ps1" "dist\check-updates.ps1" -Force
     Write-Host "  Copied check-updates.ps1"
 }
+if (Test-Path "$BaseDir\scripts\check-updates.sh") {
+    Copy-Item "$BaseDir\scripts\check-updates.sh" "dist\check-updates.sh" -Force
+    Write-Host "  Copied check-updates.sh"
+}
 if (Test-Path "$BaseDir\scripts\install-skill-template.ps1") {
     Copy-Item "$BaseDir\scripts\install-skill-template.ps1" "dist\install-skill-template.ps1" -Force
     Write-Host "  Copied install-skill-template.ps1"
