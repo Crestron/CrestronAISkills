@@ -49,12 +49,15 @@ Write-Host "  Installed to $destMd"
 $configPath = Join-Path $configDir "$skillName-config.json"
 [ordered]@{ name=$skillName; version=$skillVersion; projectPath=$projectPath; registryUrl=$registryUrl; pagesUrl=$pagesUrl; installedAt=(Get-Date -Format 'o') } | ConvertTo-Json | Set-Content $configPath -Encoding UTF8
 
-# 4b. Download check-updates.ps1 to config dir (so skill's reminder works)
-$checkUpdatesPath = Join-Path $configDir "check-updates.ps1"
+# 4b. Download check-updates scripts to config dir (so skill's reminder works)
 try {
-    Invoke-WebRequest "$pagesUrl/check-updates.ps1" -OutFile $checkUpdatesPath -Headers $headers -UseBasicParsing
-    Write-Host "  check-updates.ps1 saved to $checkUpdatesPath"
+    Invoke-WebRequest "$pagesUrl/scripts/check-updates.ps1" -OutFile (Join-Path $configDir "check-updates.ps1") -Headers $headers -UseBasicParsing
+    Write-Host "  check-updates.ps1 saved to $configDir"
 } catch { Write-Host "  Warning: could not download check-updates.ps1" -ForegroundColor Yellow }
+try {
+    Invoke-WebRequest "$pagesUrl/scripts/check-updates.sh" -OutFile (Join-Path $configDir "check-updates.sh") -Headers $headers -UseBasicParsing
+    Write-Host "  check-updates.sh saved to $configDir"
+} catch { Write-Host "  Warning: could not download check-updates.sh" -ForegroundColor Yellow }
 
 # 5. Write update script
 $updateScriptPath = Join-Path $configDir "update-$skillName.ps1"
