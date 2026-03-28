@@ -1,0 +1,85 @@
+{
+  "name": "crestron-ai-skills",
+  "metadata": {
+    "description": "Official collection of GitHub Copilot skills for Crestron AV and smart home development",
+    "version": "1.0.0",
+    "skillRoot": "./skills"
+  },
+  "owner": {
+    "name": "CrestronEng",
+    "email": "copilot@crestron.com"
+  },
+  "skills": [
+    {
+      "name": "android-string-translator",
+      "source": "android-string-translator",
+      "description": "Translates Android strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.",
+      "version": "1.0.0",
+      "author": {
+        "name": "CrestronEng",
+        "url": "https://github.com/CrestronEng"
+      },
+      "keywords": [
+        "android",
+        "localization",
+        "translation",
+        "strings"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/CrestronEng/CrestronAISkills"
+    },
+    {
+      "name": "crpc-test-client",
+      "source": "crpc-test-client",
+      "description": "Used for testing Crestron Home CRPC requests and responses. Use this to get information about or confirm the format of a specific CRPC request.",
+      "version": "1.0.0",
+      "author": {
+        "name": "cturner",
+        "url": "https://github.com/CrestronEng"
+      },
+      "keywords": [
+        "crestron-home",
+        "crpc",
+        "testing",
+        "verification"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/CrestronEng/CrestronAISkills"
+    },
+    {
+      "name": "example-skill",
+      "source": "example-skill",
+      "description": "A starter example showing how to write a Copilot skill for Crestron AV and smart home systems.",
+      "version": "1.0.0",
+      "author": {
+        "name": "CrestronEng",
+        "url": "https://github.com/CrestronEng"
+      },
+      "keywords": [
+        "example",
+        "demo",
+        "starter",
+        "crestron",
+        "av"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/CrestronEng/CrestronAISkills"
+    },
+    {
+      "name": "hello-world",
+      "source": "hello-world",
+      "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
+      "version": "1.0.3",
+      "author": {
+        "name": "CrestronEng",
+        "url": "https://github.com/CrestronEng"
+      },
+      "keywords": [
+        "test",
+        "hello-world"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/CrestronEng/CrestronAISkills"
+    }
+  ]
+}
