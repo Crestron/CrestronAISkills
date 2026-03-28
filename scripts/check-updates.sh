@@ -3,8 +3,8 @@
 # Run this script manually to check all installed skills for available updates.
 # Usage: bash ~/.copilot/skills/check-updates.sh
 
-REGISTRY_URL="https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/gh-pages/registry.json"
-PAGES_URL="https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/gh-pages"
+REGISTRY_URL="https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main/registry.json"
+PAGES_URL="https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main"
 CONFIG_DIR="$HOME/.copilot/skills"
 TOKEN_FILE="$CONFIG_DIR/github-token"
 GH_TOKEN=$(cat "$TOKEN_FILE" 2>/dev/null)
@@ -64,3 +64,4 @@ with open('$CONFIG_FILE','w') as f: json.dump(d,f,indent=2)
 done
 
 echo ""
+
