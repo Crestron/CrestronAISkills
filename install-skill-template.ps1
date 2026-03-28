@@ -37,11 +37,11 @@ if ([string]::IsNullOrWhiteSpace($inputPath)) { $inputPath = $defaultPath }
 if (-not (Test-Path $inputPath)) { Write-Host "ERROR: Path not found." -ForegroundColor Red; exit 1 }
 $projectPath = (Resolve-Path $inputPath).Path
 
-# 3. Install skill.md to .github\skills\
-$skillsFolder = Join-Path $projectPath ".github\skills"
+# 3. Install skill.md to .github\skills\<name>\
+$skillsFolder = Join-Path $projectPath ".github\skills\$skillName"
 New-Item -ItemType Directory -Force -Path $skillsFolder | Out-Null
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$destMd = Join-Path $skillsFolder "$skillName.md"
+$destMd = Join-Path $skillsFolder "skill.md"
 Copy-Item (Join-Path $scriptDir "skill.md") $destMd -Force
 Write-Host "  Installed to $destMd"
 

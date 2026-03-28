@@ -32,7 +32,7 @@ foreach ($configFile in $configs) {
     $config = Get-Content $configFile.FullName | ConvertFrom-Json
     $name    = $config.name
     $version = $config.version
-    $destMd  = Join-Path $config.projectPath ".github\skills\$name.md"
+    $destMd  = Join-Path $config.projectPath ".github\skills\$name\skill.md"
 
     $entry = $registry.skills | Where-Object { $_.name -eq $name } | Select-Object -First 1
 
