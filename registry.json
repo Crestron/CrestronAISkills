@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updatedAt": "2026-03-28T16:21:31.059Z",
+  "updatedAt": "2026-03-28T16:22:25.825Z",
   "skills": [
     {
       "name": "android-string-translator",
@@ -50,7 +50,7 @@
     },
     {
       "name": "hello-world",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
       "tags": [
         "test",
