@@ -140,19 +140,19 @@ export default function SkillDetail() {
     const handleDownload = async () => {
         if (!content) return;
         const RAW_BASE_URL = "https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main";
-        const PAGES_URL = RAW_BASE_URL;
         const REGISTRY_URL = `${RAW_BASE_URL}/registry.json`;
 
         const replacePlaceholders = (tmpl) => tmpl
             .replace(/__SKILL_NAME__/g, skill.name)
             .replace(/__SKILL_VERSION__/g, skill.version)
             .replace(/__REGISTRY_URL__/g, REGISTRY_URL)
-            .replace(/__PAGES_URL__/g, PAGES_URL);
+            .replace(/__PAGES_URL__/g, RAW_BASE_URL);
 
+        // Fetch skill.md and install scripts from same-origin (gh-pages) — avoids CORS/auth issues
         const [skillResp, psResp, shResp] = await Promise.allSettled([
-            fetch(`${RAW_BASE_URL}/skills/${skill.name}/skill.md`),
-            fetch(`${PAGES_URL}/install-skill-template.ps1`),
-            fetch(`${PAGES_URL}/install-skill-template.sh`),
+            fetch(`/skills/${skill.name}/skill.md`),
+            fetch(`/install-skill-template.ps1`),
+            fetch(`/install-skill-template.sh`),
         ]);
         const skillContent = skillResp.status === "fulfilled" && skillResp.value.ok ? await skillResp.value.text() : content;
         const psTemplate = psResp.status === "fulfilled" && psResp.value.ok ? await psResp.value.text() : "";
