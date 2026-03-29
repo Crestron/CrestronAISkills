@@ -7,53 +7,87 @@
 
 ---
 
-## 🚀 What Is This?
+## What Is This?
 
 CrestronAISkills is an **internal skills marketplace** for [GitHub Copilot](https://docs.github.com/copilot). It provides:
 
-- 🔍 **Search & browse** skills by keyword, tag, or author
-- ⬇️ **Install** skills with a one-click installer script
-- 🔄 **Auto-update** via Task Scheduler (Windows) or cron/launchd (Mac/Linux)
-- 📤 **Publish** your own skills via a pull request
+- Search and browse skills by keyword, tag, or author
+- Install skills with a one-click installer script
+- Auto-update via Task Scheduler (Windows) or cron/launchd (Mac/Linux)
+- Publish your own skills via a pull request
 
 ---
 
-## 🛠️ Installing a Skill
+## Before You Start — Create a GitHub PAT
+
+The installer needs a **Personal Access Token (PAT)** to download skills from this private repository. You only need to do this once.
+
+### Steps to create your PAT
+
+1. Go to **GitHub** and sign in
+2. Click your **profile picture** (top right) → **Settings**
+3. Scroll down the left sidebar → click **Developer settings**
+4. Click **Personal access tokens** → **Tokens (classic)**
+5. Click **Generate new token (classic)**
+6. Fill in the form:
+   - **Note**: `CrestronAISkills` (so you remember what it's for)
+   - **Expiration**: `1 year` (or `No expiration` for a shared machine)
+   - **Scopes**: tick **`repo`** (this gives read access to private repos)
+7. Click **Generate token**
+8. **Copy the token immediately** — GitHub will not show it again
+
+> Keep this token private. Do not share it or commit it to any repository.
+
+---
+
+## Installing a Skill
 
 ### Step 1 — Browse the Marketplace
 
-Open the web UI and find a skill you want.
+Open the web UI: **https://friendly-system-1qwlq3v.pages.github.io/**
 
-### Step 2 — Download & Run the Installer
+Find a skill and click it to open the detail page.
 
-From the skill's detail page, click **"Download & Install"** to get a zip containing:
-- `install-<skill-name>.ps1` (Windows) or `install-<skill-name>.sh` (Mac/Linux)
+### Step 2 — Download the Installer
+
+On the skill's detail page, go to the **Install** tab and click **"Download & Install"**.
+
+This downloads a zip file containing:
+- `install.ps1` — Windows installer
+- `install.sh` — Mac/Linux installer
+- `skill.md` — the skill file itself
+
+Extract the zip, then run the installer from a terminal.
+
+### Step 3 — Run the Installer
 
 **Windows (PowerShell):**
 ```powershell
-.\install-<skill-name>.ps1 -Token <your-github-pat> -ProjectPath "C:\path\to\your\project"
+.\install.ps1 -Token <your-github-pat> -ProjectPath "C:\path\to\your\project"
 ```
 
 **Mac/Linux (bash):**
 ```bash
-chmod +x install-<skill-name>.sh
-./install-<skill-name>.sh --token <your-github-pat> --project /path/to/your/project
+chmod +x install.sh
+./install.sh --token <your-github-pat> --project /path/to/your/project
 ```
+
+Replace `<your-github-pat>` with the token you created above, and set the project path to the root of the repo you want the skill installed into.
 
 The installer will:
 1. Download the skill to `<project>/.github/skills/<skill-name>/skill.md`
-2. Save metadata to `~/.copilot/skills/`
-3. Register a weekly auto-update task (Task Scheduler / cron / launchd)
+2. Save your token and metadata to `~/.copilot/skills/`
+3. Register a **weekly auto-update task** (Task Scheduler on Windows, cron on Mac/Linux)
 
-### Step 3 — Use the Skill in Copilot
+### Step 4 — Use the Skill in Copilot
 
-The skill is now available in your project. Copilot will pick it up from `.github/skills/`.
+The skill is now active in your project. GitHub Copilot picks it up automatically from `.github/skills/`.
 
 ---
 
-## 🔄 Updating Skills
+## Updating Skills
 
-**Check all installed skills for updates:**
+**Check all installed skills for updates manually:**
 
 ```powershell
 # Windows
@@ -64,11 +98,11 @@ The skill is now available in your project. Copilot will pick it up from `.githu
 ~/.copilot/skills/check-updates.sh
 ```
 
-Auto-updates run weekly in the background via Task Scheduler / cron / launchd.
+Auto-updates also run weekly in the background — no action needed.
 
 ---
 
-## 📝 Publishing a Skill
+## Publishing a Skill
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
@@ -80,7 +114,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 CrestronAISkills/
@@ -102,21 +136,12 @@ CrestronAISkills/
 
 ---
 
-## 🔑 GitHub PAT Requirements
-
-The installer requires a GitHub Personal Access Token (PAT) with:
-- `repo` scope (to read private repo contents)
-
-Store your token securely — it is saved to `~/.copilot/skills/github-token` on your machine and used only for downloading skills and checking updates from this repo.
-
----
-
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 
 ---
 
-## 📄 License
+## License
 
 MIT
