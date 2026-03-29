@@ -86,7 +86,7 @@ export default function Search() {
                         style={{ ...s.tagBtn(false), color: "var(--link)", marginBottom: "8px" }}
                         onClick={() => setSelectedTags([])}
                     >
-                        ✕ Clear filters
+                        Clear filters
                     </button>
                 )}
                 {allTags.map(({ tag, count }) => (

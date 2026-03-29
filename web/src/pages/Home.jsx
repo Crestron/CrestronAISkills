@@ -48,26 +48,27 @@ const s = {
     features: {
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: "20px",
+        gap: "1px",
         marginTop: "48px",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius)",
+        overflow: "hidden",
+        background: "var(--border)",
     },
     feature: {
         background: "var(--surface)",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius)",
-        padding: "24px",
+        padding: "24px 20px",
     },
-    featureIcon: { fontSize: "1.8rem", marginBottom: "10px" },
-    featureTitle: { fontWeight: 600, marginBottom: "6px" },
+    featureTitle: { fontWeight: 600, marginBottom: "6px", fontSize: "0.9rem" },
     featureDesc: { color: "var(--text-muted)", fontSize: "0.88rem", lineHeight: 1.5 },
     loading: { color: "var(--text-muted)", textAlign: "center", padding: "40px" },
 };
 
 const FEATURES = [
-    { icon: "🔍", title: "Search Skills", desc: "Find skills by keyword, tag, or author instantly." },
-    { icon: "⬇️", title: "One-Command Install", desc: "Install any skill directly from Copilot CLI terminal." },
-    { icon: "🌐", title: "Web Marketplace", desc: "Browse and discover skills in your browser." },
-    { icon: "📤", title: "Publish Your Own", desc: "Share your skills via a simple pull request." },
+    { title: "Search Skills", desc: "Find skills by keyword, tag, or author instantly." },
+    { title: "One-Command Install", desc: "Install any skill directly from the Copilot CLI terminal." },
+    { title: "Web Marketplace", desc: "Browse and discover skills in your browser." },
+    { title: "Publish Your Own", desc: "Share your skills with the team via a simple pull request." },
 ];
 
 export default function Home() {
@@ -91,8 +92,8 @@ export default function Home() {
                 </div>
                 <h1 style={s.heroTitle}>CrestronAISkills</h1>
                 <p style={s.heroSub}>
-                    The community marketplace for GitHub Copilot CLI skills. Search, install, and
-                    publish skills directly from your terminal.
+                    An internal marketplace for GitHub Copilot skills. Browse, install, and
+                    auto-update skills built for Crestron engineers.
                 </p>
                 <div style={s.heroBtns}>
                     <Link to="/search" style={s.btnPrimary}>
@@ -105,7 +106,6 @@ export default function Home() {
                 <div style={s.features}>
                     {FEATURES.map((f) => (
                         <div key={f.title} style={s.feature}>
-                            <div style={s.featureIcon}>{f.icon}</div>
                             <div style={s.featureTitle}>{f.title}</div>
                             <div style={s.featureDesc}>{f.desc}</div>
                         </div>
