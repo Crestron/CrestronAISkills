@@ -15,15 +15,31 @@ echo "────────────────────────�
 CONFIG_DIR="$HOME/.copilot/skills"
 mkdir -p "$CONFIG_DIR"
 
+# Parse arguments: --token <pat> --project <path>
+ARG_TOKEN=""
+ARG_PROJECT=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --token) ARG_TOKEN="$2"; shift 2 ;;
+        --project) ARG_PROJECT="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
 # 1. Get or reuse stored GitHub PAT
 TOKEN_FILE="$CONFIG_DIR/github-token"
-if [ -f "$TOKEN_FILE" ]; then
+if [ -n "$ARG_TOKEN" ]; then
+    GH_TOKEN="$ARG_TOKEN"
+    echo "$GH_TOKEN" > "$TOKEN_FILE"
+    chmod 600 "$TOKEN_FILE"
+    echo "  Token saved to $TOKEN_FILE"
+elif [ -f "$TOKEN_FILE" ]; then
     GH_TOKEN=$(cat "$TOKEN_FILE")
     echo "  Using stored GitHub token."
 else
     echo ""
-    echo "  A GitHub Personal Access Token (PAT) with 'read:org' scope is required"
-    echo "  for auto-updates (private Pages site). You only need to enter this once."
+    echo "  A GitHub Personal Access Token (PAT) with 'repo' scope is required"
+    echo "  for auto-updates (private repo). You only need to enter this once."
     echo ""
     read -rsp "  Enter your GitHub PAT: " GH_TOKEN
     echo ""
@@ -33,11 +49,15 @@ else
     echo "  Token saved to $TOKEN_FILE"
 fi
 
-# 2. Ask for project path
-DEFAULT_PATH=$(pwd)
-echo ""
-read -rp "Enter your project root path (press Enter for: $DEFAULT_PATH): " PROJECT_PATH
-if [ -z "$PROJECT_PATH" ]; then PROJECT_PATH="$DEFAULT_PATH"; fi
+# 2. Get project path
+if [ -n "$ARG_PROJECT" ]; then
+    PROJECT_PATH="$ARG_PROJECT"
+else
+    DEFAULT_PATH=$(pwd)
+    echo ""
+    read -rp "Enter your project root path (press Enter for: $DEFAULT_PATH): " PROJECT_PATH
+    if [ -z "$PROJECT_PATH" ]; then PROJECT_PATH="$DEFAULT_PATH"; fi
+fi
 if [ ! -d "$PROJECT_PATH" ]; then echo "ERROR: Path not found: $PROJECT_PATH"; exit 1; fi
 PROJECT_PATH=$(cd "$PROJECT_PATH" && pwd)
 echo "  Project path: $PROJECT_PATH"
