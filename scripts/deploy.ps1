@@ -83,16 +83,20 @@ $env:VITE_BASE_PATH = "/"
 npm run build
 Copy-Item "..\registry.json" "dist\registry.json" -Force
 
-# Copy each skill.md into dist so Pages serves them without auth
+# Copy each full skill folder into dist so Pages serves all assets and references
 $skillsSrc = "$BaseDir\skills"
 if (Test-Path $skillsSrc) {
     foreach ($entry in Get-ChildItem $skillsSrc -Directory) {
-        $src = Get-ChildItem (Join-Path $skillsSrc $entry.Name) -Filter "skill.md" -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($src) {
+        $skillMd = Get-ChildItem (Join-Path $skillsSrc $entry.Name) -Filter "skill.md" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($skillMd) {
             $destDir = "dist\skills\$($entry.Name)"
-            New-Item -ItemType Directory -Force -Path $destDir | Out-Null
-            Copy-Item $src.FullName "$destDir\skill.md" -Force
-            Write-Host "  Copied skill: $($entry.Name)"
+            Copy-Item (Join-Path $skillsSrc $entry.Name) $destDir -Recurse -Force
+            # Generate files.json manifest so the web app knows what to include in the download zip
+            $skillRoot = Join-Path $skillsSrc $entry.Name
+            $fileList = Get-ChildItem $skillRoot -Recurse -File |
+                ForEach-Object { $_.FullName.Substring($skillRoot.Length + 1).Replace('\', '/') }
+            $fileList | ConvertTo-Json -Compress | Set-Content "$destDir\files.json" -Encoding UTF8
+            Write-Host "  Copied skill: $($entry.Name) ($($fileList.Count) file(s))"
         }
     }
 }
@@ -129,6 +133,10 @@ if ($LASTEXITCODE -eq 0) {
 } else {
     git worktree add --orphan -b $branch $deployDir
 }
+
+# Remove stale skills folder so renamed/deleted skills don't persist on gh-pages
+$worktreeSkills = Join-Path $deployDir "skills"
+if (Test-Path $worktreeSkills) { Remove-Item $worktreeSkills -Recurse -Force }
 
 Copy-Item "$BaseDir\web\dist\*" $deployDir -Recurse -Force
 New-Item -ItemType File -Path "$deployDir\.nojekyll" -Force | Out-Null

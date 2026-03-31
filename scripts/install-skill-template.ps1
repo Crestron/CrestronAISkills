@@ -37,13 +37,19 @@ if ([string]::IsNullOrWhiteSpace($inputPath)) { $inputPath = $defaultPath }
 if (-not (Test-Path $inputPath)) { Write-Host "ERROR: Path not found." -ForegroundColor Red; exit 1 }
 $projectPath = (Resolve-Path $inputPath).Path
 
-# 3. Install skill.md to .github\skills\<name>\
+# 3. Install all skill files to .github\skills\<name>\
 $skillsFolder = Join-Path $projectPath ".github\skills\$skillName"
 New-Item -ItemType Directory -Force -Path $skillsFolder | Out-Null
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Get-ChildItem $scriptDir -Recurse -File | Where-Object { $_.Name -notin @('install.ps1', 'install.sh') } | ForEach-Object {
+    $relPath = $_.FullName.Substring($scriptDir.Length + 1)
+    $dest = Join-Path $skillsFolder $relPath
+    $destParent = Split-Path -Parent $dest
+    if (-not (Test-Path $destParent)) { New-Item -ItemType Directory -Force -Path $destParent | Out-Null }
+    Copy-Item $_.FullName $dest -Force
+}
 $destMd = Join-Path $skillsFolder "skill.md"
-Copy-Item (Join-Path $scriptDir "skill.md") $destMd -Force
-Write-Host "  Installed to $destMd"
+Write-Host "  Installed to $skillsFolder"
 
 # 4. Save config
 $configPath = Join-Path $configDir "$skillName-config.json"
@@ -68,7 +74,13 @@ $updateScriptPath = Join-Path $configDir "update-$skillName.ps1"
 try { `$r = Invoke-RestMethod `$c.registryUrl -Headers `$h } catch { exit 1 }
 `$l = `$r.skills | Where-Object { `$_.name -eq `$c.name } | Select-Object -First 1
 if (-not `$l -or `$l.version -eq `$c.version) { exit 0 }
-Invoke-WebRequest "`$(`$c.pagesUrl)/skills/`$(`$c.name)/skill.md" -OutFile '$destMd' -Headers `$h -UseBasicParsing
+`$filesJson = Invoke-RestMethod "`$(`$c.pagesUrl)/skills/`$(`$c.name)/files.json" -Headers `$h
+foreach (`$f in `$filesJson) {
+    `$dest = Join-Path '$skillsFolder' `$f
+    `$destDir = Split-Path -Parent `$dest
+    if (-not (Test-Path `$destDir)) { New-Item -ItemType Directory -Force -Path `$destDir | Out-Null }
+    Invoke-WebRequest "`$(`$c.pagesUrl)/skills/`$(`$c.name)/`$f" -OutFile `$dest -Headers `$h -UseBasicParsing
+}
 `$c.version = `$l.version; `$c | ConvertTo-Json | Set-Content '$configPath' -Encoding UTF8
 Import-Module BurntToast -ErrorAction SilentlyContinue
 New-BurntToastNotification -Text 'CrestronAISkills', "Skill '`$(`$c.name)' updated to v`$(`$l.version)" -ErrorAction SilentlyContinue

@@ -148,18 +148,29 @@ export default function SkillDetail() {
             .replace(/__REGISTRY_URL__/g, REGISTRY_URL)
             .replace(/__PAGES_URL__/g, RAW_BASE_URL);
 
-        // Fetch skill.md and install scripts from same-origin (gh-pages) — avoids CORS/auth issues
-        const [skillResp, psResp, shResp] = await Promise.allSettled([
-            fetch(`/skills/${skill.name}/skill.md`),
+        const zip = new JSZip();
+
+        // Fetch file manifest; fall back to just skill.md if unavailable
+        let fileList = ["skill.md"];
+        const manifestResp = await fetch(`/skills/${skill.name}/files.json`);
+        if (manifestResp.ok) {
+            const parsed = await manifestResp.json();
+            if (Array.isArray(parsed) && parsed.length > 0) fileList = parsed;
+        }
+
+        // Add all skill files to zip
+        for (const filePath of fileList) {
+            const resp = await fetch(`/skills/${skill.name}/${filePath}`);
+            if (resp.ok) zip.file(filePath, await resp.text());
+        }
+
+        // Add install scripts
+        const [psResp, shResp] = await Promise.allSettled([
             fetch(`/install-skill-template.ps1`),
             fetch(`/install-skill-template.sh`),
         ]);
-        const skillContent = skillResp.status === "fulfilled" && skillResp.value.ok ? await skillResp.value.text() : content;
         const psTemplate = psResp.status === "fulfilled" && psResp.value.ok ? await psResp.value.text() : "";
         const shTemplate = shResp.status === "fulfilled" && shResp.value.ok ? await shResp.value.text() : "";
-
-        const zip = new JSZip();
-        zip.file("skill.md", skillContent);
         if (psTemplate) zip.file("install.ps1", replacePlaceholders(psTemplate));
         if (shTemplate) zip.file("install.sh", replacePlaceholders(shTemplate));
 
@@ -305,4 +316,5 @@ export default function SkillDetail() {
             )}
         </div>
     );
-}
+}
+
