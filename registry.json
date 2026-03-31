@@ -3,8 +3,8 @@
   "updatedAt": "2026-03-29T02:23:02.749Z",
   "skills": [
     {
-      "name": "android-string-translator",
-      "version": "1.0.0",
+      "name": "string-translator",
+      "version": "1.1.0",
       "description": "Translates Android strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.",
       "tags": [
         "android",
@@ -13,7 +13,7 @@
         "strings"
       ],
       "author": "CrestronEng",
-      "path": "skills/android-string-translator",
+      "path": "skills/string-translator",
       "license": "MIT",
       "homepage": null
     },

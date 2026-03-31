@@ -1,12 +1,12 @@
-# android-string-translator
+# string-translator
 
-A GitHub Copilot skill that translates Android `strings.xml` files into multiple locales. Copilot guides you through the process interactively — no scripts to write, no manual XML editing.
+A GitHub Copilot skill that translates `xml` files into multiple locales. Copilot guides you through the process interactively — no scripts to write, no manual XML editing.
 
 ## Quick Start
 
 ### 1 — Copy the skill into your repo
 ```
-.github/skills/android-string-translator/   →   copy entire folder to your repo
+.github/skills/string-translator/   →   copy entire folder to your repo
 ```
 
 ### 2 — Copy the bundled assets to your project root
@@ -23,8 +23,8 @@ A GitHub Copilot skill that translates Android `strings.xml` files into multiple
 
 Add this to `.github/copilot-instructions.md` in your repo:
 ```
-When the user asks to translate strings or localize an Android strings.xml file,
-load and follow the android-string-translator skill.
+When the user asks to translate strings or localize a strings.xml file,
+load and follow the string-translator skill.
 ```
 
 ### 4 — Run it

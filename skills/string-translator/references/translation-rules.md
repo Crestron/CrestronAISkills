@@ -1,6 +1,6 @@
 # Translation Rules Reference
 
-Full rule set for the `android-string-translator` skill. Applied during Step 4 of the workflow.
+Full rule set for the `string-translator` skill. Applied during Step 4 of the workflow.
 
 ---
 
@@ -15,7 +15,7 @@ Apply per string, in this exact priority order:
 | 3 | Marker mode AND string is BELOW the marker | **TRANSLATE** |
 | 4 | No marker mode | **TRANSLATE** |
 
-> `translatable="false"` always wins. A string tagged with it is never written to any locale file, regardless of its position relative to the marker. Android resolves these at runtime from `values/`.
+> `translatable="false"` always wins. A string tagged with it is never written to any locale file, regardless of its position relative to the marker. These are resolved at runtime from `values/`.
 
 ---
 
@@ -23,7 +23,7 @@ Apply per string, in this exact priority order:
 
 Load the full list from the user-provided config (`keep_in_english` field in `translation_config.json`) or from the user directly.
 
-**Crestron project defaults:** `Crestron`, `NTP`, `SNTP`, `Wi-Fi`, `Android`, `Windows`
+**Crestron project defaults:** `Crestron`, `NTP`, `SNTP`, `Wi-Fi`, `Windows`
 
 Rules:
 - Keep brand names, product names, and protocol names exactly as written in every locale
@@ -96,7 +96,7 @@ These rules apply to ALL translated strings without exception:
 
 3. **XML structure** — preserve all `name` attributes, XML comments, and element order exactly
 
-4. **Output encoding** — valid Android XML, UTF-8 without BOM
+4. **Output encoding** — valid XML, UTF-8 without BOM
 
 5. **String format placeholders** — preserve `%1$s`, `%2$d`, `%s`, `%d` etc. exactly; do not reorder or rename
 
