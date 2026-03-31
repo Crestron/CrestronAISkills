@@ -1,22 +1,7 @@
 {
   "version": "1",
-  "updatedAt": "2026-03-29T02:23:02.749Z",
+  "updatedAt": "2026-03-31T22:52:29.531Z",
   "skills": [
-    {
-      "name": "android-string-translator",
-      "version": "1.0.0",
-      "description": "Translates Android strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.",
-      "tags": [
-        "android",
-        "localization",
-        "translation",
-        "strings"
-      ],
-      "author": "CrestronEng",
-      "path": "skills/android-string-translator",
-      "license": "MIT",
-      "homepage": null
-    },
     {
       "name": "crpc-test-client",
       "version": "1.0.0",
@@ -58,6 +43,20 @@
       ],
       "author": "CrestronEng",
       "path": "skills/hello-world",
+      "license": "MIT",
+      "homepage": null
+    },
+    {
+      "name": "string-translator",
+      "version": "1.1.0",
+      "description": "Translates strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.",
+      "tags": [
+        "localization",
+        "translation",
+        "strings"
+      ],
+      "author": "CrestronEng",
+      "path": "skills/string-translator",
       "license": "MIT",
       "homepage": null
     }
