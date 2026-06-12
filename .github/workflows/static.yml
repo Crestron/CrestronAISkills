@@ -47,6 +47,9 @@ jobs:
         working-directory: web
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_REGISTRY_URL: /${{ github.event.repository.name }}/registry.json
+      - name: Copy registry.json to dist
+        run: cp registry.json web/dist/registry.json
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
