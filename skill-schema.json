@@ -69,7 +69,7 @@
         },
         "dependencies": {
           "type": "string",
-          "description": "Comma-separated list of tools and APIs the skill invokes (e.g. 'git, docker, GitHub API'). Required for C1 checklist approval."
+          "description": "Comma-separated list of tools and APIs the skill invokes (e.g. 'git, docker, GitHub API'). Use 'None' if there are no dependencies. Required for C1 checklist approval."
         }
       },
       "additionalProperties": { "type": "string" }

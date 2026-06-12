@@ -157,13 +157,13 @@ for (const dir of dirs) {
     errors.push("Missing required field: `author`");
   }
 
-  // C1 checklist — warn on missing metadata fields (require human approval, not CI block)
+  // C1 checklist — team and maintainer are required; dependencies required but "None" is acceptable
   if (!fm.metadata?.team)
-    warnings.push("`metadata.team` not set — required for C1 registry approval");
+    errors.push("`metadata.team` not set — every skill must declare an owning team");
   if (!fm.metadata?.maintainer)
-    warnings.push("`metadata.maintainer` not set — required for C1 registry approval");
+    errors.push("`metadata.maintainer` not set — every skill must declare a maintainer");
   if (!fm.metadata?.dependencies)
-    warnings.push("`metadata.dependencies` not set — required for C1 registry approval");
+    errors.push("`metadata.dependencies` not set — declare dependencies or set to `None`");
 
   errors.forEach((e) => console.log("  ✗ " + e));
   warnings.forEach((w) => {
