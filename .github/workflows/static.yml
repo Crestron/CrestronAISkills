@@ -48,6 +48,7 @@ jobs:
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_REGISTRY_URL: /${{ github.event.repository.name }}/registry.json
+          VITE_REPO_URL: https://github.com/${{ github.repository }}
       - name: Generate registry.json from skills/
         run: |
           node -e "

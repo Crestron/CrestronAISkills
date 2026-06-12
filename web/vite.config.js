@@ -12,7 +12,7 @@ export default defineConfig({
             process.env.VITE_REGISTRY_URL || "/registry.json"
         ),
         __REPO_URL__: JSON.stringify(
-            process.env.VITE_REPO_URL || "https://github.com/CrestronAISkills/CrestronAISkills"
+            process.env.VITE_REPO_URL || "https://github.com/Crestron/CrestronAISkills"
         ),
     },
 });
