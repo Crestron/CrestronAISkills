@@ -13,43 +13,19 @@ echo "CrestronAISkills — Installing: $SKILL_NAME v$SKILL_VERSION"
 echo "──────────────────────────────────────────────────"
 
 CONFIG_DIR="$HOME/.copilot/skills"
-mkdir -p "$CONFIG_DIR"
+CLAUDE_CONFIG_DIR="$HOME/.claude/skills"
+mkdir -p "$CONFIG_DIR" "$CLAUDE_CONFIG_DIR"
 
-# Parse arguments: --token <pat> --project <path>
-ARG_TOKEN=""
+# Parse arguments: --project <path>
 ARG_PROJECT=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --token) ARG_TOKEN="$2"; shift 2 ;;
         --project) ARG_PROJECT="$2"; shift 2 ;;
         *) shift ;;
     esac
 done
 
-# 1. Get or reuse stored GitHub PAT
-TOKEN_FILE="$CONFIG_DIR/github-token"
-if [ -n "$ARG_TOKEN" ]; then
-    GH_TOKEN="$ARG_TOKEN"
-    echo "$GH_TOKEN" > "$TOKEN_FILE"
-    chmod 600 "$TOKEN_FILE"
-    echo "  Token saved to $TOKEN_FILE"
-elif [ -f "$TOKEN_FILE" ]; then
-    GH_TOKEN=$(cat "$TOKEN_FILE")
-    echo "  Using stored GitHub token."
-else
-    echo ""
-    echo "  A GitHub Personal Access Token (PAT) with 'repo' scope is required"
-    echo "  for auto-updates (private repo). You only need to enter this once."
-    echo ""
-    read -rsp "  Enter your GitHub PAT: " GH_TOKEN
-    echo ""
-    if [ -z "$GH_TOKEN" ]; then echo "ERROR: PAT required."; exit 1; fi
-    echo "$GH_TOKEN" > "$TOKEN_FILE"
-    chmod 600 "$TOKEN_FILE"
-    echo "  Token saved to $TOKEN_FILE"
-fi
-
-# 2. Get project path
+# 1. Get project path
 if [ -n "$ARG_PROJECT" ]; then
     PROJECT_PATH="$ARG_PROJECT"
 else
@@ -62,15 +38,21 @@ if [ ! -d "$PROJECT_PATH" ]; then echo "ERROR: Path not found: $PROJECT_PATH"; e
 PROJECT_PATH=$(cd "$PROJECT_PATH" && pwd)
 echo "  Project path: $PROJECT_PATH"
 
-# 3. Install skill.md to .github/skills/<name>/
-SKILLS_FOLDER="$PROJECT_PATH/.github/skills/$SKILL_NAME"
-mkdir -p "$SKILLS_FOLDER"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEST_MD="$SKILLS_FOLDER/skill.md"
-cp "$SCRIPT_DIR/skill.md" "$DEST_MD"
-echo "  Installed to $DEST_MD"
 
-# 4. Save config
+# 2. Install for GitHub Copilot → .github/skills/<name>/skill.md
+COPILOT_DEST="$PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
+mkdir -p "$(dirname "$COPILOT_DEST")"
+cp "$SCRIPT_DIR/skill.md" "$COPILOT_DEST"
+echo "  Copilot: installed to $COPILOT_DEST"
+
+# 3. Install for Claude Code → .claude/commands/<name>.md (body only, no frontmatter)
+CLAUDE_DEST="$PROJECT_PATH/.claude/commands/$SKILL_NAME.md"
+mkdir -p "$(dirname "$CLAUDE_DEST")"
+awk '/^---$/{n++; next} n>=2{print}' "$SCRIPT_DIR/skill.md" > "$CLAUDE_DEST"
+echo "  Claude Code: installed to $CLAUDE_DEST (available as /$SKILL_NAME)"
+
+# 4. Save config (to both Copilot and Claude Code config dirs)
 CONFIG_PATH="$CONFIG_DIR/$SKILL_NAME-config.json"
 cat > "$CONFIG_PATH" <<EOF
 {
@@ -82,11 +64,13 @@ cat > "$CONFIG_PATH" <<EOF
   "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 EOF
+cp "$CONFIG_PATH" "$CLAUDE_CONFIG_DIR/$SKILL_NAME-config.json"
 echo "  Config saved to $CONFIG_PATH"
+echo "  Config saved to $CLAUDE_CONFIG_DIR/$SKILL_NAME-config.json"
 
-# 4b. Download check-updates.ps1 / check-updates.sh to config dir
-curl -sf -H "Authorization: token $GH_TOKEN" "$PAGES_URL/scripts/check-updates.ps1" -o "$CONFIG_DIR/check-updates.ps1" && echo "  check-updates.ps1 saved to $CONFIG_DIR/check-updates.ps1" || echo "  Warning: could not download check-updates.ps1"
-curl -sf -H "Authorization: token $GH_TOKEN" "$PAGES_URL/scripts/check-updates.sh" -o "$CONFIG_DIR/check-updates.sh" && chmod +x "$CONFIG_DIR/check-updates.sh" && echo "  check-updates.sh saved to $CONFIG_DIR/check-updates.sh" || echo "  Warning: could not download check-updates.sh"
+# 4b. Download check-updates scripts to both config dirs
+curl -sf "$PAGES_URL/scripts/check-updates.ps1" -o "$CONFIG_DIR/check-updates.ps1" && cp "$CONFIG_DIR/check-updates.ps1" "$CLAUDE_CONFIG_DIR/check-updates.ps1" && echo "  check-updates.ps1 saved" || echo "  Warning: could not download check-updates.ps1"
+curl -sf "$PAGES_URL/scripts/check-updates.sh" -o "$CONFIG_DIR/check-updates.sh" && chmod +x "$CONFIG_DIR/check-updates.sh" && cp "$CONFIG_DIR/check-updates.sh" "$CLAUDE_CONFIG_DIR/check-updates.sh" && chmod +x "$CLAUDE_CONFIG_DIR/check-updates.sh" && echo "  check-updates.sh saved" || echo "  Warning: could not download check-updates.sh"
 
 # 5. Write update script
 UPDATE_SCRIPT="$CONFIG_DIR/update-$SKILL_NAME.sh"
@@ -94,22 +78,28 @@ cat > "$UPDATE_SCRIPT" <<'UPDATESCRIPT'
 #!/usr/bin/env bash
 CONFIG_DIR="$HOME/.copilot/skills"
 CONFIG_FILE="$CONFIG_DIR/__SKILL_NAME__-config.json"
-TOKEN_FILE="$CONFIG_DIR/github-token"
-GH_TOKEN=$(cat "$TOKEN_FILE" 2>/dev/null)
-SKILL_NAME=$(python3 -c "import json,sys; print(json.load(open('$CONFIG_FILE'))['name'])" 2>/dev/null || grep '"name"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
-INSTALLED_VER=$(python3 -c "import json,sys; print(json.load(open('$CONFIG_FILE'))['version'])" 2>/dev/null || grep '"version"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
-REGISTRY_URL=$(python3 -c "import json,sys; print(json.load(open('$CONFIG_FILE'))['registryUrl'])" 2>/dev/null || grep '"registryUrl"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
-PAGES_URL=$(python3 -c "import json,sys; print(json.load(open('$CONFIG_FILE'))['pagesUrl'])" 2>/dev/null || grep '"pagesUrl"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
-PROJECT_PATH=$(python3 -c "import json,sys; print(json.load(open('$CONFIG_FILE'))['projectPath'])" 2>/dev/null || grep '"projectPath"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
-REGISTRY=$(curl -sf -H "Authorization: token $GH_TOKEN" "$REGISTRY_URL")
+SKILL_NAME=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['name'])" 2>/dev/null || grep '"name"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
+INSTALLED_VER=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['version'])" 2>/dev/null || grep '"version"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
+REGISTRY_URL=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['registryUrl'])" 2>/dev/null || grep '"registryUrl"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
+PAGES_URL=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['pagesUrl'])" 2>/dev/null || grep '"pagesUrl"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
+PROJECT_PATH=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['projectPath'])" 2>/dev/null || grep '"projectPath"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
+REGISTRY=$(curl -sf "$REGISTRY_URL")
 if [ -z "$REGISTRY" ]; then exit 1; fi
 LATEST_VER=$(echo "$REGISTRY" | python3 -c "import json,sys; r=json.load(sys.stdin); s=[x for x in r['skills'] if x['name']=='$SKILL_NAME']; print(s[0]['version'] if s else '')" 2>/dev/null)
 if [ -z "$LATEST_VER" ] || [ "$LATEST_VER" = "$INSTALLED_VER" ]; then exit 0; fi
-DEST_MD="$PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
-mkdir -p "$(dirname "$DEST_MD")"
-curl -sf -H "Authorization: token $GH_TOKEN" "$PAGES_URL/skills/$SKILL_NAME/skill.md" -o "$DEST_MD"
+TMP=$(mktemp)
+curl -sf "$PAGES_URL/skills/$SKILL_NAME/skill.md" -o "$TMP"
+# Update Copilot skill
+COPILOT_DEST="$PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
+mkdir -p "$(dirname "$COPILOT_DEST")"
+cp "$TMP" "$COPILOT_DEST"
+# Update Claude Code command (body only)
+CLAUDE_DEST="$PROJECT_PATH/.claude/commands/$SKILL_NAME.md"
+if [ -f "$CLAUDE_DEST" ]; then
+    awk '/^---$/{n++; next} n>=2{print}' "$TMP" > "$CLAUDE_DEST"
+fi
+rm -f "$TMP"
 sed -i.bak "s/\"version\": \"$INSTALLED_VER\"/\"version\": \"$LATEST_VER\"/" "$CONFIG_FILE" && rm -f "${CONFIG_FILE}.bak"
-# Notify
 if [[ "$OSTYPE" == "darwin"* ]]; then
     osascript -e "display notification \"Skill '$SKILL_NAME' updated to v$LATEST_VER\" with title \"CrestronAISkills\"" 2>/dev/null
 else
@@ -143,8 +133,9 @@ else
 fi
 
 echo ""
-echo "✅ Done! Installed to: $DEST_MD"
+echo "✅ Done!"
+echo "   GitHub Copilot: $PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
+echo "   Claude Code:    $PROJECT_PATH/.claude/commands/$SKILL_NAME.md  (use as /$SKILL_NAME)"
+echo "   Metadata:       $CONFIG_DIR/ and $CLAUDE_CONFIG_DIR/"
 echo "   Auto-updates scheduled every Monday at 9am."
 echo ""
-
-

@@ -1,16 +1,74 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Copilot Skill Frontmatter",
-  "description": "YAML frontmatter required in every skill.md file",
+  "title": "Agent Skill Frontmatter",
+  "description": "YAML frontmatter for skill.md files. Follows the agentskills.io open standard (https://agentskills.io/specification) with registry-specific extensions for version, tags, and author.",
   "type": "object",
-  "required": ["name", "version", "description", "tags", "author"],
+  "required": ["name", "description", "version", "tags", "author"],
   "properties": {
-    "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$", "description": "Unique kebab-case skill identifier" },
-    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "Semantic version" },
-    "description": { "type": "string", "minLength": 10, "maxLength": 200 },
-    "tags": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-    "author": { "type": "string", "description": "GitHub username" },
-    "license": { "type": "string", "default": "MIT" },
-    "homepage": { "type": "string", "format": "uri" }
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "maxLength": 64,
+      "description": "Unique skill identifier. Must match the directory name exactly. Lowercase letters, numbers, and hyphens only. No leading, trailing, or consecutive hyphens."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 1024,
+      "description": "What the skill does and when to use it. Used by agents for progressive-disclosure discovery. Be specific and include trigger keywords."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (major.minor.patch). Increment per semver rules — MAJOR for breaking behavior changes, MINOR for new behaviors, PATCH for wording tweaks."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+      "minItems": 1,
+      "description": "Lowercase tags for marketplace discoverability (e.g. [crestron, av, testing])."
+    },
+    "author": {
+      "type": "string",
+      "description": "GitHub username or org of the skill author."
+    },
+    "license": {
+      "type": "string",
+      "default": "MIT",
+      "description": "License name or reference to a bundled license file (e.g. 'MIT', 'Apache-2.0'). Per agentskills.io spec."
+    },
+    "compatibility": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Environment requirements: intended agent product, required system packages, network access needs. Per agentskills.io spec. Omit if no special requirements."
+    },
+    "allowed-tools": {
+      "type": "string",
+      "description": "Space-separated list of tools the skill is pre-approved to use (e.g. 'Bash(git:*) Read'). Experimental field per agentskills.io spec."
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to the skill's source repository or documentation."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Arbitrary key-value pairs for additional metadata (per agentskills.io spec). Use for registry tracking fields required by the C1 checklist: team, maintainer, dependencies.",
+      "properties": {
+        "team": {
+          "type": "string",
+          "description": "Owning team name. Required for C1 checklist approval."
+        },
+        "maintainer": {
+          "type": "string",
+          "description": "Designated maintainer GitHub username. Required for C1 checklist approval."
+        },
+        "dependencies": {
+          "type": "string",
+          "description": "Comma-separated list of tools and APIs the skill invokes (e.g. 'git, docker, GitHub API'). Required for C1 checklist approval."
+        }
+      },
+      "additionalProperties": { "type": "string" }
+    }
   }
 }
