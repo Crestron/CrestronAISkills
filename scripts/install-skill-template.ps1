@@ -15,7 +15,9 @@ Write-Host "`nCrestronAISkills — Installing: $skillName v$skillVersion" -Foreg
 Write-Host ("─" * 50)
 
 $configDir = Join-Path $env:USERPROFILE ".copilot\skills"
+$claudeConfigDir = Join-Path $env:USERPROFILE ".claude\skills"
 if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Force -Path $configDir | Out-Null }
+if (-not (Test-Path $claudeConfigDir)) { New-Item -ItemType Directory -Force -Path $claudeConfigDir | Out-Null }
 
 # 1. Get project path
 if ([string]::IsNullOrWhiteSpace($ProjectPath)) {
@@ -46,25 +48,31 @@ if ($dashes.Count -ge 2) {
 }
 Write-Host "  Claude Code: installed to $claudeDest (available as /$skillName)"
 
-# 4. Save config
+# 4. Save config (to both Copilot and Claude Code config dirs)
 $configPath = Join-Path $configDir "$skillName-config.json"
-[ordered]@{
+$configJson = [ordered]@{
     name        = $skillName
     version     = $skillVersion
     projectPath = $ProjectPath
     registryUrl = $registryUrl
     pagesUrl    = $pagesUrl
     installedAt = (Get-Date -Format 'o')
-} | ConvertTo-Json | Set-Content $configPath -Encoding UTF8
+} | ConvertTo-Json
+$configJson | Set-Content $configPath -Encoding UTF8
+$configJson | Set-Content (Join-Path $claudeConfigDir "$skillName-config.json") -Encoding UTF8
 
-# 4b. Download check-updates scripts to config dir
+# 4b. Download check-updates scripts to both config dirs
 try {
-    Invoke-WebRequest "$pagesUrl/scripts/check-updates.ps1" -OutFile (Join-Path $configDir "check-updates.ps1") -UseBasicParsing
-    Write-Host "  check-updates.ps1 saved to $configDir"
+    $ps1Content = Invoke-WebRequest "$pagesUrl/scripts/check-updates.ps1" -UseBasicParsing
+    $ps1Content.Content | Set-Content (Join-Path $configDir "check-updates.ps1") -Encoding UTF8
+    $ps1Content.Content | Set-Content (Join-Path $claudeConfigDir "check-updates.ps1") -Encoding UTF8
+    Write-Host "  check-updates.ps1 saved to $configDir and $claudeConfigDir"
 } catch { Write-Host "  Warning: could not download check-updates.ps1" -ForegroundColor Yellow }
 try {
-    Invoke-WebRequest "$pagesUrl/scripts/check-updates.sh" -OutFile (Join-Path $configDir "check-updates.sh") -UseBasicParsing
-    Write-Host "  check-updates.sh saved to $configDir"
+    $shContent = Invoke-WebRequest "$pagesUrl/scripts/check-updates.sh" -UseBasicParsing
+    $shContent.Content | Set-Content (Join-Path $configDir "check-updates.sh") -Encoding UTF8
+    $shContent.Content | Set-Content (Join-Path $claudeConfigDir "check-updates.sh") -Encoding UTF8
+    Write-Host "  check-updates.sh saved to $configDir and $claudeConfigDir"
 } catch { Write-Host "  Warning: could not download check-updates.sh" -ForegroundColor Yellow }
 
 # 5. Write update script
@@ -110,4 +118,5 @@ Write-Host "  Task Scheduler: CrestronSkill-$skillName (weekly Monday 9am)"
 Write-Host "`n✅ Done!" -ForegroundColor Green
 Write-Host "   GitHub Copilot: $copilotDest"
 Write-Host "   Claude Code:    $claudeDest  (use as /$skillName)"
+Write-Host "   Metadata:       $configDir\ and $claudeConfigDir\"
 Write-Host "   Auto-updates scheduled every Monday at 9am.`n" -ForegroundColor DarkGray

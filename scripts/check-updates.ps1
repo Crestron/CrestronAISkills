@@ -4,14 +4,23 @@
 
 $RegistryUrl = "https://crestron.github.io/CrestronAISkills/registry.json"
 $PagesUrl    = "https://crestron.github.io/CrestronAISkills"
-$ConfigDir   = "$env:USERPROFILE\.copilot\skills"
+$ConfigDirs  = @("$env:USERPROFILE\.copilot\skills", "$env:USERPROFILE\.claude\skills")
 
 Write-Host "`nCrestronAISkills — Checking for updates..." -ForegroundColor Cyan
 Write-Host ("─" * 50)
 
+# Collect unique config files from both dirs (deduplicate by skill name)
+$seenNames = @{}
 $configs = @()
-if (Test-Path $ConfigDir) {
-    $configs = Get-ChildItem $ConfigDir -Filter "*-config.json" -File
+foreach ($dir in $ConfigDirs) {
+    if (-not (Test-Path $dir)) { continue }
+    foreach ($f in (Get-ChildItem $dir -Filter "*-config.json" -File)) {
+        $n = (Get-Content $f.FullName | ConvertFrom-Json).name
+        if (-not $seenNames.ContainsKey($n)) {
+            $seenNames[$n] = $true
+            $configs += $f
+        }
+    }
 }
 
 if ($configs.Count -eq 0) {

@@ -75,7 +75,7 @@ Set the project path to the root of the repo you want the skill installed into.
 The installer will:
 1. Copy the skill to `.github/skills/<skill-name>/skill.md` for GitHub Copilot
 2. Copy the skill to `.claude/commands/<skill-name>.md` for Claude Code
-3. Save install metadata and update scripts to `~/.copilot/skills/`
+3. Save install metadata and update scripts to `~/.copilot/skills/` (Copilot) and `~/.claude/skills/` (Claude Code)
 4. Register a **weekly auto-update check** (Task Scheduler on Windows, cron/launchd on Mac/Linux)
 
 ### Step 4 — Use the Skill
@@ -133,12 +133,16 @@ $lines[$start..($lines.Length-1)] | Set-Content "<your-project>\.claude\commands
 **Check all installed skills for updates manually:**
 
 ```powershell
-# Windows
+# Windows — Copilot path
 ~\.copilot\skills\check-updates.ps1
+# Windows — Claude Code path
+~\.claude\skills\check-updates.ps1
 ```
 ```bash
-# Mac/Linux
+# Mac/Linux — Copilot path
 ~/.copilot/skills/check-updates.sh
+# Mac/Linux — Claude Code path
+~/.claude/skills/check-updates.sh
 ```
 
 Auto-updates also run weekly in the background — no action needed.

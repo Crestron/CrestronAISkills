@@ -13,7 +13,8 @@ echo "CrestronAISkills — Installing: $SKILL_NAME v$SKILL_VERSION"
 echo "──────────────────────────────────────────────────"
 
 CONFIG_DIR="$HOME/.copilot/skills"
-mkdir -p "$CONFIG_DIR"
+CLAUDE_CONFIG_DIR="$HOME/.claude/skills"
+mkdir -p "$CONFIG_DIR" "$CLAUDE_CONFIG_DIR"
 
 # Parse arguments: --project <path>
 ARG_PROJECT=""
@@ -51,7 +52,7 @@ mkdir -p "$(dirname "$CLAUDE_DEST")"
 awk '/^---$/{n++; next} n>=2{print}' "$SCRIPT_DIR/skill.md" > "$CLAUDE_DEST"
 echo "  Claude Code: installed to $CLAUDE_DEST (available as /$SKILL_NAME)"
 
-# 4. Save config
+# 4. Save config (to both Copilot and Claude Code config dirs)
 CONFIG_PATH="$CONFIG_DIR/$SKILL_NAME-config.json"
 cat > "$CONFIG_PATH" <<EOF
 {
@@ -63,11 +64,13 @@ cat > "$CONFIG_PATH" <<EOF
   "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 EOF
+cp "$CONFIG_PATH" "$CLAUDE_CONFIG_DIR/$SKILL_NAME-config.json"
 echo "  Config saved to $CONFIG_PATH"
+echo "  Config saved to $CLAUDE_CONFIG_DIR/$SKILL_NAME-config.json"
 
-# 4b. Download check-updates scripts to config dir
-curl -sf "$PAGES_URL/scripts/check-updates.ps1" -o "$CONFIG_DIR/check-updates.ps1" && echo "  check-updates.ps1 saved to $CONFIG_DIR" || echo "  Warning: could not download check-updates.ps1"
-curl -sf "$PAGES_URL/scripts/check-updates.sh" -o "$CONFIG_DIR/check-updates.sh" && chmod +x "$CONFIG_DIR/check-updates.sh" && echo "  check-updates.sh saved to $CONFIG_DIR" || echo "  Warning: could not download check-updates.sh"
+# 4b. Download check-updates scripts to both config dirs
+curl -sf "$PAGES_URL/scripts/check-updates.ps1" -o "$CONFIG_DIR/check-updates.ps1" && cp "$CONFIG_DIR/check-updates.ps1" "$CLAUDE_CONFIG_DIR/check-updates.ps1" && echo "  check-updates.ps1 saved" || echo "  Warning: could not download check-updates.ps1"
+curl -sf "$PAGES_URL/scripts/check-updates.sh" -o "$CONFIG_DIR/check-updates.sh" && chmod +x "$CONFIG_DIR/check-updates.sh" && cp "$CONFIG_DIR/check-updates.sh" "$CLAUDE_CONFIG_DIR/check-updates.sh" && chmod +x "$CLAUDE_CONFIG_DIR/check-updates.sh" && echo "  check-updates.sh saved" || echo "  Warning: could not download check-updates.sh"
 
 # 5. Write update script
 UPDATE_SCRIPT="$CONFIG_DIR/update-$SKILL_NAME.sh"
@@ -133,5 +136,6 @@ echo ""
 echo "✅ Done!"
 echo "   GitHub Copilot: $PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
 echo "   Claude Code:    $PROJECT_PATH/.claude/commands/$SKILL_NAME.md  (use as /$SKILL_NAME)"
+echo "   Metadata:       $CONFIG_DIR/ and $CLAUDE_CONFIG_DIR/"
 echo "   Auto-updates scheduled every Monday at 9am."
 echo ""

@@ -5,14 +5,28 @@
 
 REGISTRY_URL="https://crestron.github.io/CrestronAISkills/registry.json"
 PAGES_URL="https://crestron.github.io/CrestronAISkills"
-CONFIG_DIR="$HOME/.copilot/skills"
+CONFIG_DIRS=("$HOME/.copilot/skills" "$HOME/.claude/skills")
 
 echo ""
 echo "CrestronAISkills — Checking for updates..."
 echo "──────────────────────────────────────────────────"
 
-configs=("$CONFIG_DIR"/*-config.json)
-if [ ! -f "${configs[0]}" ]; then
+# Collect unique config files from both config dirs (deduplicate by skill name)
+declare -a ALL_CONFIGS=()
+declare -a SEEN_NAMES=()
+_has_seen() { for s in "${SEEN_NAMES[@]}"; do [ "$s" = "$1" ] && return 0; done; return 1; }
+for dir in "${CONFIG_DIRS[@]}"; do
+    [ -d "$dir" ] || continue
+    for f in "$dir"/*-config.json; do
+        [ -f "$f" ] || continue
+        n=$(python3 -c "import json; print(json.load(open('$f'))['name'])" 2>/dev/null || grep '"name"' "$f" | sed 's/.*: *"\(.*\)".*/\1/')
+        _has_seen "$n" && continue
+        SEEN_NAMES+=("$n")
+        ALL_CONFIGS+=("$f")
+    done
+done
+
+if [ ${#ALL_CONFIGS[@]} -eq 0 ]; then
     echo "No installed skills found. Download and run install.sh from the marketplace."
     exit 0
 fi
@@ -23,7 +37,7 @@ if [ -z "$REGISTRY" ]; then
     exit 1
 fi
 
-for CONFIG_FILE in "$CONFIG_DIR"/*-config.json; do
+for CONFIG_FILE in "${ALL_CONFIGS[@]}"; do
     NAME=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(d['name'])" 2>/dev/null || grep '"name"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
     VERSION=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(d['version'])" 2>/dev/null || grep '"version"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
     PROJECT_PATH=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(d['projectPath'])" 2>/dev/null || grep '"projectPath"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')

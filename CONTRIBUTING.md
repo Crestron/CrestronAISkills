@@ -64,13 +64,32 @@ Describe the role the AI takes when this skill is active.
 
 | Field | Rules |
 |---|---|
-| `name` | Must match the directory name exactly. Kebab-case, lowercase (e.g. `crestron-helper`) |
+| `name` | Must match the directory name exactly. Lowercase letters, numbers, hyphens. No leading, trailing, or consecutive hyphens. Max 64 chars. |
+| `description` | 10–1024 characters. Describe what the skill does **and when to use it** — agents use this for discovery. |
 | `version` | Semantic version — `major.minor.patch` (e.g. `1.0.0`) |
-| `description` | 10–200 characters |
 | `tags` | At least one tag, lowercase (e.g. `[crestron, av, testing]`) |
 | `author` | Your GitHub username |
 | `license` | Optional, defaults to `MIT` |
+| `compatibility` | Optional. Environment requirements (e.g. `Requires Python 3.12+, internet access`) |
+| `allowed-tools` | Optional. Space-separated pre-approved tools (e.g. `Bash(git:*) Read`) |
 | `homepage` | Optional URL to related repo or docs |
+| `metadata` | Optional key-value block for `team`, `maintainer`, `dependencies` (required for C1 approval) |
+
+All frontmatter fields are validated against [`skill-schema.json`](skill-schema.json) at the repository root. You can validate locally before submitting:
+
+```bash
+# Install the agentskills validator (optional)
+npx skills-ref validate ./skills/your-skill-name
+```
+
+The `metadata` block is where you record C1 checklist fields:
+
+```yaml
+metadata:
+  team: your-team-name
+  maintainer: your-github-username
+  dependencies: "git, GitHub API"
+```
 
 ### 5. Test the Skill Locally
 
@@ -108,10 +127,11 @@ git push origin add-your-skill-name
 
 Open a PR against `main`. The CI will automatically:
 - ✅ Check that `skill.md` exists in the directory
-- ✅ Validate all required frontmatter fields are present
+- ✅ Validate required frontmatter fields (`name`, `version`, `description`, `tags`, `author`) against [`skill-schema.json`](skill-schema.json)
 - ✅ Verify the directory name matches the `name` field
+- ✅ Rebuild `registry.json` from all skills on merge
 
-Fix any errors the CI reports before requesting review.
+Fix any errors the CI reports before requesting review. A maintainer then completes the [C1–C4 approval checklist](#skill-approval-checklist) before merging.
 
 ### 3. Review and Merge
 
@@ -163,6 +183,8 @@ Complete before a registry entry is approved. Re-complete for any **MAJOR** or *
 ---
 
 ### C1 — Registry Entry Requirements
+
+> **Schema enforcement**: The `name`, `version`, `description`, `tags`, and `author` fields are machine-validated by [`skill-schema.json`](skill-schema.json) in CI. The remaining C1 items below require human review.
 
 | ✓ | Checklist Item | Policy § | Result |
 |---|---|---|---|
