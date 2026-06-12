@@ -51,6 +51,10 @@
       "format": "uri",
       "description": "URL to the skill's source repository or documentation."
     },
+    "deprecated": {
+      "type": "boolean",
+      "description": "Set to true to exclude this skill from the registry and marketplace. The skill files remain in the repo for reference. See CONTRIBUTING.md for the deprecation process."
+    },
     "metadata": {
       "type": "object",
       "description": "Arbitrary key-value pairs for additional metadata (per agentskills.io spec). Use for registry tracking fields required by the C1 checklist: team, maintainer, dependencies.",

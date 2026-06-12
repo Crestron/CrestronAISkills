@@ -66,6 +66,7 @@ jobs:
               if (!fmMatch) continue;
               const fm = fmMatch[1];
               const get = (key) => { const m = fm.match(new RegExp('^' + key + ':\\\\s*(.+)$', 'm')); return m ? m[1].trim() : ''; };
+              if (get('deprecated').toLowerCase() === 'true') { console.log('Skipping deprecated skill:', entry.name); continue; }
               const tagsMatch = fm.match(/^tags:\\s*\\[(.*)\\]/m);
               const tags = tagsMatch ? tagsMatch[1].split(',').map(t => t.trim()) : [];
               skills.push({ name: get('name'), version: get('version'), description: get('description'), tags, author: get('author'), path: skillsDir+'/'+entry.name, license: get('license')||'MIT', homepage: null });
