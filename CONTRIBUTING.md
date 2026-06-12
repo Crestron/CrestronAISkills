@@ -10,6 +10,19 @@ A skill is a focused instruction file (`skill.md`) that shapes how an AI assista
 
 ---
 
+## Skill Guidelines
+
+- **Name**: Use kebab-case (e.g. `crestron-helper`, not `CrestronHelper`)
+- **Description**: Be specific and concise — this appears in the marketplace card
+- **Tags**: Use lowercase, relevant tags to aid discoverability
+- **Instructions**: Write clear, focused instructions in the markdown body
+- **No secrets**: Never include API keys, tokens, or passwords in a skill
+- **License**: Skills must use an open-source license
+
+> **Open Standard**: All skills in this registry must conform to the [agentskills.io](https://agentskills.io) open standard by Anthropic. Review the standard before submitting.
+
+---
+
 ## Adding a New Skill
 
 ### 1. Fork and Clone
@@ -173,19 +186,6 @@ Open a PR with the frontmatter change. No other steps are required.
 ## Removing a Skill
 
 Delete the `skills/<skill-name>/` directory and open a PR. The registry and marketplace update automatically on merge.
-
----
-
-## Skill Guidelines
-
-- **Name**: Use kebab-case (e.g. `crestron-helper`, not `CrestronHelper`)
-- **Description**: Be specific and concise — this appears in the marketplace card
-- **Tags**: Use lowercase, relevant tags to aid discoverability
-- **Instructions**: Write clear, focused instructions in the markdown body
-- **No secrets**: Never include API keys, tokens, or passwords in a skill
-- **License**: Skills must use an open-source license
-
-> **Open Standard**: All skills in this registry must conform to the [agentskills.io](https://agentskills.io) open standard by Anthropic. Review the standard before submitting.
 
 ---
 
