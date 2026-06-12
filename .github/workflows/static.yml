@@ -74,6 +74,10 @@ jobs:
           fs.writeFileSync('web/dist/registry.json', JSON.stringify(registry, null, 2) + '\n');
           console.log('Registry generated:', skills.length, 'skill(s)');
           "
+      - name: Copy scripts/ to dist
+        run: cp -r scripts web/dist/scripts
+      - name: Copy skills/ to dist
+        run: cp -r skills web/dist/skills
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
