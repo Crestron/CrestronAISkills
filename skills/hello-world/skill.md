@@ -5,6 +5,10 @@ description: A test skill that responds with Hello World. Used to validate the a
 tags: [test, hello-world]
 author: CrestronEng
 license: MIT
+metadata:
+  team: crestron-ai
+  maintainer: sabtain.khan
+  dependencies: None
 ---
 
 # Hello World
