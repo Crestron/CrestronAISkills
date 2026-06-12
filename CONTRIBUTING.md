@@ -86,7 +86,7 @@ Describe the role the AI takes when this skill is active.
 | `compatibility` | Optional. Environment requirements (e.g. `Requires Python 3.12+, internet access`) |
 | `allowed-tools` | Optional. Space-separated pre-approved tools (e.g. `Bash(git:*) Read`) |
 | `homepage` | Optional URL to related repo or docs |
-| `metadata` | Optional key-value block for `team`, `maintainer`, `dependencies` (required for C1 approval) |
+| `metadata` | Required key-value block. `team` and `maintainer` are mandatory. `dependencies` must be set — use `None` if there are none. |
 
 All frontmatter fields are validated against [`skill-schema.json`](skill-schema.json) at the repository root. You can validate locally before submitting:
 
@@ -95,13 +95,13 @@ All frontmatter fields are validated against [`skill-schema.json`](skill-schema.
 npx skills-ref validate ./skills/your-skill-name
 ```
 
-The `metadata` block is where you record C1 checklist fields:
+The `metadata` block is required and must include `team`, `maintainer`, and `dependencies`. CI will block the PR if any of these are missing:
 
 ```yaml
 metadata:
   team: your-team-name
   maintainer: your-github-username
-  dependencies: "git, GitHub API"
+  dependencies: "git, GitHub API"   # or: None
 ```
 
 ### 5. Test the Skill Locally
