@@ -153,6 +153,23 @@ A maintainer will review your skill. Once approved and merged:
 
 ---
 
+## Deprecating a Skill
+
+If a skill is no longer recommended but should be kept for reference, set `deprecated: true` in its frontmatter:
+
+```yaml
+---
+name: your-skill-name
+version: 2.0.0
+deprecated: true
+description: ...
+---
+```
+
+The skill files remain in `skills/` (browsable in the repo) but are excluded from `registry.json` and will not appear in the marketplace. CI validation is also skipped for deprecated skills.
+
+Open a PR with the frontmatter change. No other steps are required.
+
 ## Removing a Skill
 
 Delete the `skills/<skill-name>/` directory and open a PR. The registry and marketplace update automatically on merge.

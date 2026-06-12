@@ -92,6 +92,11 @@ for (const dir of dirs) {
 
   const fm = parseFrontmatter(content);
 
+  if (fm.deprecated === "true" || fm.deprecated === true) {
+    console.log("  ⏸  deprecated: true — skipped from registry, not validated");
+    continue;
+  }
+
   // name
   if (!fm.name) {
     errors.push("Missing required field: name");
