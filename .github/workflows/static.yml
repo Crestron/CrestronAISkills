@@ -48,8 +48,26 @@ jobs:
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_REGISTRY_URL: /${{ github.event.repository.name }}/registry.json
-      - name: Copy registry.json to dist
-        run: cp registry.json web/dist/registry.json
+      - name: Generate registry.json from skills/
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const skillsDir = 'skills';
+          const skills = [];
+          if (fs.existsSync(skillsDir)) {
+            for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
+              if (!entry.isDirectory()) continue;
+              const mp = path.join(skillsDir, entry.name, 'skill.json');
+              if (!fs.existsSync(mp)) continue;
+              const m = JSON.parse(fs.readFileSync(mp, 'utf8'));
+              skills.push({ name: m.name, version: m.version, description: m.description, tags: m.tags, author: m.author, path: skillsDir+'/'+entry.name, license: m.license||'MIT', homepage: m.homepage||null });
+            }
+          }
+          const registry = { version: '1', updatedAt: new Date().toISOString(), skills: skills.sort((a,b) => a.name.localeCompare(b.name)) };
+          fs.writeFileSync('web/dist/registry.json', JSON.stringify(registry, null, 2) + '\n');
+          console.log('Registry generated:', skills.length, 'skill(s)');
+          "
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
