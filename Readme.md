@@ -7,6 +7,25 @@
 
 ---
 
+## Table of Contents
+
+- [What Is This?](#what-is-this)
+- [Installing a Skill](#installing-a-skill)
+  - [Step 1 — Browse the Marketplace](#step-1--browse-the-marketplace)
+  - [Step 2 — Download the Installer](#step-2--download-the-installer)
+  - [Step 3 — Run the Installer](#step-3--run-the-installer)
+  - [Step 4 — Use the Skill](#step-4--use-the-skill)
+- [Manual Install](#manual-install)
+  - [GitHub Copilot](#github-copilot)
+  - [Claude Code](#claude-code)
+- [Updating Skills](#updating-skills)
+- [Publishing a Skill](#publishing-a-skill)
+- [Repository Structure](#repository-structure)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
 ## What Is This?
 
 CrestronAISkills is a **skills marketplace** for AI coding assistants. Each skill is a focused instruction file that shapes how your AI assistant behaves in a project. It provides:
@@ -56,8 +75,8 @@ Set the project path to the root of the repo you want the skill installed into.
 The installer will:
 1. Copy the skill to `.github/skills/<skill-name>/skill.md` for GitHub Copilot
 2. Copy the skill to `.claude/commands/<skill-name>.md` for Claude Code
-3. Save metadata to `~/.copilot/skills/`
-4. Register a **weekly auto-update task** (Task Scheduler on Windows, cron on Mac/Linux)
+3. Save install metadata and update scripts to `~/.copilot/skills/`
+4. Register a **weekly auto-update check** (Task Scheduler on Windows, cron/launchd on Mac/Linux)
 
 ### Step 4 — Use the Skill
 
