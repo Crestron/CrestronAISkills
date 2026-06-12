@@ -9,6 +9,18 @@ const NAME_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 const VER_RE  = /^\d+\.\d+\.\d+$/;
 const TAG_RE  = /^[a-z][a-z0-9-]*$/;
 
+const SUMMARY_FILE = process.env.GITHUB_STEP_SUMMARY || null;
+const summaryLines = [];
+
+function writeSummary(line) {
+  summaryLines.push(line);
+}
+
+function flushSummary() {
+  if (!SUMMARY_FILE) return;
+  fs.appendFileSync(SUMMARY_FILE, summaryLines.join("\n") + "\n");
+}
+
 function parseFrontmatter(content) {
   const lines = content.split("\n");
   const fm = {};
@@ -67,6 +79,8 @@ if (!dirs.length) {
 }
 
 let anyError = false;
+let totalWarnings = 0;
+const skillResults = [];
 
 for (const dir of dirs) {
   if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) continue;
@@ -81,6 +95,7 @@ for (const dir of dirs) {
   if (!fs.existsSync(skillMd)) {
     console.log("  ✗ Missing skill.md");
     anyError = true;
+    skillResults.push({ dir, errors: ["Missing skill.md"], warnings: [], deprecated: false });
     continue;
   }
 
@@ -94,49 +109,42 @@ for (const dir of dirs) {
 
   if (fm.deprecated === "true" || fm.deprecated === true) {
     console.log("  ⏸  deprecated: true — skipped from registry, not validated");
+    skillResults.push({ dir, errors: [], warnings: [], deprecated: true });
     continue;
   }
 
   // name
   if (!fm.name) {
-    errors.push("Missing required field: name");
+    errors.push("Missing required field: `name`");
   } else {
     if (!NAME_RE.test(fm.name))
-      errors.push(
-        `name "${fm.name}" must be lowercase letters/numbers/hyphens — no leading, trailing, or consecutive hyphens`
-      );
+      errors.push(`\`name\` "${fm.name}" must be lowercase letters/numbers/hyphens — no leading, trailing, or consecutive hyphens`);
     if (fm.name.length > 64)
-      errors.push(`name exceeds 64 characters (${fm.name.length})`);
+      errors.push(`\`name\` exceeds 64 characters (${fm.name.length})`);
     if (fm.name !== dirName)
-      errors.push(`name "${fm.name}" must match directory name "${dirName}"`);
+      errors.push(`\`name\` "${fm.name}" must match directory name "${dirName}"`);
   }
 
   // version
   if (!fm.version) {
-    errors.push("Missing required field: version");
+    errors.push("Missing required field: `version`");
   } else if (!VER_RE.test(fm.version)) {
-    errors.push(`version "${fm.version}" must be semantic version — e.g. 1.0.0`);
+    errors.push(`\`version\` "${fm.version}" must be semantic version — e.g. 1.0.0`);
   }
 
   // description
   if (!fm.description) {
-    errors.push("Missing required field: description");
+    errors.push("Missing required field: `description`");
   } else {
     if (fm.description.length < 10)
-      errors.push(
-        `description too short (${fm.description.length} chars, min 10)`
-      );
+      errors.push(`\`description\` too short (${fm.description.length} chars, min 10)`);
     if (fm.description.length > 1024)
-      errors.push(
-        `description too long (${fm.description.length} chars, max 1024)`
-      );
+      errors.push(`\`description\` too long (${fm.description.length} chars, max 1024)`);
   }
 
   // tags
   if (!fm.tags || !fm.tags.length) {
-    errors.push(
-      "Missing required field: tags — must be a non-empty array, e.g. [crestron, av]"
-    );
+    errors.push("Missing required field: `tags` — must be a non-empty array, e.g. `[crestron, av]`");
   } else {
     for (const tag of fm.tags) {
       if (!TAG_RE.test(tag))
@@ -146,16 +154,16 @@ for (const dir of dirs) {
 
   // author
   if (!fm.author) {
-    errors.push("Missing required field: author");
+    errors.push("Missing required field: `author`");
   }
 
   // C1 checklist — warn on missing metadata fields (require human approval, not CI block)
   if (!fm.metadata?.team)
-    warnings.push("metadata.team not set — required for C1 registry approval");
+    warnings.push("`metadata.team` not set — required for C1 registry approval");
   if (!fm.metadata?.maintainer)
-    warnings.push("metadata.maintainer not set — required for C1 registry approval");
+    warnings.push("`metadata.maintainer` not set — required for C1 registry approval");
   if (!fm.metadata?.dependencies)
-    warnings.push("metadata.dependencies not set — required for C1 registry approval");
+    warnings.push("`metadata.dependencies` not set — required for C1 registry approval");
 
   errors.forEach((e) => console.log("  ✗ " + e));
   warnings.forEach((w) => console.log("  ⚠  " + w));
@@ -167,15 +175,57 @@ for (const dir of dirs) {
     if (warnings.length)
       console.log("  ℹ  Warnings above need human review before merge (C1 checklist)");
   }
+
+  totalWarnings += warnings.length;
+  skillResults.push({ dir, errors, warnings, deprecated: false });
 }
 
 console.log("");
 if (anyError) {
   console.log("❌ Validation failed — fix errors before requesting review.");
   console.log("   Reference: skill-schema.json and CONTRIBUTING.md");
-  process.exit(1);
 } else {
   console.log("✅ Schema validation passed.");
-  if (dirs.length)
+  if (totalWarnings > 0)
     console.log("   Any ⚠ warnings require the C1–C4 checklist to be completed at review.");
 }
+
+// Write GitHub Step Summary
+writeSummary("## Skill Validation Results\n");
+
+for (const { dir, errors, warnings, deprecated } of skillResults) {
+  const skillName = path.basename(dir);
+  writeSummary(`### \`${skillName}\``);
+
+  if (deprecated) {
+    writeSummary("⏸ **Deprecated** — excluded from registry, validation skipped.\n");
+    continue;
+  }
+
+  if (errors.length) {
+    writeSummary("**Status: ❌ Failed**\n");
+    writeSummary("| | Error |");
+    writeSummary("|---|---|");
+    errors.forEach((e) => writeSummary(`| ❌ | ${e} |`));
+    writeSummary("");
+  } else {
+    writeSummary("**Status: ✅ Passed**\n");
+  }
+
+  if (warnings.length) {
+    writeSummary("**C1 Checklist Warnings** — complete before merging:\n");
+    writeSummary("| | Warning |");
+    writeSummary("|---|---|");
+    warnings.forEach((w) => writeSummary(`| ⚠️ | ${w} |`));
+    writeSummary("");
+  }
+}
+
+if (!anyError && totalWarnings === 0) {
+  writeSummary("---");
+  writeSummary("✅ All skills passed validation with no warnings.");
+}
+
+flushSummary();
+
+if (anyError) process.exit(1);
