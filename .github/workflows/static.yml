@@ -36,7 +36,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: web/package-lock.json
       - name: Install dependencies
@@ -58,10 +58,16 @@ jobs:
           if (fs.existsSync(skillsDir)) {
             for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
               if (!entry.isDirectory()) continue;
-              const mp = path.join(skillsDir, entry.name, 'skill.json');
+              const mp = path.join(skillsDir, entry.name, 'skill.md');
               if (!fs.existsSync(mp)) continue;
-              const m = JSON.parse(fs.readFileSync(mp, 'utf8'));
-              skills.push({ name: m.name, version: m.version, description: m.description, tags: m.tags, author: m.author, path: skillsDir+'/'+entry.name, license: m.license||'MIT', homepage: m.homepage||null });
+              const content = fs.readFileSync(mp, 'utf8');
+              const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+              if (!fmMatch) continue;
+              const fm = fmMatch[1];
+              const get = (key) => { const m = fm.match(new RegExp('^' + key + ':\\\\s*(.+)$', 'm')); return m ? m[1].trim() : ''; };
+              const tagsMatch = fm.match(/^tags:\\s*\\[(.*)\\]/m);
+              const tags = tagsMatch ? tagsMatch[1].split(',').map(t => t.trim()) : [];
+              skills.push({ name: get('name'), version: get('version'), description: get('description'), tags, author: get('author'), path: skillsDir+'/'+entry.name, license: get('license')||'MIT', homepage: null });
             }
           }
           const registry = { version: '1', updatedAt: new Date().toISOString(), skills: skills.sort((a,b) => a.name.localeCompare(b.name)) };
