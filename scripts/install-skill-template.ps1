@@ -110,13 +110,13 @@ if (-not (Get-Module -ListAvailable BurntToast)) {
 
 # 7. Register Task Scheduler (no admin needed)
 $action   = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Normal -NonInteractive -File `"$updateScriptPath`""
-$trigger  = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At "9:00AM"
+$trigger  = New-ScheduledTaskTrigger -Daily -At "9:00AM"
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1)
 Register-ScheduledTask -TaskName "CrestronSkill-$skillName" -Action $action -Trigger $trigger -Settings $settings -RunLevel Limited -Force | Out-Null
-Write-Host "  Task Scheduler: CrestronSkill-$skillName (weekly Monday 9am)"
+Write-Host "  Task Scheduler: CrestronSkill-$skillName (daily 9am)"
 
 Write-Host "`n✅ Done!" -ForegroundColor Green
 Write-Host "   GitHub Copilot: $copilotDest"
 Write-Host "   Claude Code:    $claudeDest  (use as /$skillName)"
 Write-Host "   Metadata:       $configDir\ and $claudeConfigDir\"
-Write-Host "   Auto-updates scheduled every Monday at 9am.`n" -ForegroundColor DarkGray
+Write-Host "   Auto-updates scheduled daily at 9am.`n" -ForegroundColor DarkGray
