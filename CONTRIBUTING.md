@@ -148,6 +148,73 @@ Delete the `skills/<skill-name>/` directory and open a PR. The registry and mark
 - **No secrets**: Never include API keys, tokens, or passwords in a skill
 - **License**: Skills must use an open-source license
 
+> **Open Standard**: All skills in this registry must conform to the [agentskills.io](https://agentskills.io) open standard by Anthropic. Review the standard before submitting.
+
+---
+
+## Skill Approval Checklist
+
+Complete before a registry entry is approved. Re-complete for any **MAJOR** or **MINOR** version change.
+
+---
+
+**Skill name:** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_&nbsp;&nbsp; **Version:** \_\_\_\_\_\_\_\_&nbsp;&nbsp; **Owner team:** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_&nbsp;&nbsp; **Registry PR:** \_\_\_\_\_\_\_\_
+
+---
+
+### C1 — Registry Entry Requirements
+
+| ✓ | Checklist Item | Policy § | Result |
+|---|---|---|---|
+| ☐ | Skill name, description, and semantic version recorded in registry entry | 6.1 | P / F / N-A |
+| ☐ | Owner team and designated maintainer identified | 6.1 | P / F / N-A |
+| ☐ | All tool and API dependencies the skill invokes are listed | 6.1 | P / F / N-A |
+| ☐ | Input schema documented with all parameter types and validation rules | 6.1 | P / F / N-A |
+| ☐ | Output schema documented including maximum output size | 6.1 | P / F / N-A |
+| ☐ | Scope constraints declared: what skill can and cannot do | 6.1 | P / F / N-A |
+| ☐ | Test coverage percentage documented and meets minimum thresholds (see C3) | 6.1 | P / F / N-A |
+| ☐ | Approval status and approving AI Workgroup member recorded | 6.1 | P / F / N-A |
+
+### C2 — Design Requirements
+
+| ✓ | Checklist Item | Policy § | Result |
+|---|---|---|---|
+| ☐ | Skill performs one well-defined task — single responsibility satisfied | 6.2.1 | P / F / N-A |
+| ☐ | Scope boundaries explicitly declared including which systems/files/APIs the skill may access | 6.2.2 | P / F / N-A |
+| ☐ | Maximum scope of any write or destructive operation documented | 6.2.2 | P / F / N-A |
+| ☐ | Conditions under which skill must abort and return error (not proceed) are defined | 6.2.2 | P / F / N-A |
+| ☐ | Idempotency documented; if not idempotent, duplicate invocation safeguards documented | 6.2.2 | P / F / N-A |
+| ☐ | All parameters type-checked and range-validated before use (input validation implemented) | 6.2.3 | P / F / N-A |
+| ☐ | String parameters used in file paths, commands, or API calls sanitized against injection | 6.2.3 | P / F / N-A |
+| ☐ | Skill rejects out-of-schema inputs with structured error — does not silently discard | 6.2.3 | P / F / N-A |
+| ☐ | Outputs stripped or escaped of content that could function as instructions in agent context | 6.2.4 | P / F / N-A |
+| ☐ | Output truncated to declared maximum length before returning to agent | 6.2.4 | P / F / N-A |
+| ☐ | Output returns structured data (JSON/typed) rather than freeform text where possible | 6.2.4 | P / F / N-A |
+
+### C3 — Test Coverage Requirements
+
+| ✓ | Checklist Item | Policy § | Result |
+|---|---|---|---|
+| ☐ | Unit tests present: all input validation paths, happy path, and error paths — 90%+ line coverage | 6.4 | P / F / N-A |
+| ☐ | Boundary tests present: empty input, max-length input, invalid types — all declared constraints | 6.4 | P / F / N-A |
+| ☐ | Injection tests present: prompt injection payloads in string params, path traversal in file paths | 6.4 | P / F / N-A |
+| ☐ | Idempotency tests present for all write operations (duplicate invocation with identical inputs) | 6.4 | P / F / N-A |
+| ☐ | Scope boundary tests present: attempts to access resources outside declared scope return errors | 6.4 | P / F / N-A |
+
+### C4 — Versioning & Runtime Controls
+
+| ✓ | Checklist Item | Policy § | Result |
+|---|---|---|---|
+| ☐ | Semantic versioning used; breaking interface/behavior change increments MAJOR version | 6.3 | P / F / N-A |
+| ☐ | Agents declare explicit version dependencies — no floating references to 'latest' | 6.3 | P / F / N-A |
+| ☐ | Deprecation notice issued at least 60 days before removal if replacing existing version | 6.3 | P / F / N-A |
+| ☐ | Skill invocations logged with invoking agent ID, skill name/version, input hash, outcome | 6.5 | P / F / N-A |
+| ☐ | Destructive operations emit pre-execution summary requiring orchestration confirmation | 6.5 | P / F / N-A |
+
+---
+
+**Reviewer (Skill Registry):** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_&nbsp;&nbsp; **Date:** \_\_\_\_\_\_\_\_\_\_\_\_&nbsp;&nbsp; **Result:** Pass ☐ &nbsp; Fail ☐ &nbsp; Waiver ☐
+
 ---
 
 ## Questions?
