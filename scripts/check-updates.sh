@@ -11,14 +11,12 @@ echo ""
 echo "CrestronAISkills — Checking for updates..."
 echo "──────────────────────────────────────────────────"
 
-# Find installed skills via config files
 configs=("$CONFIG_DIR"/*-config.json)
 if [ ! -f "${configs[0]}" ]; then
     echo "No installed skills found. Download and run install.sh from the marketplace."
     exit 0
 fi
 
-# Fetch registry
 REGISTRY=$(curl -sf "$REGISTRY_URL")
 if [ -z "$REGISTRY" ]; then
     echo "ERROR: Could not fetch registry from $REGISTRY_URL"
@@ -29,7 +27,8 @@ for CONFIG_FILE in "$CONFIG_DIR"/*-config.json; do
     NAME=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(d['name'])" 2>/dev/null || grep '"name"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
     VERSION=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(d['version'])" 2>/dev/null || grep '"version"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
     PROJECT_PATH=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(d['projectPath'])" 2>/dev/null || grep '"projectPath"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
-    DEST_MD="$PROJECT_PATH/.github/skills/$NAME/skill.md"
+    COPILOT_DEST="$PROJECT_PATH/.github/skills/$NAME/skill.md"
+    CLAUDE_DEST="$PROJECT_PATH/.claude/commands/$NAME.md"
 
     LATEST=$(echo "$REGISTRY" | python3 -c "import json,sys; r=json.load(sys.stdin); s=[x for x in r['skills'] if x['name']=='$NAME']; print(s[0]['version'] if s else '')" 2>/dev/null)
 
@@ -45,8 +44,16 @@ for CONFIG_FILE in "$CONFIG_DIR"/*-config.json; do
         echo "     Project: $PROJECT_PATH"
         read -rp "     Update now? (y/n): " answer
         if [[ "$answer" =~ ^[Yy] ]]; then
-            mkdir -p "$(dirname "$DEST_MD")"
-            curl -sf "$PAGES_URL/skills/$NAME/skill.md" -o "$DEST_MD"
+            TMP=$(mktemp)
+            curl -sf "$PAGES_URL/skills/$NAME/skill.md" -o "$TMP"
+            # Update Copilot skill
+            mkdir -p "$(dirname "$COPILOT_DEST")"
+            cp "$TMP" "$COPILOT_DEST"
+            # Update Claude Code command if present
+            if [ -f "$CLAUDE_DEST" ]; then
+                awk '/^---$/{n++; next} n>=2{print}' "$TMP" > "$CLAUDE_DEST"
+            fi
+            rm -f "$TMP"
             python3 -c "
 import json
 with open('$CONFIG_FILE') as f: d=json.load(f)

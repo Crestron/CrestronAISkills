@@ -1,6 +1,6 @@
 # CrestronAISkills
 
-> A marketplace for GitHub Copilot skills — browse, install, and auto-update Copilot instruction skills tailored for Crestron engineers.
+> A marketplace for AI assistant skills — browse, install, and auto-update skills for **GitHub Copilot** and **Claude Code**.
 
 [![Skills](https://img.shields.io/badge/skills-registry-blue)](registry.json)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -9,11 +9,12 @@
 
 ## What Is This?
 
-CrestronAISkills is a **skills marketplace** for [GitHub Copilot](https://docs.github.com/copilot). It provides:
+CrestronAISkills is a **skills marketplace** for AI coding assistants. Each skill is a focused instruction file that shapes how your AI assistant behaves in a project. It provides:
 
 - Search and browse skills by keyword, tag, or author
 - Install skills with a one-click installer script
 - Auto-update via Task Scheduler (Windows) or cron/launchd (Mac/Linux)
+- Works with **GitHub Copilot** and **Claude Code**
 - Publish your own skills via a pull request
 
 ---
@@ -53,13 +54,58 @@ chmod +x install.sh
 Set the project path to the root of the repo you want the skill installed into.
 
 The installer will:
-1. Copy the skill to `<project>/.github/skills/<skill-name>/skill.md`
-2. Save metadata to `~/.copilot/skills/`
-3. Register a **weekly auto-update task** (Task Scheduler on Windows, cron on Mac/Linux)
+1. Copy the skill to `.github/skills/<skill-name>/skill.md` for GitHub Copilot
+2. Copy the skill to `.claude/commands/<skill-name>.md` for Claude Code
+3. Save metadata to `~/.copilot/skills/`
+4. Register a **weekly auto-update task** (Task Scheduler on Windows, cron on Mac/Linux)
 
-### Step 4 — Use the Skill in Copilot
+### Step 4 — Use the Skill
 
-The skill is now active in your project. GitHub Copilot picks it up automatically from `.github/skills/`.
+**GitHub Copilot** picks up skills automatically from `.github/skills/` in your project.
+
+**Claude Code** makes the skill available as a slash command — type `/<skill-name>` in Claude Code to activate it.
+
+---
+
+## Manual Install
+
+If you prefer not to use the installer, clone the repo and copy the skill file manually.
+
+```bash
+git clone https://github.com/Crestron/CrestronAISkills
+```
+
+### GitHub Copilot
+
+Copy the skill file into your project:
+
+```bash
+mkdir -p <your-project>/.github/skills/<skill-name>
+cp CrestronAISkills/skills/<skill-name>/skill.md <your-project>/.github/skills/<skill-name>/skill.md
+```
+
+GitHub Copilot automatically reads instruction files from `.github/skills/` in your project root.
+
+### Claude Code
+
+Copy the skill body (the content below the `---` frontmatter) into your project's Claude commands folder:
+
+```bash
+mkdir -p <your-project>/.claude/commands
+# Strip the YAML frontmatter, keep only the instruction body
+awk '/^---$/{n++; next} n>=2{print}' CrestronAISkills/skills/<skill-name>/skill.md \
+  > <your-project>/.claude/commands/<skill-name>.md
+```
+
+The skill will be available as `/<skill-name>` in Claude Code.
+
+**Windows (PowerShell):**
+```powershell
+New-Item -ItemType Directory -Force "<your-project>\.claude\commands" | Out-Null
+$lines = Get-Content "CrestronAISkills\skills\<skill-name>\skill.md"
+$start = ($lines | Select-String '^---$').LineNumber[1]
+$lines[$start..($lines.Length-1)] | Set-Content "<your-project>\.claude\commands\<skill-name>.md"
+```
 
 ---
 
@@ -69,7 +115,7 @@ The skill is now active in your project. GitHub Copilot picks it up automaticall
 
 ```powershell
 # Windows
-~/.copilot/skills/check-updates.ps1
+~\.copilot\skills\check-updates.ps1
 ```
 ```bash
 # Mac/Linux
@@ -86,7 +132,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 **Quick summary:**
 1. Fork this repo
-2. Create `skills/<your-skill-name>/skill.md` with YAML frontmatter and Copilot instructions
+2. Create `skills/<your-skill-name>/skill.md` with YAML frontmatter and instructions
 3. Open a pull request — CI will validate your skill automatically
 4. Once merged, the registry updates automatically and your skill appears in the marketplace
 
@@ -100,13 +146,12 @@ CrestronAISkills/
 ├── skill-schema.json          # JSON Schema for skill.md frontmatter validation
 ├── skills/
 │   └── <skill-name>/
-│       └── skill.md           # Copilot skill (YAML frontmatter + instructions)
+│       └── skill.md           # Skill file (YAML frontmatter + instructions)
 ├── scripts/
 │   ├── install-skill-template.ps1   # Windows installer template
 │   ├── install-skill-template.sh    # Mac/Linux installer template
 │   ├── check-updates.ps1            # Windows manual update checker
-│   ├── check-updates.sh             # Mac/Linux manual update checker
-│   └── deploy.ps1                   # Local deploy script
+│   └── check-updates.sh             # Mac/Linux manual update checker
 ├── web/                       # React+Vite web UI (served via GitHub Pages)
 └── .github/
     └── workflows/             # CI/CD pipelines (validate, registry update, deploy)
@@ -122,4 +167,4 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) to get started
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE)
