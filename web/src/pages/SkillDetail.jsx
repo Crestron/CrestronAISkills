@@ -131,7 +131,7 @@ export default function SkillDetail() {
 
     useEffect(() => {
         if (!skill) return;
-        fetch(`/skills/${skill.name}/skill.md`)
+        fetch(`${import.meta.env.BASE_URL}skills/${skill.name}/skill.md`)
             .then((r) => r.ok ? r.text() : null)
             .then((text) => setContent(text))
             .catch(() => setContent(null));
@@ -139,20 +139,21 @@ export default function SkillDetail() {
 
     const handleDownload = async () => {
         if (!content) return;
-        const RAW_BASE_URL = "https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main";
-        const REGISTRY_URL = `${RAW_BASE_URL}/registry.json`;
+        const base = import.meta.env.BASE_URL;
+        const PAGES_URL = (window.location.origin + base).replace(/\/$/, "");
+        const REGISTRY_URL = `${PAGES_URL}/registry.json`;
 
         const replacePlaceholders = (tmpl) => tmpl
             .replace(/__SKILL_NAME__/g, skill.name)
             .replace(/__SKILL_VERSION__/g, skill.version)
             .replace(/__REGISTRY_URL__/g, REGISTRY_URL)
-            .replace(/__PAGES_URL__/g, RAW_BASE_URL);
+            .replace(/__PAGES_URL__/g, PAGES_URL);
 
         const zip = new JSZip();
 
         // Fetch file manifest; fall back to just skill.md if unavailable
         let fileList = ["skill.md"];
-        const manifestResp = await fetch(`/skills/${skill.name}/files.json`);
+        const manifestResp = await fetch(`${base}skills/${skill.name}/files.json`);
         if (manifestResp.ok) {
             const parsed = await manifestResp.json();
             if (Array.isArray(parsed) && parsed.length > 0) fileList = parsed;
@@ -160,14 +161,14 @@ export default function SkillDetail() {
 
         // Add all skill files to zip
         for (const filePath of fileList) {
-            const resp = await fetch(`/skills/${skill.name}/${filePath}`);
+            const resp = await fetch(`${base}skills/${skill.name}/${filePath}`);
             if (resp.ok) zip.file(filePath, await resp.text());
         }
 
         // Add install scripts
         const [psResp, shResp] = await Promise.allSettled([
-            fetch(`/install-skill-template.ps1`),
-            fetch(`/install-skill-template.sh`),
+            fetch(`${base}scripts/install-skill-template.ps1`),
+            fetch(`${base}scripts/install-skill-template.sh`),
         ]);
         const psTemplate = psResp.status === "fulfilled" && psResp.value.ok ? await psResp.value.text() : "";
         const shTemplate = shResp.status === "fulfilled" && shResp.value.ok ? await shResp.value.text() : "";
