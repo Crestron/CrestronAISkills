@@ -3,21 +3,6 @@
   "updatedAt": "2026-03-31T23:18:53.484Z",
   "skills": [
     {
-      "name": "crpc-test-client",
-      "version": "1.0.0",
-      "description": "Used for testing Crestron Home CRPC requests and responses. Use this to get information about or confirm the format of a specific CRPC request.",
-      "tags": [
-        "crestron-home",
-        "crpc",
-        "testing",
-        "verification"
-      ],
-      "author": "cturner",
-      "path": "skills/crpc-test-client",
-      "license": "MIT",
-      "homepage": null
-    },
-    {
       "name": "example-skill",
       "version": "1.0.0",
       "description": "A starter example showing how to write a Copilot skill for Crestron AV and smart home systems",
@@ -43,20 +28,6 @@
       ],
       "author": "CrestronEng",
       "path": "skills/hello-world",
-      "license": "MIT",
-      "homepage": null
-    },
-    {
-      "name": "string-translator",
-      "version": "1.1.0",
-      "description": "Translates strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.",
-      "tags": [
-        "localization",
-        "translation",
-        "strings"
-      ],
-      "author": "CrestronEng",
-      "path": "skills/string-translator",
       "license": "MIT",
       "homepage": null
     }
