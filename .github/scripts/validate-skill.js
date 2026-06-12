@@ -166,7 +166,10 @@ for (const dir of dirs) {
     warnings.push("`metadata.dependencies` not set — required for C1 registry approval");
 
   errors.forEach((e) => console.log("  ✗ " + e));
-  warnings.forEach((w) => console.log("  ⚠  " + w));
+  warnings.forEach((w) => {
+    console.log("  ⚠  " + w);
+    console.log(`::warning file=${skillMd}::${w.replace(/`/g, "")}`);
+  });
 
   if (errors.length) {
     anyError = true;
