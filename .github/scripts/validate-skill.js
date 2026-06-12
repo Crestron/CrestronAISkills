@@ -166,10 +166,7 @@ for (const dir of dirs) {
     errors.push("`metadata.dependencies` not set — declare dependencies or set to `None`");
 
   errors.forEach((e) => console.log("  ✗ " + e));
-  warnings.forEach((w) => {
-    console.log("  ⚠  " + w);
-    console.log(`::warning file=${skillMd}::${w.replace(/`/g, "")}`);
-  });
+  warnings.forEach((w) => console.log("  ⚠  " + w));
 
   if (errors.length) {
     anyError = true;
