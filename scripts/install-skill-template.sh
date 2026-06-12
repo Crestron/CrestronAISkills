@@ -120,16 +120,16 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 <plist version="1.0"><dict>
   <key>Label</key><string>$PLIST_NAME</string>
   <key>ProgramArguments</key><array><string>bash</string><string>$UPDATE_SCRIPT</string></array>
-  <key>StartCalendarInterval</key><dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer></dict>
+  <key>StartCalendarInterval</key><dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer></dict>
   <key>RunAtLoad</key><false/>
 </dict></plist>
 PLIST
     launchctl load "$PLIST_PATH" 2>/dev/null
-    echo "  launchd agent registered (weekly Monday 9am)"
+    echo "  launchd agent registered (daily 9am)"
 else
-    CRON_LINE="0 9 * * 1 bash \"$UPDATE_SCRIPT\" >> /tmp/crestron-skill-update.log 2>&1"
+    CRON_LINE="0 9 * * * bash \"$UPDATE_SCRIPT\" >> /tmp/crestron-skill-update.log 2>&1"
     ( crontab -l 2>/dev/null | grep -v "$UPDATE_SCRIPT"; echo "$CRON_LINE" ) | crontab -
-    echo "  cron job registered (weekly Monday 9am)"
+    echo "  cron job registered (daily 9am)"
 fi
 
 echo ""
@@ -137,5 +137,5 @@ echo "✅ Done!"
 echo "   GitHub Copilot: $PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
 echo "   Claude Code:    $PROJECT_PATH/.claude/commands/$SKILL_NAME.md  (use as /$SKILL_NAME)"
 echo "   Metadata:       $CONFIG_DIR/ and $CLAUDE_CONFIG_DIR/"
-echo "   Auto-updates scheduled every Monday at 9am."
+echo "   Auto-updates scheduled daily at 9am."
 echo ""
