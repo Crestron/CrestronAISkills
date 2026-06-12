@@ -3,11 +3,9 @@
 # Run this script manually to check all installed skills for available updates.
 # Usage: bash ~/.copilot/skills/check-updates.sh
 
-REGISTRY_URL="https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main/registry.json"
-PAGES_URL="https://raw.githubusercontent.com/CrestronEng/CrestronAISkills/main"
+REGISTRY_URL="https://crestron.github.io/CrestronAISkills/registry.json"
+PAGES_URL="https://crestron.github.io/CrestronAISkills"
 CONFIG_DIR="$HOME/.copilot/skills"
-TOKEN_FILE="$CONFIG_DIR/github-token"
-GH_TOKEN=$(cat "$TOKEN_FILE" 2>/dev/null)
 
 echo ""
 echo "CrestronAISkills — Checking for updates..."
@@ -21,9 +19,9 @@ if [ ! -f "${configs[0]}" ]; then
 fi
 
 # Fetch registry
-REGISTRY=$(curl -sf -H "Authorization: token $GH_TOKEN" "$REGISTRY_URL")
+REGISTRY=$(curl -sf "$REGISTRY_URL")
 if [ -z "$REGISTRY" ]; then
-    echo "ERROR: Could not fetch registry. Check your token in $TOKEN_FILE"
+    echo "ERROR: Could not fetch registry from $REGISTRY_URL"
     exit 1
 fi
 
@@ -48,8 +46,7 @@ for CONFIG_FILE in "$CONFIG_DIR"/*-config.json; do
         read -rp "     Update now? (y/n): " answer
         if [[ "$answer" =~ ^[Yy] ]]; then
             mkdir -p "$(dirname "$DEST_MD")"
-            curl -sf -H "Authorization: token $GH_TOKEN" "$PAGES_URL/skills/$NAME/skill.md" -o "$DEST_MD"
-            # Update version in config
+            curl -sf "$PAGES_URL/skills/$NAME/skill.md" -o "$DEST_MD"
             python3 -c "
 import json
 with open('$CONFIG_FILE') as f: d=json.load(f)
@@ -64,4 +61,3 @@ with open('$CONFIG_FILE','w') as f: json.dump(d,f,indent=2)
 done
 
 echo ""
-

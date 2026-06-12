@@ -14,30 +14,14 @@ Write-Host ("─" * 50)
 $configDir = Join-Path $env:USERPROFILE ".copilot\skills"
 if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Force -Path $configDir | Out-Null }
 
-# 1. Get or reuse stored GitHub PAT
-$tokenFile = Join-Path $configDir "github-token"
-if (Test-Path $tokenFile) {
-    $ghToken = (Get-Content $tokenFile -Raw).Trim()
-    Write-Host "  Using stored GitHub token."
-} else {
-    Write-Host ""
-    Write-Host "  A GitHub Personal Access Token (PAT) with 'read:org' scope is required" -ForegroundColor Yellow
-    Write-Host "  for auto-updates (private Pages site). You only need to enter this once." -ForegroundColor Yellow
-    $ghToken = Read-Host "`n  Enter your GitHub PAT"
-    if ([string]::IsNullOrWhiteSpace($ghToken)) { Write-Host "ERROR: PAT required." -ForegroundColor Red; exit 1 }
-    Set-Content $tokenFile $ghToken.Trim() -Encoding UTF8 -NoNewline
-    Write-Host "  Token saved."
-}
-$headers = @{ Authorization = "token $ghToken" }
-
-# 2. Ask for project path
+# 1. Ask for project path
 $defaultPath = (Get-Location).Path
 $inputPath = Read-Host "`nEnter your project root path (press Enter for: $defaultPath)"
 if ([string]::IsNullOrWhiteSpace($inputPath)) { $inputPath = $defaultPath }
 if (-not (Test-Path $inputPath)) { Write-Host "ERROR: Path not found." -ForegroundColor Red; exit 1 }
 $projectPath = (Resolve-Path $inputPath).Path
 
-# 3. Install all skill files to .github\skills\<name>\
+# 2. Install all skill files to .github\skills\<name>\
 $skillsFolder = Join-Path $projectPath ".github\skills\$skillName"
 New-Item -ItemType Directory -Force -Path $skillsFolder | Out-Null
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -51,48 +35,46 @@ Get-ChildItem $scriptDir -Recurse -File | Where-Object { $_.Name -notin @('insta
 $destMd = Join-Path $skillsFolder "skill.md"
 Write-Host "  Installed to $skillsFolder"
 
-# 4. Save config
+# 3. Save config
 $configPath = Join-Path $configDir "$skillName-config.json"
 [ordered]@{ name=$skillName; version=$skillVersion; projectPath=$projectPath; registryUrl=$registryUrl; pagesUrl=$pagesUrl; installedAt=(Get-Date -Format 'o') } | ConvertTo-Json | Set-Content $configPath -Encoding UTF8
 
-# 4b. Download check-updates scripts to config dir (so skill's reminder works)
+# 3b. Download check-updates scripts to config dir
 try {
-    Invoke-WebRequest "$pagesUrl/scripts/check-updates.ps1" -OutFile (Join-Path $configDir "check-updates.ps1") -Headers $headers -UseBasicParsing
+    Invoke-WebRequest "$pagesUrl/scripts/check-updates.ps1" -OutFile (Join-Path $configDir "check-updates.ps1") -UseBasicParsing
     Write-Host "  check-updates.ps1 saved to $configDir"
 } catch { Write-Host "  Warning: could not download check-updates.ps1" -ForegroundColor Yellow }
 try {
-    Invoke-WebRequest "$pagesUrl/scripts/check-updates.sh" -OutFile (Join-Path $configDir "check-updates.sh") -Headers $headers -UseBasicParsing
+    Invoke-WebRequest "$pagesUrl/scripts/check-updates.sh" -OutFile (Join-Path $configDir "check-updates.sh") -UseBasicParsing
     Write-Host "  check-updates.sh saved to $configDir"
 } catch { Write-Host "  Warning: could not download check-updates.sh" -ForegroundColor Yellow }
 
-# 5. Write update script
+# 4. Write update script
 $updateScriptPath = Join-Path $configDir "update-$skillName.ps1"
 @"
 `$c = Get-Content '$configPath' | ConvertFrom-Json
-`$t = if (Test-Path '$tokenFile') { (Get-Content '$tokenFile' -Raw).Trim() } else { '' }
-`$h = if (`$t) { @{ Authorization = "token `$t" } } else { @{} }
-try { `$r = Invoke-RestMethod `$c.registryUrl -Headers `$h } catch { exit 1 }
+try { `$r = Invoke-RestMethod `$c.registryUrl -UseBasicParsing } catch { exit 1 }
 `$l = `$r.skills | Where-Object { `$_.name -eq `$c.name } | Select-Object -First 1
 if (-not `$l -or `$l.version -eq `$c.version) { exit 0 }
-`$filesJson = Invoke-RestMethod "`$(`$c.pagesUrl)/skills/`$(`$c.name)/files.json" -Headers `$h
+`$filesJson = Invoke-RestMethod "`$(`$c.pagesUrl)/skills/`$(`$c.name)/files.json" -UseBasicParsing
 foreach (`$f in `$filesJson) {
     `$dest = Join-Path '$skillsFolder' `$f
     `$destDir = Split-Path -Parent `$dest
     if (-not (Test-Path `$destDir)) { New-Item -ItemType Directory -Force -Path `$destDir | Out-Null }
-    Invoke-WebRequest "`$(`$c.pagesUrl)/skills/`$(`$c.name)/`$f" -OutFile `$dest -Headers `$h -UseBasicParsing
+    Invoke-WebRequest "`$(`$c.pagesUrl)/skills/`$(`$c.name)/`$f" -OutFile `$dest -UseBasicParsing
 }
 `$c.version = `$l.version; `$c | ConvertTo-Json | Set-Content '$configPath' -Encoding UTF8
 Import-Module BurntToast -ErrorAction SilentlyContinue
 New-BurntToastNotification -Text 'CrestronAISkills', "Skill '`$(`$c.name)' updated to v`$(`$l.version)" -ErrorAction SilentlyContinue
 "@ | Set-Content $updateScriptPath -Encoding UTF8
 
-# 6. Install BurntToast if missing
+# 5. Install BurntToast if missing
 if (-not (Get-Module -ListAvailable BurntToast)) {
     Write-Host "  Installing BurntToast for notifications..."
     Install-Module BurntToast -Scope CurrentUser -Force
 }
 
-# 7. Register Task Scheduler (no admin needed)
+# 6. Register Task Scheduler (no admin needed)
 $action   = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Normal -NonInteractive -File `"$updateScriptPath`""
 $trigger  = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At "9:00AM"
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1)
@@ -101,4 +83,3 @@ Write-Host "  Task Scheduler: CrestronSkill-$skillName (weekly Monday 9am)"
 
 Write-Host "`n✅ Done! Installed to: $destMd" -ForegroundColor Green
 Write-Host "   Auto-updates scheduled every Monday at 9am.`n" -ForegroundColor DarkGray
-

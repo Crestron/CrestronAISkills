@@ -18,7 +18,7 @@ A skill is a **GitHub Copilot instruction file** — a single `skill.md` file wi
 ### 1. Fork & Clone
 
 ```bash
-git clone https://github.com/CrestronEng/CrestronAISkills
+git clone https://github.com/Crestron/CrestronAISkills
 cd CrestronAISkills
 ```
 
@@ -40,7 +40,7 @@ description: What your skill does (10–200 characters)
 tags: [tag1, tag2]
 author: your-github-username
 license: MIT
-homepage: https://github.com/CrestronEng/your-repo
+homepage: https://github.com/your-org/your-repo
 ---
 
 # Your Skill Name
@@ -110,4 +110,4 @@ Update the `version` field in the frontmatter of `skill.md` and open a PR with y
 
 ## Questions?
 
-Open a [GitHub Discussion](https://github.com/CrestronEng/CrestronAISkills/discussions) or file an [issue](https://github.com/CrestronEng/CrestronAISkills/issues).
+Open a [GitHub Discussion](https://github.com/Crestron/CrestronAISkills/discussions) or file an [issue](https://github.com/Crestron/CrestronAISkills/issues).
