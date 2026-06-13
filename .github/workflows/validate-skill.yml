@@ -5,6 +5,9 @@ on:
     paths:
       - 'skills/**'
 
+permissions:
+  contents: write
+
 jobs:
   validate:
     name: Validate against skill-schema.json
@@ -12,9 +15,22 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
+      # Checkout PR head for skill files. No token passed here — the write token
+      # is only used in the commit-back step via GITHUB_TOKEN env var.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      # Security: overwrite the validator script with the base-branch version so a
+      # PR that modifies validate-skill.js cannot run its own code with write access.
+      - name: Pin validator script to base branch
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          [[ "$BASE_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid BASE_REF"; exit 1; }
+          git fetch origin "$BASE_REF" --depth=1
+          git checkout FETCH_HEAD -- .github/scripts/validate-skill.js
 
       - uses: actions/setup-node@v4
         with:
@@ -22,8 +38,11 @@ jobs:
 
       - name: Find changed skill directories
         id: changed
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'skills/**' \
+          [[ "$BASE_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid BASE_REF"; exit 1; }
+          CHANGED=$(git diff --name-only "origin/${BASE_REF}...HEAD" -- 'skills/**' \
             | grep -oP 'skills/[^/]+' | sort -u | tr '\n' ' ')
           echo "dirs=$CHANGED" >> $GITHUB_OUTPUT
           echo "Changed skill dirs: $CHANGED"
@@ -31,4 +50,24 @@ jobs:
       - name: Validate skills
         env:
           CHANGED_DIRS: ${{ steps.changed.outputs.dirs }}
+          REPORTS_DIR: reports
         run: node .github/scripts/validate-skill.js
+
+      - name: Commit validation reports
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_REF: ${{ github.head_ref }}
+          REPO: ${{ github.repository }}
+        run: |
+          [[ "$HEAD_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid HEAD_REF"; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO}.git"
+          git add -- reports/
+          if git diff --staged --quiet; then
+            echo "No report changes to commit."
+          else
+            git commit -m "ci: add validation reports [skip ci]"
+            git push origin "HEAD:refs/heads/${HEAD_REF}"
+          fi
