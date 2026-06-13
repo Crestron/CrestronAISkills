@@ -22,7 +22,7 @@ function flushSummary() {
   fs.appendFileSync(SUMMARY_FILE, summaryLines.join("\n") + "\n");
 }
 
-function writeReport(skillName, status, errors, warnings, deprecated, frontmatter) {
+function writeReport(skillName, status, errors, warnings, deprecated, frontmatter, checks) {
   const safeName = path.basename(String(skillName)).replace(/[^a-zA-Z0-9._-]/g, "_");
   const baseDir = path.resolve(REPORTS_DIR);
   const reportDir = path.resolve(baseDir, safeName);
@@ -38,6 +38,7 @@ function writeReport(skillName, status, errors, warnings, deprecated, frontmatte
     deprecated,
     errors,
     warnings,
+    checks: checks || [],
     frontmatter: frontmatter || null,
   };
   fs.writeFileSync(
@@ -104,6 +105,14 @@ if (!dirs.length) {
   process.exit(0);
 }
 
+const C1_HUMAN_ITEMS = [
+  "Input schema documented — all parameter types and validation rules described in skill body",
+  "Output schema documented — maximum output size declared",
+  "Scope constraints declared — what the skill can and cannot do is explicit",
+  "Test coverage documented and meets minimum thresholds (see C3 in CONTRIBUTING.md)",
+  "Approving AI Workgroup member identified and recorded",
+];
+
 let anyError = false;
 let totalWarnings = 0;
 const skillResults = [];
@@ -115,99 +124,100 @@ for (const dir of dirs) {
   const dirName = path.basename(dir);
   const errors = [];
   const warnings = [];
+  const checks = []; // { label, passed }
+
+  function chk(label, passed, errorMsg) {
+    checks.push({ label, passed });
+    if (!passed && errorMsg) errors.push(errorMsg);
+    return passed;
+  }
 
   console.log(`\n── ${dir} ──`);
 
   if (!fs.existsSync(skillMd)) {
     console.log("  ✗ Missing skill.md");
     anyError = true;
-    writeReport(dirName, "failed", ["Missing skill.md"], [], false, null);
-    skillResults.push({ dir, errors: ["Missing skill.md"], warnings: [], deprecated: false });
+    writeReport(dirName, "failed", ["Missing skill.md"], [], false, null, []);
+    skillResults.push({ dir, errors: ["Missing skill.md"], warnings: [], checks: [], deprecated: false });
     continue;
   }
 
   const content = fs.readFileSync(skillMd, "utf8");
 
-  if (!content.startsWith("---")) {
-    errors.push("skill.md must begin with YAML frontmatter (---)");
-  }
+  chk("skill.md begins with frontmatter (---)", content.startsWith("---"),
+    "skill.md must begin with YAML frontmatter (---)");
 
   const fm = parseFrontmatter(content);
 
   if (fm.deprecated === "true" || fm.deprecated === true) {
     console.log("  ⏸  deprecated: true — skipped from registry, not validated");
-    writeReport(dirName, "deprecated", [], [], true, fm);
-    skillResults.push({ dir, errors: [], warnings: [], deprecated: true });
+    writeReport(dirName, "deprecated", [], [], true, fm, []);
+    skillResults.push({ dir, errors: [], warnings: [], checks: [], deprecated: true });
     continue;
   }
 
   // name
-  if (!fm.name) {
-    errors.push("Missing required field: `name`");
-  } else {
-    if (!NAME_RE.test(fm.name))
-      errors.push(`\`name\` "${fm.name}" must be lowercase letters/numbers/hyphens — no leading, trailing, or consecutive hyphens`);
-    if (fm.name.length > 64)
-      errors.push(`\`name\` exceeds 64 characters (${fm.name.length})`);
-    if (fm.name !== dirName)
-      errors.push(`\`name\` "${fm.name}" must match directory name "${dirName}"`);
+  const nameOk = chk("name present", !!fm.name, "Missing required field: `name`");
+  if (nameOk) {
+    chk("name format (kebab-case, lowercase)", NAME_RE.test(fm.name),
+      `\`name\` "${fm.name}" must be lowercase letters/numbers/hyphens — no leading, trailing, or consecutive hyphens`);
+    chk("name ≤ 64 characters", fm.name.length <= 64,
+      `\`name\` exceeds 64 characters (${fm.name.length})`);
+    chk("name matches directory name", fm.name === dirName,
+      `\`name\` "${fm.name}" must match directory name "${dirName}"`);
   }
 
   // version
-  if (!fm.version) {
-    errors.push("Missing required field: `version`");
-  } else if (!VER_RE.test(fm.version)) {
-    errors.push(`\`version\` "${fm.version}" must be semantic version — e.g. 1.0.0`);
+  const verOk = chk("version present", !!fm.version, "Missing required field: `version`");
+  if (verOk) {
+    chk("version is semver (major.minor.patch)", VER_RE.test(fm.version),
+      `\`version\` "${fm.version}" must be semantic version — e.g. 1.0.0`);
   }
 
   // description
-  if (!fm.description) {
-    errors.push("Missing required field: `description`");
-  } else {
-    if (fm.description.length < 10)
-      errors.push(`\`description\` too short (${fm.description.length} chars, min 10)`);
-    if (fm.description.length > 1024)
-      errors.push(`\`description\` too long (${fm.description.length} chars, max 1024)`);
+  const descOk = chk("description present", !!fm.description, "Missing required field: `description`");
+  if (descOk) {
+    chk("description ≥ 10 characters", fm.description.length >= 10,
+      `\`description\` too short (${fm.description.length} chars, min 10)`);
+    chk("description ≤ 1024 characters", fm.description.length <= 1024,
+      `\`description\` too long (${fm.description.length} chars, max 1024)`);
   }
 
   // tags
-  if (!fm.tags || !fm.tags.length) {
-    errors.push("Missing required field: `tags` — must be a non-empty array, e.g. `[crestron, av]`");
-  } else {
-    for (const tag of fm.tags) {
-      if (!TAG_RE.test(tag))
-        errors.push(`tag "${tag}" must be lowercase letters/numbers/hyphens`);
-    }
+  const tagsOk = chk("tags present (non-empty array)", !!(fm.tags && fm.tags.length),
+    "Missing required field: `tags` — must be a non-empty array, e.g. `[crestron, av]`");
+  if (tagsOk) {
+    const badTags = fm.tags.filter((t) => !TAG_RE.test(t));
+    chk("all tags lowercase/alphanumeric", badTags.length === 0,
+      badTags.map((t) => `tag "${t}" must be lowercase letters/numbers/hyphens`).join("; "));
   }
 
   // author
-  if (!fm.author) {
-    errors.push("Missing required field: `author`");
-  }
+  chk("author set", !!fm.author, "Missing required field: `author`");
 
-  // C1 checklist — team and maintainer are required; dependencies required but "None" is acceptable
-  if (!fm.metadata?.team)
-    errors.push("`metadata.team` not set — every skill must declare an owning team");
-  if (!fm.metadata?.maintainer)
-    errors.push("`metadata.maintainer` not set — every skill must declare a maintainer");
-  if (!fm.metadata?.dependencies)
-    errors.push("`metadata.dependencies` not set — declare dependencies or set to `None`");
+  // C1 — metadata (hard required)
+  chk("metadata.team set", !!fm.metadata?.team,
+    "`metadata.team` not set — every skill must declare an owning team");
+  chk("metadata.maintainer set", !!fm.metadata?.maintainer,
+    "`metadata.maintainer` not set — every skill must declare a maintainer");
+  chk("metadata.dependencies set", !!fm.metadata?.dependencies,
+    "`metadata.dependencies` not set — declare dependencies or set to `None`");
 
   errors.forEach((e) => console.log("  ✗ " + e));
   warnings.forEach((w) => console.log("  ⚠  " + w));
 
   if (errors.length) {
     anyError = true;
-    writeReport(dirName, "failed", errors, warnings, false, fm);
+    writeReport(dirName, "failed", errors, warnings, false, fm, checks);
   } else {
     console.log("  ✓ Passes skill-schema.json validation");
     if (warnings.length)
       console.log("  ℹ  Warnings above need human review before merge (C1 checklist)");
-    writeReport(dirName, "passed", [], warnings, false, fm);
+    writeReport(dirName, "passed", [], warnings, false, fm, checks);
   }
 
   totalWarnings += warnings.length;
-  skillResults.push({ dir, errors, warnings, deprecated: false });
+  skillResults.push({ dir, errors, warnings, checks, deprecated: false });
 }
 
 console.log("");
@@ -223,7 +233,7 @@ if (anyError) {
 // Write GitHub Step Summary
 writeSummary("## Skill Validation Results\n");
 
-for (const { dir, errors, warnings, deprecated } of skillResults) {
+for (const { dir, errors, warnings, checks, deprecated } of skillResults) {
   const skillName = path.basename(dir);
   writeSummary(`### \`${skillName}\``);
 
@@ -232,14 +242,13 @@ for (const { dir, errors, warnings, deprecated } of skillResults) {
     continue;
   }
 
+  writeSummary(errors.length ? "**Status: ❌ Failed**\n" : "**Status: ✅ Passed**\n");
+
   if (errors.length) {
-    writeSummary("**Status: ❌ Failed**\n");
     writeSummary("| | Error |");
     writeSummary("|---|---|");
     errors.forEach((e) => writeSummary(`| ❌ | ${e} |`));
     writeSummary("");
-  } else {
-    writeSummary("**Status: ✅ Passed**\n");
   }
 
   if (warnings.length) {
@@ -249,11 +258,33 @@ for (const { dir, errors, warnings, deprecated } of skillResults) {
     warnings.forEach((w) => writeSummary(`| ⚠️ | ${w} |`));
     writeSummary("");
   }
+
+  // CI checks detail table
+  if (checks.length) {
+    writeSummary("<details><summary>CI checks detail</summary>\n");
+    writeSummary("| Result | Check |");
+    writeSummary("|---|---|");
+    checks.forEach(({ label, passed }) =>
+      writeSummary(`| ${passed ? "✅" : "❌"} | ${label} |`)
+    );
+    writeSummary("\n</details>\n");
+  }
+
+  // Human review checklist
+  writeSummary("**C1 — Reviewer: human review required**\n");
+  writeSummary("| | Item | Policy |");
+  writeSummary("|---|---|---|");
+  C1_HUMAN_ITEMS.forEach((item) => writeSummary(`| ☐ | ${item} | 6.1 |`));
+  writeSummary("");
+  writeSummary(
+    "> **C2 / C3 / C4** — Complete for MAJOR and MINOR version changes. " +
+    "See the [Skill Approval Checklist](../blob/main/CONTRIBUTING.md#skill-approval-checklist).\n"
+  );
 }
 
 if (!anyError && totalWarnings === 0) {
   writeSummary("---");
-  writeSummary("✅ All skills passed validation with no warnings.");
+  writeSummary("✅ All skills passed CI validation. Reviewer checklist above requires human sign-off before merge.");
 }
 
 flushSummary();
