@@ -23,7 +23,10 @@ function flushSummary() {
 }
 
 function writeReport(skillName, status, errors, warnings, deprecated, frontmatter) {
-  const reportDir = path.join(REPORTS_DIR, skillName);
+  const safeName = path.basename(String(skillName)).replace(/[^a-zA-Z0-9._-]/g, "_");
+  const baseDir = path.resolve(REPORTS_DIR);
+  const reportDir = path.resolve(baseDir, safeName);
+  if (!reportDir.startsWith(baseDir + path.sep)) throw new Error(`Unsafe report path: ${reportDir}`);
   fs.mkdirSync(reportDir, { recursive: true });
   const report = {
     skill: skillName,
