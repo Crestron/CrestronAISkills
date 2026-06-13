@@ -11,6 +11,7 @@ const TAG_RE  = /^[a-z][a-z0-9-]*$/;
 
 const SUMMARY_FILE = process.env.GITHUB_STEP_SUMMARY || null;
 const summaryLines = [];
+const REPORTS_DIR = process.env.REPORTS_DIR || "reports";
 
 function writeSummary(line) {
   summaryLines.push(line);
@@ -19,6 +20,28 @@ function writeSummary(line) {
 function flushSummary() {
   if (!SUMMARY_FILE) return;
   fs.appendFileSync(SUMMARY_FILE, summaryLines.join("\n") + "\n");
+}
+
+function writeReport(skillName, status, errors, warnings, deprecated, frontmatter) {
+  const reportDir = path.join(REPORTS_DIR, skillName);
+  fs.mkdirSync(reportDir, { recursive: true });
+  const report = {
+    skill: skillName,
+    validatedAt: new Date().toISOString(),
+    commit: process.env.GITHUB_SHA || null,
+    pr: process.env.GITHUB_REF || null,
+    validator: "CrestronAISkills CI",
+    status,
+    deprecated,
+    errors,
+    warnings,
+    frontmatter: frontmatter || null,
+  };
+  fs.writeFileSync(
+    path.join(reportDir, "validation-report.json"),
+    JSON.stringify(report, null, 2) + "\n"
+  );
+  console.log(`  Report: ${reportDir}/validation-report.json`);
 }
 
 function parseFrontmatter(content) {
@@ -95,6 +118,7 @@ for (const dir of dirs) {
   if (!fs.existsSync(skillMd)) {
     console.log("  ✗ Missing skill.md");
     anyError = true;
+    writeReport(dirName, "failed", ["Missing skill.md"], [], false, null);
     skillResults.push({ dir, errors: ["Missing skill.md"], warnings: [], deprecated: false });
     continue;
   }
@@ -109,6 +133,7 @@ for (const dir of dirs) {
 
   if (fm.deprecated === "true" || fm.deprecated === true) {
     console.log("  ⏸  deprecated: true — skipped from registry, not validated");
+    writeReport(dirName, "deprecated", [], [], true, fm);
     skillResults.push({ dir, errors: [], warnings: [], deprecated: true });
     continue;
   }
@@ -170,10 +195,12 @@ for (const dir of dirs) {
 
   if (errors.length) {
     anyError = true;
+    writeReport(dirName, "failed", errors, warnings, false, fm);
   } else {
     console.log("  ✓ Passes skill-schema.json validation");
     if (warnings.length)
       console.log("  ℹ  Warnings above need human review before merge (C1 checklist)");
+    writeReport(dirName, "passed", [], warnings, false, fm);
   }
 
   totalWarnings += warnings.length;
