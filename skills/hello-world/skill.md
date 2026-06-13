@@ -1,6 +1,6 @@
 ---
 name: hello-world
-version: 1.0.5
+version: 1.0.6
 description: A test skill that responds with Hello World. Used to validate the auto-update pipeline.
 tags: [test, hello-world]
 author: CrestronEng
