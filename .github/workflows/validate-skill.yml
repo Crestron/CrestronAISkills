@@ -15,11 +15,19 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
+      # Checkout PR head for skill files. No token passed here — the write token
+      # is only used in the commit-back step via GITHUB_TOKEN env var.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Security: overwrite the validator script with the base-branch version so a
+      # PR that modifies validate-skill.js cannot run its own code with write access.
+      - name: Pin validator script to base branch
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          git checkout FETCH_HEAD -- .github/scripts/validate-skill.js
 
       - uses: actions/setup-node@v4
         with:
@@ -41,13 +49,16 @@ jobs:
 
       - name: Commit validation reports
         if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
           git add reports/
           if git diff --staged --quiet; then
             echo "No report changes to commit."
           else
             git commit -m "ci: add validation reports [skip ci]"
-            git push
+            git push origin HEAD:${{ github.head_ref }}
           fi
