@@ -1,0 +1,30 @@
+{
+  "skill": "example-skill",
+  "validatedAt": "2026-06-13T17:06:07.068Z",
+  "commit": "253d55d9eb5856cfa2fe2a02b6d80485f94a38d1",
+  "pr": "refs/pull/14/merge",
+  "validator": "CrestronAISkills CI",
+  "status": "passed",
+  "deprecated": false,
+  "errors": [],
+  "warnings": [],
+  "frontmatter": {
+    "name": "example-skill",
+    "version": "1.0.1",
+    "description": "A starter example showing how to write a Copilot skill for Crestron AV and smart home systems",
+    "tags": [
+      "example",
+      "demo",
+      "starter",
+      "crestron",
+      "av"
+    ],
+    "author": "CrestronEng",
+    "license": "MIT",
+    "metadata": {
+      "team": "crestron-ai",
+      "maintainer": "sabtain.khan",
+      "dependencies": "None"
+    }
+  }
+}
