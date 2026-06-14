@@ -105,14 +105,6 @@ if (!dirs.length) {
   process.exit(0);
 }
 
-const C1_HUMAN_ITEMS = [
-  "Input schema documented — all parameter types and validation rules described in skill body",
-  "Output schema documented — maximum output size declared",
-  "Scope constraints declared — what the skill can and cannot do is explicit",
-  "Test coverage documented and meets minimum thresholds (see C3 in CONTRIBUTING.md)",
-  "Approving AI Workgroup member identified and recorded",
-];
-
 let anyError = false;
 let totalWarnings = 0;
 const skillResults = [];
@@ -233,7 +225,7 @@ if (anyError) {
 // Write GitHub Step Summary
 writeSummary("## Skill Validation Results\n");
 
-for (const { dir, errors, warnings, checks, deprecated } of skillResults) {
+for (const { dir, errors, warnings, deprecated } of skillResults) {
   const skillName = path.basename(dir);
   writeSummary(`### \`${skillName}\``);
 
@@ -242,13 +234,14 @@ for (const { dir, errors, warnings, checks, deprecated } of skillResults) {
     continue;
   }
 
-  writeSummary(errors.length ? "**Status: ❌ Failed**\n" : "**Status: ✅ Passed**\n");
-
   if (errors.length) {
+    writeSummary("**Status: ❌ Failed**\n");
     writeSummary("| | Error |");
     writeSummary("|---|---|");
     errors.forEach((e) => writeSummary(`| ❌ | ${e} |`));
     writeSummary("");
+  } else {
+    writeSummary("**Status: ✅ Passed**\n");
   }
 
   if (warnings.length) {
@@ -258,33 +251,11 @@ for (const { dir, errors, warnings, checks, deprecated } of skillResults) {
     warnings.forEach((w) => writeSummary(`| ⚠️ | ${w} |`));
     writeSummary("");
   }
-
-  // CI checks detail table
-  if (checks.length) {
-    writeSummary("<details><summary>CI checks detail</summary>\n");
-    writeSummary("| Result | Check |");
-    writeSummary("|---|---|");
-    checks.forEach(({ label, passed }) =>
-      writeSummary(`| ${passed ? "✅" : "❌"} | ${label} |`)
-    );
-    writeSummary("\n</details>\n");
-  }
-
-  // Human review checklist
-  writeSummary("**C1 — Reviewer: human review required**\n");
-  writeSummary("| | Item | Policy |");
-  writeSummary("|---|---|---|");
-  C1_HUMAN_ITEMS.forEach((item) => writeSummary(`| ☐ | ${item} | 6.1 |`));
-  writeSummary("");
-  writeSummary(
-    "> **C2 / C3 / C4** — Complete for MAJOR and MINOR version changes. " +
-    "See the [Skill Approval Checklist](../blob/main/CONTRIBUTING.md#skill-approval-checklist).\n"
-  );
 }
 
 if (!anyError && totalWarnings === 0) {
   writeSummary("---");
-  writeSummary("✅ All skills passed CI validation. Reviewer checklist above requires human sign-off before merge.");
+  writeSummary("✅ All skills passed validation with no warnings.");
 }
 
 flushSummary();
