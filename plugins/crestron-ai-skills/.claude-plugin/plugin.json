@@ -1,0 +1,11 @@
+{
+  "name": "crestron-ai-skills",
+  "version": "0.1.0",
+  "description": "Search, inspect, and install skills from the CrestronAISkills registry.",
+  "author": {
+    "name": "Crestron"
+  },
+  "homepage": "https://github.com/Crestron/CrestronAISkills",
+  "license": "MIT",
+  "keywords": ["crestron", "skills", "marketplace", "registry"]
+}
