@@ -1,0 +1,37 @@
+{
+  "_comment": "Translation pipeline config template. Copy to your project folder and update all paths and rules.",
+
+  "source_strings_xml": "data/inputs/{your-project}/baseline/values/strings.xml",
+  "boundary_comment": "Need translations for everything below this line",
+  "target_languages_file": "data/inputs/{your-project}/target_languages.txt",
+  "output_root": "data/inputs/{your-project}/to-translate",
+
+  "keep_in_english": [
+    "Crestron",
+    "NTP",
+    "SNTP",
+    "Wi-Fi",
+    "Windows"
+  ],
+
+  "translate_suffix_nouns": {
+    "IP": ["Address", "address"],
+    "MAC": ["Address", "address"],
+    "QR": ["Code", "code"]
+  },
+
+  "keep_strings_verbatim": [],
+
+  "report_output": "translations_report.md",
+  "cache_file": "tools/translation_cache.json",
+
+  "translator_model": "claude-sonnet-4-5",
+  "critic_model": "claude-sonnet-4-5",
+
+  "critic_enabled": true,
+  "back_translation_enabled": true,
+  "critic_on_fail_action": "use_revised",
+  "critic_max_retries": 1,
+  "audit_sample_size": 5,
+  "dry_run": false
+}
