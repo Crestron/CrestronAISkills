@@ -1,0 +1,23 @@
+# Codex CLI network access for the CrestronAISkills registry
+#
+# Codex CLI config is per-user (not repo-committed): it lives at ~/.codex/config.toml
+# on each person's machine. Copy the block below into that file (create it if it
+# doesn't exist), or append it with:
+#
+#   cat codex-config-snippet.toml >> ~/.codex/config.toml
+#
+# If you already have a [sandbox_workspace_write] or [features.network_proxy]
+# section in your config.toml, merge the keys below into your existing section
+# instead of duplicating the header.
+
+[sandbox_workspace_write]
+network_access = true
+
+[features.network_proxy]
+enabled = true
+
+[features.network_proxy.domains]
+"github.com" = "allow"
+"api.github.com" = "allow"
+"raw.githubusercontent.com" = "allow"
+"crestron.github.io" = "allow"

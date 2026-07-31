@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:crestron.github.io)",
+      "Bash(curl -fsSL https://raw.githubusercontent.com/Crestron/CrestronAISkills/*)",
+      "Bash(curl -fsSL https://crestron.github.io/CrestronAISkills/*)",
+      "Bash(curl -fsSL https://api.github.com/repos/Crestron/CrestronAISkills/*)"
+    ]
+  },
+  "sandbox": {
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "raw.githubusercontent.com",
+        "crestron.github.io"
+      ]
+    }
+  }
+}
