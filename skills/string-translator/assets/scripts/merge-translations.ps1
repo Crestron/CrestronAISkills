@@ -43,6 +43,15 @@ if (-not [System.IO.Path]::IsPathRooted($SourceBase))    { $SourceBase    = Join
 if (-not [System.IO.Path]::IsPathRooted($TranslateBase)) { $TranslateBase = Join-Path $PWD $TranslateBase }
 if (-not [System.IO.Path]::IsPathRooted($OutputBase))    { $OutputBase    = Join-Path $PWD $OutputBase }
 
+if (-not (Test-Path -LiteralPath $SourceBase -PathType Container)) {
+    Write-Error "SourceBase not found: $SourceBase"
+    exit 1
+}
+if (-not (Test-Path -LiteralPath $TranslateBase -PathType Container)) {
+    Write-Error "TranslateBase not found: $TranslateBase"
+    exit 1
+}
+
 $markerComment = "<!-- $Marker -->"
 
 Write-Host "Source base   : $SourceBase"

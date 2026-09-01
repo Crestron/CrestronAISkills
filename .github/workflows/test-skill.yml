@@ -1,0 +1,65 @@
+name: Test Skill
+
+# C3 checklist enforcement. Separate workflow from validate-skill.yml so schema
+# validation and test execution can be reasoned about (and re-run) independently.
+on:
+  pull_request:
+    paths:
+      - 'skills/**'
+      - 'copilot-skills/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run per-language test matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      # Security: same rationale as validate-skill.yml — a PR can't rewrite the
+      # test runner to fake a passing result.
+      - name: Pin test runner to base branch
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          [[ "$BASE_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid BASE_REF"; exit 1; }
+          git fetch origin "$BASE_REF" --depth=1
+          git checkout FETCH_HEAD -- .github/scripts/run-skill-tests.js .github/scripts/lib
+          git checkout FETCH_HEAD -- .github/actions/changed-skill-dirs 2>/dev/null || true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Find changed skill directories
+        id: changed
+        uses: ./.github/actions/changed-skill-dirs
+        with:
+          base-ref: ${{ github.base_ref }}
+
+      - name: Install JS + Python test tooling
+        if: steps.changed.outputs.dirs != ''
+        run: |
+          npm install --no-fund --no-audit
+          pip install --quiet pytest pytest-cov
+          sudo apt-get update -qq && sudo apt-get install -y -qq bats jq
+
+      - name: Install Pester
+        if: steps.changed.outputs.dirs != ''
+        shell: pwsh
+        run: Install-Module -Name Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck -Scope CurrentUser
+
+      - name: Run per-skill test matrix
+        if: steps.changed.outputs.dirs != ''
+        env:
+          CHANGED_DIRS: ${{ steps.changed.outputs.dirs }}
+        shell: pwsh
+        run: node .github/scripts/run-skill-tests.js
