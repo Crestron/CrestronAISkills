@@ -1,0 +1,30 @@
+name: 'Find changed skill directories'
+description: >
+  Computes the set of skills/<name> directories touched by this PR, counting a
+  change under either skills/<name> or copilot-skills/<name> as touching the
+  same skills/<name> validation target. Shared by validate-skill.yml and
+  test-skill.yml so the two workflows can never target different skill sets.
+inputs:
+  base-ref:
+    description: 'Base branch ref (github.base_ref)'
+    required: true
+outputs:
+  dirs:
+    description: 'Space-separated list of skills/<name> directories'
+    value: ${{ steps.changed.outputs.dirs }}
+runs:
+  using: 'composite'
+  steps:
+    - id: changed
+      shell: bash
+      env:
+        BASE_REF: ${{ inputs.base-ref }}
+      run: |
+        [[ "$BASE_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid BASE_REF"; exit 1; }
+        CHANGED=$( { git diff --name-only "origin/${BASE_REF}...HEAD" -- 'skills/**' \
+            | grep -oP 'skills/[^/]+';
+            git diff --name-only "origin/${BASE_REF}...HEAD" -- 'copilot-skills/**' \
+            | grep -oP 'copilot-skills/[^/]+' | sed 's#^copilot-skills/#skills/#'; } \
+          | sort -u | tr '\n' ' ')
+        echo "dirs=$CHANGED" >> "$GITHUB_OUTPUT"
+        echo "Changed skill dirs: $CHANGED"
