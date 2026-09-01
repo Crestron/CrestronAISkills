@@ -1,16 +1,39 @@
 ---
 name: string-translator
-version: 1.1.0
+version: 1.2.0
 description: Translates strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.
 tags: [localization, translation, strings]
 author: CrestronEng
 license: MIT
 argument-hint: 'Optional: path to strings.xml or project name'
+metadata:
+  team: crestron-ai
+  maintainer: sabtain.khan
+  dependencies: "PowerShell 7+ (pwsh)"
+  scope-allow: ["Read/write strings.xml files under the working directories passed as script parameters", "Run the bundled assets/scripts/*.ps1 scripts"]
+  scope-deny: ["Any path outside the caller-supplied WorkingDir/SourceBase/TranslateBase/OutputBase", "Network or API calls"]
+  input-schema: "merge-translations.ps1: -SourceBase, -TranslateBase, -OutputBase, -Marker (all string, all mandatory). clear-locale-files.ps1: -WorkingDir (string, default $PWD), -LocalesFile (string), -Locales (comma-separated locale codes matching ^[A-Za-z0-9_-]+$)."
+  output-schema: "merge-translations.ps1 writes merged strings.xml files under -OutputBase. clear-locale-files.ps1 deletes values-<locale>/strings.xml files under -WorkingDir and prints a removed/skipped summary."
+  output-max-size: "unbounded (bounded by input strings.xml size)"
+  test-strategy: automated
+  test-coverage: 95.9
+  idempotent: true
+  destructive-operations: ["clear-locale-files.ps1 deletes values-<locale>/strings.xml files via Remove-Item -Force"]
+  approved-by: sabtain.khan
+  approval-date: "2026-09-01"
 ---
 
 # String Translator
 
 Translates `strings.xml` files into multiple locales using a structured workflow. Supports multiple source files in a single run, translates in the smallest possible batch, and reports the output path for each source file.
+
+## Scope
+
+**May do:** read/write `strings.xml` files under the working directories explicitly
+passed as script parameters; run the bundled `assets/scripts/*.ps1` scripts.
+**Must not do:** touch any path outside those caller-supplied directories, or make
+any network/API call. `clear-locale-files.ps1` validates locale codes and resolved
+target paths before deleting anything — see `tests/clear-locale-files.Tests.ps1`.
 
 ---
 
