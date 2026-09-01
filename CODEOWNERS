@@ -1,0 +1,8 @@
+# Requires an approving review from the AI Workgroup for anything that ends up in
+# the skill registry — this is the real enforcement mechanism behind the C1/C5
+# "approving AI Workgroup member recorded" checklist item. The metadata.approved-by
+# field records *who*; this required review enforces *that someone from the right
+# team actually looked*. See CONTRIBUTING.md.
+/skills/            @crestron/ai-workgroup
+/copilot-skills/    @crestron/ai-workgroup
+/skill-schema.json  @crestron/ai-workgroup

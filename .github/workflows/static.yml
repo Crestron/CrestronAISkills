@@ -49,33 +49,10 @@ jobs:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_REGISTRY_URL: /${{ github.event.repository.name }}/registry.json
           VITE_REPO_URL: https://github.com/${{ github.repository }}
+      - name: Install registry-builder dependencies
+        run: npm install --no-fund --no-audit
       - name: Generate registry.json from skills/
-        run: |
-          node -e "
-          const fs = require('fs');
-          const path = require('path');
-          const skillsDir = 'skills';
-          const skills = [];
-          if (fs.existsSync(skillsDir)) {
-            for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
-              if (!entry.isDirectory()) continue;
-              const mp = path.join(skillsDir, entry.name, 'skill.md');
-              if (!fs.existsSync(mp)) continue;
-              const content = fs.readFileSync(mp, 'utf8');
-              const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
-              if (!fmMatch) continue;
-              const fm = fmMatch[1];
-              const get = (key) => { const m = fm.match(new RegExp('^' + key + ':\\\\s*(.+)$', 'm')); return m ? m[1].trim() : ''; };
-              if (get('deprecated').toLowerCase() === 'true') { console.log('Skipping deprecated skill:', entry.name); continue; }
-              const tagsMatch = fm.match(/^tags:\\s*\\[(.*)\\]/m);
-              const tags = tagsMatch ? tagsMatch[1].split(',').map(t => t.trim()) : [];
-              skills.push({ name: get('name'), version: get('version'), description: get('description'), tags, author: get('author'), path: skillsDir+'/'+entry.name, license: get('license')||'MIT', homepage: null });
-            }
-          }
-          const registry = { version: '1', updatedAt: new Date().toISOString(), skills: skills.sort((a,b) => a.name.localeCompare(b.name)) };
-          fs.writeFileSync('web/dist/registry.json', JSON.stringify(registry, null, 2) + '\n');
-          console.log('Registry generated:', skills.length, 'skill(s)');
-          "
+        run: node .github/scripts/build-registry.js
       - name: Copy scripts/ to dist
         run: cp -r scripts web/dist/scripts
       - name: Copy skills/ to dist
