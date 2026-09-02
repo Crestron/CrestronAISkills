@@ -156,6 +156,18 @@ If your skill bundles executable scripts (`.ps1`/`.sh`/`.py`/`.js`),
   Unicode, `<script>` tags, imperative override language inside HTML comments, long
   base64-looking blobs) — a skill file is loaded verbatim into other agents' context, so
   this is a direct mitigation for OWASP LLM01.
+- Flags **self-modification** as a blocking error, always — this is never coverable by a
+  `metadata.destructive-operations` declaration: a script that references its own path
+  (`$PSCommandPath`, `__file__`, `$0`/`BASH_SOURCE`, `__filename`/`import.meta.url`)
+  alongside a write operation, or any script/`skill.md` content that writes to a
+  governance file (`skill-schema.json`, the validator/scanner/registry scripts,
+  workflow files, `CODEOWNERS`). A skill must never be able to modify the checks that
+  validate it.
+- Flags general **mutating commands** as a non-blocking warning — file writes, mutating
+  HTTP verbs (POST/PUT/PATCH/DELETE), `git commit`/`add`/`push`, env/registry changes,
+  package installs. Lower severity than the destructive-op list and not
+  declaration-gated (too common to require declaring every file write); surfaced for
+  human review at merge time.
 - A separate step (TruffleHog, `--only-verified`) scans the PR diff for live, verifiable
   secrets. Never commit API keys, tokens, or credentials in a skill or its scripts.
 
