@@ -1,10 +1,13 @@
 name: Validate All Skills (scheduled)
 
-# C5/C6 safety net: validate-skill.yml and test-skill.yml only check skills touched
-# by a given PR. This runs the same checks against every skill weekly (and on
-# demand) so drift in skills nobody has recently touched doesn't go unnoticed
-# indefinitely — this is exactly how string-translator's missing metadata block
-# went unnoticed for as long as it did.
+# C5/C6 safety net, not a PR gate: validate-skill.yml only checks skills
+# CHANGED in a given PR. This runs the same underlying scripts
+# (validate-skill.js + scan-skill-security.js) against EVERY skill weekly
+# (and on demand via workflow_dispatch) so drift in skills nobody has
+# recently touched doesn't go unnoticed indefinitely — this is exactly how
+# string-translator's missing metadata block went unnoticed for as long as
+# it did. Files a GitHub issue on failure instead of blocking anything, since
+# there's no PR here to block.
 on:
   schedule:
     - cron: '0 6 * * 1' # 06:00 UTC every Monday

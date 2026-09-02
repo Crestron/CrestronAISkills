@@ -1,5 +1,9 @@
 name: Validate Skill
 
+# PR gate: validates only the skill directories CHANGED in this PR (see the
+# changed-skill-dirs composite action below), blocking merge on failure.
+# For the counterpart that re-validates EVERY skill on a schedule regardless
+# of what changed, see validate-skill-full.yml.
 on:
   pull_request:
     paths:
