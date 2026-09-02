@@ -1,8 +1,8 @@
 {
   "skill": "hello-world",
-  "validatedAt": "2026-06-13T16:57:55.230Z",
-  "commit": "e46c065512f94936a1b099c6fd6717177485a34d",
-  "pr": "refs/pull/13/merge",
+  "validatedAt": "2026-09-02T12:39:46.280Z",
+  "commit": "0be5bb6a900583644cdf8fee105b0332838c3608",
+  "pr": "refs/pull/16/merge",
   "validator": "CrestronAISkills CI",
   "status": "passed",
   "deprecated": false,
@@ -21,7 +21,23 @@
     "metadata": {
       "team": "crestron-ai",
       "maintainer": "sabtain.khan",
-      "dependencies": "None"
+      "dependencies": "None",
+      "scope-allow": "[\"Respond in the current conversation with the fixed greeting text\"]",
+      "scope-deny": "[\"Any file, network, or shell access\"]",
+      "input-schema": "None — this skill takes no parameters",
+      "output-schema": "A single fixed plain-text greeting string",
+      "output-max-size": "1KB",
+      "test-strategy": "manual",
+      "tested-by": "sabtain.khan",
+      "test-date": "2026-09-01",
+      "idempotent": "true",
+      "destructive-operations": "[\"None\"]",
+      "approved-by": "sabtain.khan",
+      "approval-date": "2026-09-01"
     }
+  },
+  "security": {
+    "scannedAt": "2026-09-02T12:39:46.343Z",
+    "findings": []
   }
 }

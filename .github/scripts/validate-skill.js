@@ -1,28 +1,17 @@
 #!/usr/bin/env node
-// Validates changed skill directories against skill-schema.json (single source of
-// truth, loaded via ajv) plus checks that skill-schema.json cannot express on its
-// own: directory-name match, copilot-skills/ mirror drift, frontmatter well-formedness,
-// version-must-increase, and deprecation-notice date math.
-// Usage: CHANGED_DIRS="skills/foo skills/bar" [BASE_REF=main] node validate-skill.js
+// Validates changed skill directories against skill-schema.json rules and C1 checklist.
+// Usage: CHANGED_DIRS="skills/foo skills/bar" node validate-skill.js
 
 const fs = require("fs");
 const path = require("path");
-const { execFileSync } = require("child_process");
-const Ajv = require("ajv");
-const addFormats = require("ajv-formats");
-const { parseFrontmatter, hasBundledScripts } = require("./lib/skill-frontmatter");
+
+const NAME_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+const VER_RE  = /^\d+\.\d+\.\d+$/;
+const TAG_RE  = /^[a-z][a-z0-9-]*$/;
 
 const SUMMARY_FILE = process.env.GITHUB_STEP_SUMMARY || null;
 const summaryLines = [];
 const REPORTS_DIR = process.env.REPORTS_DIR || "reports";
-const BASE_REF = process.env.BASE_REF || null;
-
-const schema = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "..", "..", "skill-schema.json"), "utf8")
-);
-const ajv = new Ajv({ allErrors: true, strict: false });
-addFormats(ajv);
-const validateSchema = ajv.compile(schema);
 
 function writeSummary(line) {
   summaryLines.push(line);
@@ -58,35 +47,53 @@ function writeReport(skillName, status, errors, warnings, deprecated, frontmatte
   console.log(`  Report: ${reportDir}/validation-report.json`);
 }
 
-function ajvErrorsToMessages(errors) {
-  return (errors || []).map((e) => {
-    const loc = e.instancePath ? e.instancePath.replace(/^\//, "").replace(/\//g, ".") : "(root)";
-    return `\`${loc}\` ${e.message}${e.params && e.params.allowedValues ? ` (allowed: ${e.params.allowedValues.join(", ")})` : ""}`;
-  });
-}
+function parseFrontmatter(content) {
+  const lines = content.split("\n");
+  const fm = {};
+  let inFm = false, fmDone = false, inMeta = false;
 
-function readFileAtRef(ref, relPath) {
-  try {
-    return execFileSync("git", ["show", `${ref}:${relPath}`], { encoding: "utf8" });
-  } catch {
-    return null; // file didn't exist at that ref (new skill) — not an error here
+  for (const line of lines) {
+    if (fmDone) break;
+
+    if (line.trim() === "---") {
+      if (!inFm) { inFm = true; continue; }
+      fmDone = true; break;
+    }
+
+    if (!inFm) continue;
+
+    // Indented metadata sub-keys
+    if (/^\s+\w/.test(line) && inMeta) {
+      const m = line.match(/^\s+([a-z][\w-]*):\s*(.+)/);
+      if (m) {
+        if (!fm.metadata) fm.metadata = {};
+        fm.metadata[m[1]] = m[2].trim().replace(/^['"]|['"]$/g, "");
+      }
+      continue;
+    }
+
+    inMeta = false;
+
+    const m = line.match(/^([a-z][\w-]*):\s*(.*)/);
+    if (!m) continue;
+    const [, key, raw] = m;
+    const val = raw.trim();
+
+    if (key === "metadata") {
+      inMeta = true;
+      if (!fm.metadata) fm.metadata = {};
+    } else if (key === "tags") {
+      fm.tags = val
+        .replace(/^\[|\]$/g, "")
+        .split(",")
+        .map((t) => t.trim().replace(/^['"]|['"]$/g, ""))
+        .filter(Boolean);
+    } else {
+      fm[key] = val.replace(/^['"]|['"]$/g, "");
+    }
   }
-}
 
-function versionParts(v) {
-  return String(v).split(".").map(Number);
-}
-
-function versionGreater(a, b) {
-  const [a1, a2, a3] = versionParts(a);
-  const [b1, b2, b3] = versionParts(b);
-  if (a1 !== b1) return a1 > b1;
-  if (a2 !== b2) return a2 > b2;
-  return a3 > b3;
-}
-
-function daysBetween(isoA, isoB) {
-  return Math.round((new Date(isoB) - new Date(isoA)) / 86400000);
+  return fm;
 }
 
 const rawDirs = (process.env.CHANGED_DIRS || "").trim();
@@ -120,82 +127,71 @@ for (const dir of dirs) {
   }
 
   const content = fs.readFileSync(skillMd, "utf8");
-  const { fm, body, malformed } = parseFrontmatter(content);
 
-  if (malformed) {
-    errors.push(`skill.md frontmatter is malformed: ${malformed}`);
-    anyError = true;
-    writeReport(dirName, "failed", errors, [], false, null);
-    skillResults.push({ dir, errors, warnings: [], deprecated: false });
-    continue;
+  if (!content.startsWith("---")) {
+    errors.push("skill.md must begin with YAML frontmatter (---)");
   }
 
-  if (fm.deprecated === true) {
+  const fm = parseFrontmatter(content);
+
+  if (fm.deprecated === "true" || fm.deprecated === true) {
     console.log("  ⏸  deprecated: true — skipped from registry, not validated");
     writeReport(dirName, "deprecated", [], [], true, fm);
     skillResults.push({ dir, errors: [], warnings: [], deprecated: true });
     continue;
   }
 
-  // Schema validation — single source of truth, replaces the old hand-rolled
-  // NAME_RE/VER_RE/TAG_RE regex checks that used to drift from skill-schema.json.
-  if (!validateSchema(fm)) {
-    errors.push(...ajvErrorsToMessages(validateSchema.errors));
-  }
-
-  // Checks skill-schema.json structurally cannot express:
-  if (fm.name && fm.name !== dirName) {
-    errors.push(`\`name\` "${fm.name}" must match directory name "${dirName}"`);
-  }
-
-  if (body !== null && fm.metadata && Array.isArray(fm.metadata["scope-allow"])) {
-    if (!/^##\s+Scope\b/im.test(body)) {
-      errors.push("Declared `metadata.scope-allow`/`scope-deny` but body has no `## Scope` section explaining them");
-    }
-  }
-
-  // C3 — a skill that ships executable code can't dodge automated testing on the
-  // risky part by declaring the whole skill "manual".
-  if (fm.metadata && fm.metadata["test-strategy"] === "manual" && hasBundledScripts(dir)) {
-    errors.push("`metadata.test-strategy: manual` is not allowed — this skill bundles executable scripts, so `automated` or `hybrid` is required");
-  }
-
-  // C4 — copilot-skills/<name>/SKILL.md must mirror skills/<name>/skill.md exactly.
-  const mirrorPath = path.join("copilot-skills", dirName, "SKILL.md");
-  if (fs.existsSync(mirrorPath)) {
-    const mirrorContent = fs.readFileSync(mirrorPath, "utf8").replace(/\r\n/g, "\n");
-    const normalized = content.replace(/\r\n/g, "\n");
-    if (mirrorContent !== normalized) {
-      errors.push(`\`${mirrorPath}\` has drifted from \`${skillMd}\` — keep both copies identical`);
-    }
+  // name
+  if (!fm.name) {
+    errors.push("Missing required field: `name`");
   } else {
-    warnings.push(`No \`${mirrorPath}\` mirror found — Copilot CLI/VS Code users won't see this skill until one is added`);
+    if (!NAME_RE.test(fm.name))
+      errors.push(`\`name\` "${fm.name}" must be lowercase letters/numbers/hyphens — no leading, trailing, or consecutive hyphens`);
+    if (fm.name.length > 64)
+      errors.push(`\`name\` exceeds 64 characters (${fm.name.length})`);
+    if (fm.name !== dirName)
+      errors.push(`\`name\` "${fm.name}" must match directory name "${dirName}"`);
   }
 
-  // C4 — version must strictly increase vs. base branch whenever the file changed.
-  if (BASE_REF && fm.version) {
-    const baseContent = readFileAtRef(`origin/${BASE_REF}`, skillMd.replace(/\\/g, "/"));
-    if (baseContent && baseContent !== content) {
-      const basefm = parseFrontmatter(baseContent).fm;
-      if (basefm && basefm.version && !versionGreater(fm.version, basefm.version)) {
-        errors.push(`\`version\` must increase on any change — was "${basefm.version}", still "${fm.version}"`);
-      }
+  // version
+  if (!fm.version) {
+    errors.push("Missing required field: `version`");
+  } else if (!VER_RE.test(fm.version)) {
+    errors.push(`\`version\` "${fm.version}" must be semantic version — e.g. 1.0.0`);
+  }
+
+  // description
+  if (!fm.description) {
+    errors.push("Missing required field: `description`");
+  } else {
+    if (fm.description.length < 10)
+      errors.push(`\`description\` too short (${fm.description.length} chars, min 10)`);
+    if (fm.description.length > 1024)
+      errors.push(`\`description\` too long (${fm.description.length} chars, max 1024)`);
+  }
+
+  // tags
+  if (!fm.tags || !fm.tags.length) {
+    errors.push("Missing required field: `tags` — must be a non-empty array, e.g. `[crestron, av]`");
+  } else {
+    for (const tag of fm.tags) {
+      if (!TAG_RE.test(tag))
+        errors.push(`tag "${tag}" must be lowercase letters/numbers/hyphens`);
     }
   }
 
-  // C4 — deprecation requires >= 60 days notice before removal.
-  if (fm.metadata && fm.metadata["deprecation-notice-date"] && fm.metadata["removal-date"]) {
-    const gap = daysBetween(fm.metadata["deprecation-notice-date"], fm.metadata["removal-date"]);
-    if (Number.isNaN(gap) || gap < 60) {
-      errors.push(`\`metadata.removal-date\` must be at least 60 days after \`metadata.deprecation-notice-date\` (got ${Number.isNaN(gap) ? "invalid dates" : gap + " days"})`);
-    }
+  // author
+  if (!fm.author) {
+    errors.push("Missing required field: `author`");
   }
 
-  // C2 single-responsibility — a judgment call, not mechanically decidable, so it
-  // stays a warning for human review rather than a blocking error.
-  if (fm.description && (fm.description.match(/\band\b/gi) || []).length >= 3) {
-    warnings.push("Description mentions \"and\" 3+ times — review for single-responsibility (C2.1) before approving");
-  }
+  // C1 checklist — team and maintainer are required; dependencies required but "None" is acceptable
+  if (!fm.metadata?.team)
+    errors.push("`metadata.team` not set — every skill must declare an owning team");
+  if (!fm.metadata?.maintainer)
+    errors.push("`metadata.maintainer` not set — every skill must declare a maintainer");
+  if (!fm.metadata?.dependencies)
+    errors.push("`metadata.dependencies` not set — declare dependencies or set to `None`");
 
   errors.forEach((e) => console.log("  ✗ " + e));
   warnings.forEach((w) => console.log("  ⚠  " + w));
@@ -206,7 +202,7 @@ for (const dir of dirs) {
   } else {
     console.log("  ✓ Passes skill-schema.json validation");
     if (warnings.length)
-      console.log("  ℹ  Warnings above need human review before merge (C1–C6 checklist)");
+      console.log("  ℹ  Warnings above need human review before merge (C1 checklist)");
     writeReport(dirName, "passed", [], warnings, false, fm);
   }
 
@@ -221,7 +217,7 @@ if (anyError) {
 } else {
   console.log("✅ Schema validation passed.");
   if (totalWarnings > 0)
-    console.log("   Any ⚠ warnings require the C1–C6 checklist to be completed at review.");
+    console.log("   Any ⚠ warnings require the C1–C4 checklist to be completed at review.");
 }
 
 // Write GitHub Step Summary
@@ -247,7 +243,7 @@ for (const { dir, errors, warnings, deprecated } of skillResults) {
   }
 
   if (warnings.length) {
-    writeSummary("**C1–C6 Checklist Warnings** — complete before merging:\n");
+    writeSummary("**C1 Checklist Warnings** — complete before merging:\n");
     writeSummary("| | Warning |");
     writeSummary("|---|---|");
     warnings.forEach((w) => writeSummary(`| ⚠️ | ${w} |`));

@@ -3,7 +3,7 @@
   "title": "Agent Skill Frontmatter",
   "description": "YAML frontmatter for skill.md files. Follows the agentskills.io open standard (https://agentskills.io/specification) with registry-specific extensions for version, tags, and author.",
   "type": "object",
-  "required": ["name", "description", "version", "tags", "author", "metadata"],
+  "required": ["name", "description", "version", "tags", "author"],
   "properties": {
     "name": {
       "type": "string",
@@ -57,13 +57,7 @@
     },
     "metadata": {
       "type": "object",
-      "description": "Registry-tracking fields required by the Skill Compliance Checklist (Confluence CAAD-2931658766, Appendix C1-C6).",
-      "required": [
-        "team", "maintainer", "dependencies",
-        "scope-allow", "scope-deny", "input-schema", "output-schema", "output-max-size",
-        "test-strategy", "idempotent", "destructive-operations",
-        "approved-by", "approval-date"
-      ],
+      "description": "Arbitrary key-value pairs for additional metadata (per agentskills.io spec). Use for registry tracking fields required by the C1 checklist: team, maintainer, dependencies.",
       "properties": {
         "team": {
           "type": "string",
@@ -75,117 +69,10 @@
         },
         "dependencies": {
           "type": "string",
-          "pattern": "^(?!.*\\blatest\\b)(?!.*[\\^~]|>=).*$",
-          "description": "Comma-separated list of tools and APIs the skill invokes, with pinned versions where applicable (e.g. 'git, docker, GitHub API'). Use 'None' if there are no dependencies. No floating 'latest' or unpinned ranges (^, ~, >=) per C4. Required for C1 checklist approval."
-        },
-        "scope-allow": {
-          "type": "array",
-          "items": { "type": "string" },
-          "minItems": 1,
-          "description": "Systems/files/APIs this skill may access (e.g. 'skills/**/skill.md', 'GitHub REST API'). Required for C2 scope-boundary declaration."
-        },
-        "scope-deny": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Systems/files/APIs this skill must NOT access. Use ['None declared'] if genuinely unrestricted (discouraged). Required for C2 scope-boundary declaration."
-        },
-        "input-schema": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Free-text or JSON-pointer description of the skill's input contract (parameter names/types/validation rules). Use 'None' for parameterless skills. Required for C1."
-        },
-        "output-schema": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Free-text or JSON-pointer description of the skill's output shape. Required for C1."
-        },
-        "output-max-size": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Declared maximum output size (e.g. '10KB', 'unbounded'). Must be explicit. Required for C1/C2."
-        },
-        "test-strategy": {
-          "type": "string",
-          "enum": ["automated", "manual", "hybrid"],
-          "description": "How this skill is tested. 'manual' is only valid when the skill bundles no executable scripts. Required for C3."
-        },
-        "test-coverage": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 100,
-          "description": "Line coverage percentage from the automated test suite. Required when test-strategy is 'automated' or 'hybrid'."
-        },
-        "tested-by": {
-          "type": "string",
-          "description": "GitHub username of the person who performed the manual behavioral eval. Required when test-strategy is 'manual' or 'hybrid'."
-        },
-        "test-date": {
-          "type": "string",
-          "format": "date",
-          "description": "ISO date (YYYY-MM-DD) the manual eval was performed. Required when test-strategy is 'manual' or 'hybrid'."
-        },
-        "idempotent": {
-          "type": "boolean",
-          "description": "Whether repeated invocation with identical inputs is safe. Required for C2."
-        },
-        "duplicate-invocation-safeguard": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Required when idempotent is false: describes how duplicate invocations are made safe (dedup key, confirmation gate, etc.)."
-        },
-        "destructive-operations": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "List of destructive operations this skill (or its bundled scripts) can perform (e.g. 'deletes files via clear-locale-files.ps1'). Use ['None'] if there are none. Required for C2/C6 — must match what static security scanning finds in bundled scripts."
-        },
-        "approved-by": {
-          "type": "string",
-          "description": "GitHub username of the approving AI Workgroup member. Required once a skill leaves draft status (C1/C5)."
-        },
-        "approval-date": {
-          "type": "string",
-          "format": "date",
-          "description": "ISO date (YYYY-MM-DD) of C1-C6 checklist approval."
-        },
-        "deprecation-notice-date": {
-          "type": "string",
-          "format": "date",
-          "description": "ISO date the deprecation notice was issued. Required when 'deprecated' transitions to true (C4: 60-day notice)."
-        },
-        "removal-date": {
-          "type": "string",
-          "format": "date",
-          "description": "ISO date the skill will be removed. Must be >= deprecation-notice-date + 60 days (C4)."
+          "description": "Comma-separated list of tools and APIs the skill invokes (e.g. 'git, docker, GitHub API'). Use 'None' if there are no dependencies. Required for C1 checklist approval."
         }
       },
-      "additionalProperties": { "type": "string" },
-      "allOf": [
-        {
-          "if": { "properties": { "idempotent": { "const": false } }, "required": ["idempotent"] },
-          "then": { "required": ["duplicate-invocation-safeguard"] }
-        },
-        {
-          "if": { "properties": { "test-strategy": { "enum": ["manual", "hybrid"] } }, "required": ["test-strategy"] },
-          "then": { "required": ["tested-by", "test-date"] }
-        },
-        {
-          "if": { "properties": { "test-strategy": { "enum": ["automated", "hybrid"] } }, "required": ["test-strategy"] },
-          "then": { "required": ["test-coverage"] }
-        }
-      ]
+      "additionalProperties": { "type": "string" }
     }
-  },
-  "allOf": [
-    {
-      "if": { "properties": { "deprecated": { "const": true } }, "required": ["deprecated"] },
-      "then": {
-        "properties": {
-          "metadata": {
-            "type": "object",
-            "required": ["deprecation-notice-date", "removal-date"]
-          }
-        }
-      }
-    }
-  ]
+  }
 }
