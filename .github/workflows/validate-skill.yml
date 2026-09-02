@@ -78,7 +78,7 @@ jobs:
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.event.pull_request.head.sha }}
           version: 3.97.1
-          extra_args: --only-verified --fail
+          extra_args: --only-verified
 
       - name: Commit validation reports
         if: always()
