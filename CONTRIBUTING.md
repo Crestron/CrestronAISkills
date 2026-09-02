@@ -293,9 +293,14 @@ From the **Actions** tab, run **Sync Skill From Source Repo**
 | `source_path` | Path within their repo to the skill's directory |
 | `target_name` | Optional — skill name here (`skills/<target_name>/`). Defaults to the last segment of `source_path`. |
 
-This requires the `SKILL_SYNC_SOURCE_TOKEN` repo secret (a read-only,
-fine-grained PAT scoped to the relevant org repos) to already exist — ask an
-org admin if the run fails with a checkout/auth error on the source repo.
+This requires a GitHub App (`SKILL_SYNC_APP_ID`/`SKILL_SYNC_APP_PRIVATE_KEY`
+repo secrets) to already be registered, and — separately, per source
+org — for that org's admin to have installed the app on the specific repo(s)
+being synced from. See
+[`docs/runbooks/github-app-setup.md`](docs/runbooks/github-app-setup.md) for
+both the one-time app setup and the per-org installation steps. If a run
+fails with "app not installed on this repository," that org just needs to
+run the Part C installation step once.
 
 ### What happens
 

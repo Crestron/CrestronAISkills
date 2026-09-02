@@ -41,12 +41,35 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Split "owner/repo" so the app-token step can request an installation
+      # token scoped to exactly that org/repo — this is what lets one app
+      # registration work across any number of source orgs with no
+      # per-org secret or workflow change. See
+      # docs/runbooks/github-app-setup.md.
+      - name: Split source_repo into owner/repo
+        id: source
+        env:
+          SOURCE_REPO: ${{ inputs.source_repo }}
+        run: |
+          [[ "$SOURCE_REPO" == */* ]] || { echo "source_repo must be 'owner/repo'"; exit 1; }
+          echo "owner=${SOURCE_REPO%%/*}" >> "$GITHUB_OUTPUT"
+          echo "repo=${SOURCE_REPO#*/}" >> "$GITHUB_OUTPUT"
+
+      - name: Get installation token for the source org
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.SKILL_SYNC_APP_ID }}
+          private-key: ${{ secrets.SKILL_SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ steps.source.outputs.owner }}
+          repositories: ${{ steps.source.outputs.repo }}
+
       - name: Checkout source repo
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.source_repo }}
           ref: ${{ inputs.source_ref }}
-          token: ${{ secrets.SKILL_SYNC_SOURCE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           path: _source
           fetch-depth: 1
 
