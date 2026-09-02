@@ -63,6 +63,7 @@ jobs:
           CHANGED_DIRS: ${{ steps.changed.outputs.dirs }}
           REPORTS_DIR: reports
           BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
         run: node .github/scripts/validate-skill.js
 
       - name: Scan skills for safety/security issues

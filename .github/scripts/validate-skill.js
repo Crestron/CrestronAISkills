@@ -16,6 +16,7 @@ const SUMMARY_FILE = process.env.GITHUB_STEP_SUMMARY || null;
 const summaryLines = [];
 const REPORTS_DIR = process.env.REPORTS_DIR || "reports";
 const BASE_REF = process.env.BASE_REF || null;
+const HEAD_REF = process.env.HEAD_REF || null;
 
 const schema = JSON.parse(
   fs.readFileSync(path.join(__dirname, "..", "..", "skill-schema.json"), "utf8")
@@ -173,14 +174,33 @@ for (const dir of dirs) {
   }
 
   // C4 — version must strictly increase vs. base branch whenever the file changed.
-  if (BASE_REF && fm.version) {
+  // Also fetches the base-branch frontmatter for the sync-lock check below.
+  // Line endings are normalized before comparing — `git show` returns the raw
+  // stored blob (LF) while a local checkout may have core.autocrlf rewriting to
+  // CRLF, which would otherwise look like a content change when there isn't one.
+  let baseFm = null;
+  if (BASE_REF) {
     const baseContent = readFileAtRef(`origin/${BASE_REF}`, skillMd.replace(/\\/g, "/"));
-    if (baseContent && baseContent !== content) {
-      const basefm = parseFrontmatter(baseContent).fm;
-      if (basefm && basefm.version && !versionGreater(fm.version, basefm.version)) {
-        errors.push(`\`version\` must increase on any change — was "${basefm.version}", still "${fm.version}"`);
+    if (baseContent) {
+      baseFm = parseFrontmatter(baseContent).fm;
+      const changed = baseContent.replace(/\r\n/g, "\n") !== content.replace(/\r\n/g, "\n");
+      if (fm.version && changed && baseFm && baseFm.version && !versionGreater(fm.version, baseFm.version)) {
+        errors.push(`\`version\` must increase on any change — was "${baseFm.version}", still "${fm.version}"`);
       }
     }
+  }
+
+  // Sync-lock policy: once a skill has metadata.source-repo set (it's mirrored
+  // from a team's own repo), edits should come from the sync workflow — which
+  // always pushes to a sync/<name> branch — not a hand-edited PR that will just
+  // be overwritten by the next sync. A warning, not a hard error: a human can
+  // still make a deliberate, reviewed override if they must.
+  if (baseFm?.metadata?.["source-repo"] && HEAD_REF && !HEAD_REF.startsWith("sync/")) {
+    warnings.push(
+      `This skill is synced from ${baseFm.metadata["source-repo"]} — edits made directly ` +
+      `here will be overwritten by the next sync. Edit the source repo instead, or confirm ` +
+      `this is an intentional, reviewed override before merging.`
+    );
   }
 
   // C4 — deprecation requires >= 60 days notice before removal.

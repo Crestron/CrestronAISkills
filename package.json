@@ -5,7 +5,8 @@
   "description": "CI validation and security-scanning tooling for the CrestronAISkills registry. Not published.",
   "scripts": {
     "validate-skills": "node .github/scripts/validate-skill.js",
-    "scan-skills-security": "node .github/scripts/scan-skill-security.js"
+    "scan-skills-security": "node .github/scripts/scan-skill-security.js",
+    "test": "node --test .github/scripts/*.test.js"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
