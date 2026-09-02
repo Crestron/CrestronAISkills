@@ -80,6 +80,20 @@ jobs:
           version: 3.97.1
           extra_args: --only-verified
 
+      # `git checkout <ref> -- <path>` stages that content into the index, not just
+      # the working tree — the pin step above left the index pointing at the
+      # base-branch (old) versions of these files. Without this restore, the commit
+      # step below would silently commit those old versions back over the PR's real
+      # changes (this happened once — see git history). Restore index+worktree to
+      # the PR's actual HEAD for exactly the paths the pin step touched, before
+      # anything gets staged/committed.
+      - name: Restore PR HEAD content before committing reports
+        if: always()
+        run: |
+          git checkout HEAD -- .github/scripts/validate-skill.js .github/scripts/scan-skill-security.js \
+            .github/scripts/lib skill-schema.json package.json package-lock.json \
+            .github/actions/changed-skill-dirs 2>/dev/null || true
+
       - name: Commit validation reports
         if: always()
         env:
