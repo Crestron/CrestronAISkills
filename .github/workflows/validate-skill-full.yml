@@ -1,0 +1,65 @@
+name: Validate All Skills (scheduled)
+
+# C5/C6 safety net: validate-skill.yml and test-skill.yml only check skills touched
+# by a given PR. This runs the same checks against every skill weekly (and on
+# demand) so drift in skills nobody has recently touched doesn't go unnoticed
+# indefinitely — this is exactly how string-translator's missing metadata block
+# went unnoticed for as long as it did.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # 06:00 UTC every Monday
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  validate-all:
+    name: Validate + scan every skill
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install validator dependencies
+        run: npm install --no-fund --no-audit
+
+      - name: List every skill directory
+        id: all
+        shell: bash
+        run: |
+          DIRS=$(find skills -maxdepth 1 -mindepth 1 -type d | sort | tr '\n' ' ')
+          echo "dirs=$DIRS" >> "$GITHUB_OUTPUT"
+          echo "All skill dirs: $DIRS"
+
+      - name: Validate every skill
+        env:
+          CHANGED_DIRS: ${{ steps.all.outputs.dirs }}
+          REPORTS_DIR: reports
+        run: node .github/scripts/validate-skill.js
+
+      - name: Security-scan every skill
+        env:
+          CHANGED_DIRS: ${{ steps.all.outputs.dirs }}
+          REPORTS_DIR: reports
+        run: node .github/scripts/scan-skill-security.js
+
+      - name: File an issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Scheduled skill validation failed — run ${context.runId}`,
+              body: `The weekly full-repo skill validation failed. See the run for details: ` +
+                `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['skill-compliance'],
+            });

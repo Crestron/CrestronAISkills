@@ -9,10 +9,28 @@ metadata:
   team: crestron-ai
   maintainer: sabtain.khan
   dependencies: None
----
+  scope-allow: ["Provide Crestron AV/SIMPL/C# guidance, code snippets, and troubleshooting steps in conversation"]
+  scope-deny: ["Executing code, accessing files, or making network/API calls on the user's behalf"]
+  input-schema: "None — this skill takes no parameters; it operates on conversational context"
+  output-schema: "Markdown-formatted text: explanations, code snippets, diagnostic steps"
+  output-max-size: "unbounded (conversational text)"
+  test-strategy: manual
+  tested-by: sabtain.khan
+  test-date: "2026-09-01"
+  idempotent: true
+  destructive-operations: ["None"]
+  approved-by: sabtain.khan
+  approval-date: "2026-09-01"
 ---
 
 # Example Skill — Crestron AV & Smart Home Assistant
+
+## Scope
+
+**May do:** answer questions and provide code/config guidance for Crestron AV,
+SIMPL/SIMPL+/C#, DM NVX, lighting, and smart-home integration topics.
+**Must not do:** execute code, read/write files, or make network/API calls —
+this skill only produces conversational text.
 
 ## Role & Purpose
 

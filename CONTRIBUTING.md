@@ -61,9 +61,30 @@ tags: [tag1, tag2]
 author: your-github-username
 license: MIT
 homepage: https://github.com/your-org/your-repo
+metadata:
+  team: your-team-name
+  maintainer: your-github-username
+  dependencies: "git, GitHub API"          # or: None — never "latest" or an unpinned range
+  scope-allow: ["What this skill may touch"]
+  scope-deny: ["What this skill must never touch"]
+  input-schema: "None, or a description of parameters/types/validation rules"
+  output-schema: "Description of what the skill returns"
+  output-max-size: "e.g. 10KB, or unbounded"
+  idempotent: true                          # if false, also set duplicate-invocation-safeguard
+  destructive-operations: ["None"]          # or list what it can delete/overwrite/force-push, etc.
+  test-strategy: manual                     # manual | automated | hybrid — see Testing below
+  tested-by: your-github-username           # required for manual/hybrid
+  test-date: "2026-01-01"                   # required for manual/hybrid
+  approved-by: approving-ai-workgroup-member
+  approval-date: "2026-01-01"
 ---
 
 # Your Skill Name
+
+## Scope
+
+**May do:** ...
+**Must not do:** ...
 
 ## Role & Purpose
 Describe the role the AI takes when this skill is active.
@@ -79,30 +100,76 @@ Describe the role the AI takes when this skill is active.
 |---|---|
 | `name` | Must match the directory name exactly. Lowercase letters, numbers, hyphens. No leading, trailing, or consecutive hyphens. Max 64 chars. |
 | `description` | 10–1024 characters. Describe what the skill does **and when to use it** — agents use this for discovery. |
-| `version` | Semantic version — `major.minor.patch` (e.g. `1.0.0`) |
+| `version` | Semantic version — `major.minor.patch` (e.g. `1.0.0`). CI blocks a PR that changes a skill without increasing its version. |
 | `tags` | At least one tag, lowercase (e.g. `[crestron, av, testing]`) |
 | `author` | Your GitHub username |
 | `license` | Optional, defaults to `MIT` |
 | `compatibility` | Optional. Environment requirements (e.g. `Requires Python 3.12+, internet access`) |
 | `allowed-tools` | Optional. Space-separated pre-approved tools (e.g. `Bash(git:*) Read`) |
 | `homepage` | Optional URL to related repo or docs |
-| `metadata` | Required key-value block. `team` and `maintainer` are mandatory. `dependencies` must be set — use `None` if there are none. |
+| `metadata` | **Required** — see full sub-field table below. Every sub-field is machine-enforced by [`skill-schema.json`](skill-schema.json). |
 
-All frontmatter fields are validated against [`skill-schema.json`](skill-schema.json) at the repository root. You can validate locally before submitting:
+**Required `metadata` sub-fields** (all enforced by CI, not just human review):
+
+| Field | Rules |
+|---|---|
+| `team` / `maintainer` | Owning team and a designated maintainer GitHub username. |
+| `dependencies` | Comma-separated tools/APIs invoked, with pinned versions. `None` if there are none. No floating `latest` or unpinned ranges (`^`, `~`, `>=`). |
+| `scope-allow` / `scope-deny` | Arrays declaring exactly what systems/files/APIs the skill may and may not touch. Requires a matching `## Scope` section in the body. |
+| `input-schema` / `output-schema` / `output-max-size` | Free-text description of the input contract, output shape, and a declared maximum output size. Use `"None"` where genuinely not applicable. |
+| `idempotent` | `true`/`false`. If `false`, also set `duplicate-invocation-safeguard` describing how duplicate invocations are made safe. |
+| `destructive-operations` | Array of destructive operations the skill (or its bundled scripts) can perform, or `["None"]`. Must match what the automated security scan finds in any bundled scripts — see [Security Scanning](#security-scanning-of-bundled-scripts). |
+| `test-strategy` | `manual`, `automated`, or `hybrid` — see [Testing Requirements (C3)](#testing-requirements-c3). A skill bundling executable scripts cannot use `manual`. |
+| `tested-by` / `test-date` | Required for `manual`/`hybrid`. Who ran the eval and when. |
+| `test-coverage` | Required for `automated`/`hybrid`. The measured line-coverage percentage from the test matrix. |
+| `approved-by` / `approval-date` | GitHub username of the approving AI Workgroup member and the approval date. |
+| `deprecation-notice-date` / `removal-date` | Required once `deprecated: true` is set. `removal-date` must be ≥ 60 days after `deprecation-notice-date`. |
+
+All frontmatter fields are validated against [`skill-schema.json`](skill-schema.json) at the repository root — this is the single source of truth; `.github/scripts/validate-skill.js` loads it directly (via `ajv`) rather than re-implementing its own rules. You can validate locally before submitting:
 
 ```bash
-# Install the agentskills validator (optional)
-npx skills-ref validate ./skills/your-skill-name
+npm install
+CHANGED_DIRS="skills/your-skill-name" node .github/scripts/validate-skill.js
+CHANGED_DIRS="skills/your-skill-name" node .github/scripts/scan-skill-security.js
+CHANGED_DIRS="skills/your-skill-name" node .github/scripts/run-skill-tests.js
 ```
 
-The `metadata` block is required and must include `team`, `maintainer`, and `dependencies`. CI will block the PR if any of these are missing:
+### Keeping `copilot-skills/` in sync
 
-```yaml
-metadata:
-  team: your-team-name
-  maintainer: your-github-username
-  dependencies: "git, GitHub API"   # or: None
+Every skill under `skills/<name>/skill.md` needs an identical mirror at
+`copilot-skills/<name>/SKILL.md` (uppercase filename) so Copilot CLI/VS Code users
+see it too. CI fails the PR if the two copies drift — after editing `skills/<name>/skill.md`,
+copy it over the mirror:
+
+```bash
+cp skills/your-skill-name/skill.md copilot-skills/your-skill-name/SKILL.md
 ```
+
+### Security scanning of bundled scripts
+
+If your skill bundles executable scripts (`.ps1`/`.sh`/`.py`/`.js`),
+`.github/scripts/scan-skill-security.js` runs on every PR and:
+- Flags a fixed list of dangerous patterns (force deletion, `Invoke-Expression`/`eval`,
+  `shell=True`, curl-pipe-to-shell, force-push, destructive SQL, etc.) that aren't
+  declared in `metadata.destructive-operations` — declare them or remove the pattern.
+- Flags prompt-injection smuggling signals in the `skill.md` **body itself** (zero-width
+  Unicode, `<script>` tags, imperative override language inside HTML comments, long
+  base64-looking blobs) — a skill file is loaded verbatim into other agents' context, so
+  this is a direct mitigation for OWASP LLM01.
+- Flags **self-modification** as a blocking error, always — this is never coverable by a
+  `metadata.destructive-operations` declaration: a script that references its own path
+  (`$PSCommandPath`, `__file__`, `$0`/`BASH_SOURCE`, `__filename`/`import.meta.url`)
+  alongside a write operation, or any script/`skill.md` content that writes to a
+  governance file (`skill-schema.json`, the validator/scanner/registry scripts,
+  workflow files, `CODEOWNERS`). A skill must never be able to modify the checks that
+  validate it.
+- Flags general **mutating commands** as a non-blocking warning — file writes, mutating
+  HTTP verbs (POST/PUT/PATCH/DELETE), `git commit`/`add`/`push`, env/registry changes,
+  package installs. Lower severity than the destructive-op list and not
+  declaration-gated (too common to require declaring every file write); surfaced for
+  human review at merge time.
+- A separate step (TruffleHog, `--only-verified`) scans the PR diff for live, verifiable
+  secrets. Never commit API keys, tokens, or credentials in a skill or its scripts.
 
 ### 5. Test the Skill Locally
 
@@ -138,13 +205,30 @@ git push origin add-your-skill-name
 
 ### 2. Open a Pull Request
 
-Open a PR against `main`. The CI will automatically:
-- ✅ Check that `skill.md` exists in the directory
-- ✅ Validate required frontmatter fields (`name`, `version`, `description`, `tags`, `author`) against [`skill-schema.json`](skill-schema.json)
-- ✅ Verify the directory name matches the `name` field
-- ✅ Rebuild `registry.json` from all skills on merge
+Open a PR against `main`. Three workflows run automatically:
 
-Fix any errors the CI reports before requesting review. A maintainer then completes the [C1–C4 approval checklist](#skill-approval-checklist) before merging.
+**`validate-skill.yml`** (schema + structure + secrets):
+- ✅ Checks that `skill.md` exists and its frontmatter is well-formed (exactly one closing `---`)
+- ✅ Validates all frontmatter fields, including the full `metadata` block, against [`skill-schema.json`](skill-schema.json)
+- ✅ Verifies the directory name matches `name`, and that `copilot-skills/<name>/SKILL.md` mirrors it
+- ✅ Verifies `version` increased and `dependencies` has no floating `latest`/unpinned range
+- ✅ Runs `scan-skill-security.js` (dangerous ops, prompt-injection signals) and a TruffleHog secrets scan
+- ✅ Rebuilds `registry.json` from all skills on merge
+
+**`test-skill.yml`** (C3 test coverage):
+- ✅ For `automated`/`hybrid` skills, runs the matching test runner per bundled script language and enforces ≥90% coverage (see [Testing Requirements](#testing-requirements-c3))
+- ✅ For `manual`/`hybrid` skills, checks a non-empty `tests/evals.md` exists
+
+**Required review:** `CODEOWNERS` requires an approving review from `@crestron/ai-workgroup`
+on any change under `skills/**` or `copilot-skills/**` — this is what actually enforces
+the C1 "approving AI Workgroup member recorded" item; the `metadata.approved-by` field
+records *who*, the required review enforces *that someone from the right team looked*.
+
+Fix any errors the CI reports before requesting review. A reviewer from the AI Workgroup
+then completes the [C1–C6 approval checklist](#skill-approval-checklist) before merging
+— most items are now machine-checked; only genuine judgment calls (does behavior really
+match the declared scope? is the description accurately single-purpose?) are left to
+human review.
 
 ### 3. Review and Merge
 
@@ -189,9 +273,43 @@ Delete the `skills/<skill-name>/` directory and open a PR. The registry and mark
 
 ---
 
+## Testing Requirements (C3)
+
+Every skill declares `metadata.test-strategy: manual | automated | hybrid`.
+
+**`manual`** — only valid when the skill bundles no executable scripts (pure
+instruction/persona skills like `hello-world`). Record a `tests/evals.md` file
+listing the prompts/scenarios you ran against the skill and their pass/fail outcome,
+and set `metadata.tested-by`/`test-date`.
+
+**`automated`** or **`hybrid`** — required for any skill that bundles `.ps1`/`.py`/`.sh`/`.js`
+scripts. `hybrid` also requires `tests/evals.md` for the non-script parts of the skill.
+Every bundled script needs a matching test file and passes through the matrix below:
+
+| Script extension | Test runner | Test file location | Coverage gate |
+|---|---|---|---|
+| `.ps1` | Pester 5+ | `tests/<name>.Tests.ps1` | ≥90% line coverage (`Invoke-Pester -CodeCoverage`) |
+| `.py` | pytest + pytest-cov | `tests/test_<name>.py` | ≥90% line coverage |
+| `.sh` | bats-core | `tests/<name>.bats` | **No numeric coverage** — bats has no viable line-coverage tool in a CI container (`kcov` is Linux-only/ptrace-based and brittle). Substituted with: 100% of declared bats test cases must pass. |
+| `.js` | vitest | `tests/<name>.test.js` | ≥90% line coverage |
+
+Regardless of language, cover at minimum: the happy path, boundary cases (empty
+input, max-length input, invalid types), and **at least one injection/path-traversal
+test** — feed the script a path-traversal payload (`../../etc`, `..\..\Windows`) and a
+shell-metacharacter payload, and assert it rejects/errors rather than executing it.
+This is checked for *presence*, not folded into the coverage percentage.
+
+Run the full matrix locally before opening a PR:
+
+```bash
+CHANGED_DIRS="skills/your-skill-name" node .github/scripts/run-skill-tests.js
+```
+
+---
+
 ## Skill Approval Checklist
 
-Complete before a registry entry is approved. Re-complete for any **MAJOR** or **MINOR** version change.
+Complete before a registry entry is approved. Re-complete for any **MAJOR** or **MINOR** version change. Most items below are now machine-enforced by `validate-skill.yml`/`test-skill.yml`; the "Result" column is still filled in by the reviewer as a final confirmation, and is the only record for the handful of items (marked *human judgment*) that CI cannot verify.
 
 ---
 
@@ -201,7 +319,9 @@ Complete before a registry entry is approved. Re-complete for any **MAJOR** or *
 
 ### C1 — Registry Entry Requirements
 
-> **Schema enforcement**: The `name`, `version`, `description`, `tags`, and `author` fields are machine-validated by [`skill-schema.json`](skill-schema.json) in CI. The remaining C1 items below require human review.
+> **Schema enforcement**: every item below except "Approval status... recorded" (which
+> also requires the `@crestron/ai-workgroup` CODEOWNERS review, not just the field) is
+> machine-validated by [`skill-schema.json`](skill-schema.json) in CI.
 
 | ✓ | Checklist Item | Policy § | Result |
 |---|---|---|---|
@@ -216,9 +336,15 @@ Complete before a registry entry is approved. Re-complete for any **MAJOR** or *
 
 ### C2 — Design Requirements
 
+> **Schema/scan enforcement**: everything below is machine-checked except "single
+> responsibility" (a `warning` when the description repeats "and" 3+ times — always
+> *human judgment*) and "outputs sanitized/structured" (the prompt-injection body scan
+> catches smuggled content, but judging whether prose output is well-structured stays
+> a human call).
+
 | ✓ | Checklist Item | Policy § | Result |
 |---|---|---|---|
-| ☐ | Skill performs one well-defined task — single responsibility satisfied | 6.2.1 | P / F / N-A |
+| ☐ | Skill performs one well-defined task — single responsibility satisfied *(human judgment)* | 6.2.1 | P / F / N-A |
 | ☐ | Scope boundaries explicitly declared including which systems/files/APIs the skill may access | 6.2.2 | P / F / N-A |
 | ☐ | Maximum scope of any write or destructive operation documented | 6.2.2 | P / F / N-A |
 | ☐ | Conditions under which skill must abort and return error (not proceed) are defined | 6.2.2 | P / F / N-A |
@@ -228,9 +354,12 @@ Complete before a registry entry is approved. Re-complete for any **MAJOR** or *
 | ☐ | Skill rejects out-of-schema inputs with structured error — does not silently discard | 6.2.3 | P / F / N-A |
 | ☐ | Outputs stripped or escaped of content that could function as instructions in agent context | 6.2.4 | P / F / N-A |
 | ☐ | Output truncated to declared maximum length before returning to agent | 6.2.4 | P / F / N-A |
-| ☐ | Output returns structured data (JSON/typed) rather than freeform text where possible | 6.2.4 | P / F / N-A |
+| ☐ | Output returns structured data (JSON/typed) rather than freeform text where possible *(human judgment)* | 6.2.4 | P / F / N-A |
 
 ### C3 — Test Coverage Requirements
+
+> See [Testing Requirements (C3)](#testing-requirements-c3) above for the full
+> per-language matrix `test-skill.yml` enforces.
 
 | ✓ | Checklist Item | Policy § | Result |
 |---|---|---|---|
@@ -242,13 +371,35 @@ Complete before a registry entry is approved. Re-complete for any **MAJOR** or *
 
 ### C4 — Versioning & Runtime Controls
 
+> **Runtime logging/confirmation caveat**: the last two items are properties of the
+> *agent runtime* consuming a skill, not of the skill file. CI can only verify the
+> skill's own instructions declare the destructive action and tell the agent to
+> confirm before proceeding — it cannot verify any given runtime actually enforces
+> invocation logging or a confirmation prompt. Mark these `N-A` if your skill has no
+> runtime component beyond the markdown instructions.
+
 | ✓ | Checklist Item | Policy § | Result |
 |---|---|---|---|
 | ☐ | Semantic versioning used; breaking interface/behavior change increments MAJOR version | 6.3 | P / F / N-A |
 | ☐ | Agents declare explicit version dependencies — no floating references to 'latest' | 6.3 | P / F / N-A |
 | ☐ | Deprecation notice issued at least 60 days before removal if replacing existing version | 6.3 | P / F / N-A |
-| ☐ | Skill invocations logged with invoking agent ID, skill name/version, input hash, outcome | 6.5 | P / F / N-A |
-| ☐ | Destructive operations emit pre-execution summary requiring orchestration confirmation | 6.5 | P / F / N-A |
+| ☐ | Skill invocations logged with invoking agent ID, skill name/version, input hash, outcome *(runtime, not CI-verifiable)* | 6.5 | P / F / N-A |
+| ☐ | Destructive operations emit pre-execution summary requiring orchestration confirmation *(runtime, not CI-verifiable)* | 6.5 | P / F / N-A |
+
+### C5 — Approval Rules / C6 — Automatic Rejection Conditions
+
+A PR is auto-rejected (CI fails) if: `skill.md` or its `metadata` block is missing
+required fields; the directory name doesn't match `name`; `copilot-skills/` has
+drifted; `version` didn't increase; a dangerous script pattern isn't declared in
+`destructive-operations`; a bundled script has no matching test file or falls below
+90% coverage; a `manual`/`hybrid` skill has no `tests/evals.md`; or TruffleHog finds a
+verified secret in the diff. A weekly scheduled run of the same checks
+(`validate-skill-full.yml`) re-validates **every** skill, not just changed ones, so
+drift in untouched skills doesn't go unnoticed indefinitely.
+
+Approval additionally requires the `@crestron/ai-workgroup` CODEOWNERS review and the
+`metadata.approved-by`/`approval-date` fields — CI can confirm the fields are present,
+but only the required review confirms a real person actually looked.
 
 ---
 

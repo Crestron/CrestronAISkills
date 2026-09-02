@@ -41,6 +41,16 @@ if (-not [System.IO.Path]::IsPathRooted($WorkingDir)) {
     $WorkingDir = Join-Path $PWD $WorkingDir
 }
 
+# Security: resolve WorkingDir to a real, existing directory before anything else
+# is computed relative to it. Without this, a non-existent path would still let
+# path arithmetic below proceed against an unresolved (and unverifiable) root.
+$resolvedWorkingDir = Resolve-Path -LiteralPath $WorkingDir -ErrorAction SilentlyContinue
+if (-not $resolvedWorkingDir) {
+    Write-Error "WorkingDir not found: $WorkingDir"
+    exit 1
+}
+$WorkingDir = $resolvedWorkingDir.Path
+
 # Resolve locales list
 if ($Locales -ne "") {
     $localeList = $Locales -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
@@ -56,6 +66,15 @@ if ($Locales -ne "") {
     $localeList = Get-Content $LocalesFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
 }
 
+# Security: a locale code is a bare identifier, never a path. Reject anything that
+# could turn "values-$locale" into a traversal segment (e.g. "..\..\Windows") before
+# it's ever joined into a filesystem path.
+$invalidLocales = $localeList | Where-Object { $_ -notmatch '^[A-Za-z0-9_-]+$' }
+if ($invalidLocales) {
+    Write-Error "Invalid locale code(s), must be letters/numbers/hyphens/underscores only: $($invalidLocales -join ', ')"
+    exit 1
+}
+
 $sourceFile = (Join-Path $WorkingDir "values\strings.xml") | Resolve-Path -ErrorAction SilentlyContinue
 
 $removed = 0
@@ -68,6 +87,13 @@ foreach ($locale in $localeList) {
     $resolvedTarget = Resolve-Path $target -ErrorAction SilentlyContinue
     if ($sourceFile -and $resolvedTarget -and ($resolvedTarget.Path -eq $sourceFile.Path)) {
         Write-Warning "Skipped  values-$locale\strings.xml  (matches source file — protected)"
+        $skipped++; continue
+    }
+
+    # Defense in depth: even with the locale-code allowlist above, verify the
+    # resolved target never escapes WorkingDir before deleting anything.
+    if ($resolvedTarget -and -not $resolvedTarget.Path.StartsWith($WorkingDir + [System.IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+        Write-Warning "Skipped  values-$locale\strings.xml  (resolves outside WorkingDir — refusing to delete)"
         $skipped++; continue
     }
 

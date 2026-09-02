@@ -1,0 +1,49 @@
+{
+  "skill": "string-translator",
+  "validatedAt": "2026-09-02T15:07:17.056Z",
+  "commit": "824f1b849dd41d0485a5b054e1691c9787fa9a19",
+  "pr": "refs/pull/16/merge",
+  "validator": "CrestronAISkills CI",
+  "status": "passed",
+  "deprecated": false,
+  "errors": [],
+  "warnings": [],
+  "frontmatter": {
+    "name": "string-translator",
+    "version": "1.2.0",
+    "description": "Translates strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.",
+    "tags": [
+      "localization",
+      "translation",
+      "strings"
+    ],
+    "author": "CrestronEng",
+    "license": "MIT",
+    "argument-hint": "Optional: path to strings.xml or project name",
+    "metadata": {
+      "team": "crestron-ai",
+      "maintainer": "sabtain.khan",
+      "dependencies": "PowerShell 7+ (pwsh)",
+      "scope-allow": "[\"Read/write strings.xml files under the working directories passed as script parameters\", \"Run the bundled assets/scripts/*.ps1 scripts\"]",
+      "scope-deny": "[\"Any path outside the caller-supplied WorkingDir/SourceBase/TranslateBase/OutputBase\", \"Network or API calls\"]",
+      "input-schema": "merge-translations.ps1: -SourceBase, -TranslateBase, -OutputBase, -Marker (all string, all mandatory). clear-locale-files.ps1: -WorkingDir (string, default $PWD), -LocalesFile (string), -Locales (comma-separated locale codes matching ^[A-Za-z0-9_-]+$).",
+      "output-schema": "merge-translations.ps1 writes merged strings.xml files under -OutputBase. clear-locale-files.ps1 deletes values-<locale>/strings.xml files under -WorkingDir and prints a removed/skipped summary.",
+      "output-max-size": "unbounded (bounded by input strings.xml size)",
+      "test-strategy": "automated",
+      "test-coverage": "95.9",
+      "idempotent": "true",
+      "destructive-operations": "[\"clear-locale-files.ps1 deletes values-<locale>/strings.xml files via Remove-Item -Force\"]",
+      "approved-by": "sabtain.khan",
+      "approval-date": "2026-09-01"
+    }
+  },
+  "security": {
+    "scannedAt": "2026-09-02T15:07:17.123Z",
+    "findings": [],
+    "warnings": [
+      "`skills/string-translator/assets/scripts/merge-translations.ps1` contains a mutating command: file write — review before approving.",
+      "`skills/string-translator/tests/clear-locale-files.Tests.ps1` contains a mutating command: file write — review before approving.",
+      "`skills/string-translator/tests/merge-translations.Tests.ps1` contains a mutating command: file write — review before approving."
+    ]
+  }
+}

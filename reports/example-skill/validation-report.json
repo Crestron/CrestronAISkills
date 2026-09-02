@@ -1,8 +1,8 @@
 {
   "skill": "example-skill",
-  "validatedAt": "2026-06-13T17:06:07.068Z",
-  "commit": "253d55d9eb5856cfa2fe2a02b6d80485f94a38d1",
-  "pr": "refs/pull/14/merge",
+  "validatedAt": "2026-09-02T15:07:17.055Z",
+  "commit": "824f1b849dd41d0485a5b054e1691c9787fa9a19",
+  "pr": "refs/pull/16/merge",
   "validator": "CrestronAISkills CI",
   "status": "passed",
   "deprecated": false,
@@ -24,7 +24,24 @@
     "metadata": {
       "team": "crestron-ai",
       "maintainer": "sabtain.khan",
-      "dependencies": "None"
+      "dependencies": "None",
+      "scope-allow": "[\"Provide Crestron AV/SIMPL/C# guidance, code snippets, and troubleshooting steps in conversation\"]",
+      "scope-deny": "[\"Executing code, accessing files, or making network/API calls on the user's behalf\"]",
+      "input-schema": "None — this skill takes no parameters; it operates on conversational context",
+      "output-schema": "Markdown-formatted text: explanations, code snippets, diagnostic steps",
+      "output-max-size": "unbounded (conversational text)",
+      "test-strategy": "manual",
+      "tested-by": "sabtain.khan",
+      "test-date": "2026-09-01",
+      "idempotent": "true",
+      "destructive-operations": "[\"None\"]",
+      "approved-by": "sabtain.khan",
+      "approval-date": "2026-09-01"
     }
+  },
+  "security": {
+    "scannedAt": "2026-09-02T15:07:17.119Z",
+    "findings": [],
+    "warnings": []
   }
 }

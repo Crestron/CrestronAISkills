@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'skills/**'
+      - 'copilot-skills/**'
 
 permissions:
   contents: write
@@ -22,15 +23,23 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
 
-      # Security: overwrite the validator script with the base-branch version so a
-      # PR that modifies validate-skill.js cannot run its own code with write access.
-      - name: Pin validator script to base branch
+      # Security: overwrite the validator/scanner scripts (and their inputs) with the
+      # base-branch version so a PR that modifies them cannot run its own code with
+      # write access. Each path is pinned individually and tolerantly — a path that
+      # doesn't exist yet on the base branch (e.g. the PR introducing it for the
+      # first time) is left as the PR's own copy for that one bootstrap PR only;
+      # every subsequent PR pins against the now-merged base version.
+      - name: Pin validator scripts to base branch
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
           [[ "$BASE_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid BASE_REF"; exit 1; }
           git fetch origin "$BASE_REF" --depth=1
-          git checkout FETCH_HEAD -- .github/scripts/validate-skill.js
+          for p in .github/scripts/validate-skill.js .github/scripts/scan-skill-security.js \
+                   .github/scripts/lib skill-schema.json package.json package-lock.json \
+                   .github/actions/changed-skill-dirs; do
+            git cat-file -e "FETCH_HEAD:$p" 2>/dev/null && git checkout FETCH_HEAD -- "$p" || true
+          done
 
       - uses: actions/setup-node@v4
         with:
@@ -38,20 +47,52 @@ jobs:
 
       - name: Find changed skill directories
         id: changed
-        env:
-          BASE_REF: ${{ github.base_ref }}
-        run: |
-          [[ "$BASE_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid BASE_REF"; exit 1; }
-          CHANGED=$(git diff --name-only "origin/${BASE_REF}...HEAD" -- 'skills/**' \
-            | grep -oP 'skills/[^/]+' | sort -u | tr '\n' ' ')
-          echo "dirs=$CHANGED" >> $GITHUB_OUTPUT
-          echo "Changed skill dirs: $CHANGED"
+        uses: ./.github/actions/changed-skill-dirs
+        with:
+          base-ref: ${{ github.base_ref }}
+
+      # Deterministic install from the (now base-branch-pinned) lockfile, with
+      # lifecycle scripts disabled — this job has contents: write and pushes back
+      # to the PR branch, so a PR-controlled postinstall script must not be able
+      # to run with that access.
+      - name: Install validator dependencies
+        run: npm ci --ignore-scripts --no-fund --no-audit
 
       - name: Validate skills
         env:
           CHANGED_DIRS: ${{ steps.changed.outputs.dirs }}
           REPORTS_DIR: reports
+          BASE_REF: ${{ github.base_ref }}
         run: node .github/scripts/validate-skill.js
+
+      - name: Scan skills for safety/security issues
+        env:
+          CHANGED_DIRS: ${{ steps.changed.outputs.dirs }}
+          REPORTS_DIR: reports
+        run: node .github/scripts/scan-skill-security.js
+
+      - name: Scan changed skill files for secrets (TruffleHog)
+        uses: trufflesecurity/trufflehog@20652fbbdefffcdaa493a5bf57ab2ac6b1db715b # v3.97.1
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          version: 3.97.1
+          extra_args: --only-verified
+
+      # `git checkout <ref> -- <path>` stages that content into the index, not just
+      # the working tree — the pin step above left the index pointing at the
+      # base-branch (old) versions of these files. Without this restore, the commit
+      # step below would silently commit those old versions back over the PR's real
+      # changes (this happened once — see git history). Restore index+worktree to
+      # the PR's actual HEAD for exactly the paths the pin step touched, before
+      # anything gets staged/committed.
+      - name: Restore PR HEAD content before committing reports
+        if: always()
+        run: |
+          git checkout HEAD -- .github/scripts/validate-skill.js .github/scripts/scan-skill-security.js \
+            .github/scripts/lib skill-schema.json package.json package-lock.json \
+            .github/actions/changed-skill-dirs 2>/dev/null || true
 
       - name: Commit validation reports
         if: always()

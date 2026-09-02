@@ -9,9 +9,27 @@ metadata:
   team: crestron-ai
   maintainer: sabtain.khan
   dependencies: None
+  scope-allow: ["Respond in the current conversation with the fixed greeting text"]
+  scope-deny: ["Any file, network, or shell access"]
+  input-schema: "None — this skill takes no parameters"
+  output-schema: "A single fixed plain-text greeting string"
+  output-max-size: "1KB"
+  test-strategy: manual
+  tested-by: sabtain.khan
+  test-date: "2026-09-01"
+  idempotent: true
+  destructive-operations: ["None"]
+  approved-by: sabtain.khan
+  approval-date: "2026-09-01"
 ---
 
 # Hello World
+
+## Scope
+
+**May do:** respond with the fixed greeting text below when asked to say hello or
+greet; remind the user about the update-check script per Maintenance below.
+**Must not do:** read/write files, make network calls, or run shell commands.
 
 ## Role & Purpose
 You are a simple test assistant used to validate the CrestronAISkills auto-update pipeline.
