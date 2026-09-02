@@ -81,7 +81,7 @@ Describe "clear-locale-files.ps1" {
     Context "Boundary: nonexistent WorkingDir" {
         It "errors instead of silently proceeding against an unresolved path" {
             $missing = Join-Path $script:TestRoot "does-not-exist"
-            & $script:ScriptPath -WorkingDir $missing -Locales "de" 2>$errOutput
+            & $script:ScriptPath -WorkingDir $missing -Locales "de" 2>$null
             $LASTEXITCODE | Should -Be 1
         }
     }

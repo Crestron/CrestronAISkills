@@ -20,17 +20,20 @@ const REPORTS_DIR = process.env.REPORTS_DIR || "reports";
 const SUMMARY_FILE = process.env.GITHUB_STEP_SUMMARY || null;
 const summaryLines = [];
 
-// Each pattern is matched independently per-file; label is what gets cross-checked
-// against metadata.destructive-operations and shown in error messages.
+// Each pattern is matched independently per-file. `keywords` is what gets
+// cross-checked against metadata.destructive-operations: a finding only counts as
+// "declared" if the declaration text mentions the script's own filename OR at least
+// one of these keywords — not just *any* non-trivial declaration (that would let
+// declaring "deletes files" silently also cover an unrelated `eval()` call).
 const DANGEROUS_PATTERNS = [
-  { label: "force file/recursive deletion", re: /\bRemove-Item\s+[^\n]*-Force\b|\brm\s+-\w*[rf]\w*/i },
-  { label: "dynamic code execution", re: /\bInvoke-Expression\b|\biex\s+[\$"']|(?<![\w.])eval\(|(?<![\w.])exec\(/i },
-  { label: "shell=True subprocess call", re: /subprocess\.\w+\([^)]*shell\s*=\s*True/i },
-  { label: "pipe remote script to a shell", re: /curl[^\n|]*\|\s*(sh|bash|pwsh)\b|iwr[^\n|]*\|\s*iex\b/i },
-  { label: "destructive disk/volume operation", re: /\bFormat-Volume\b|\bmkfs\.\w+/i },
-  { label: "process termination", re: /\bStop-Process\b|\bkill\s+-9\b/i },
-  { label: "destructive SQL", re: /\bDROP\s+(TABLE|DATABASE)\b|\bTRUNCATE\s+TABLE\b/i },
-  { label: "force-push / history rewrite", re: /\bgit\s+push\s+[^\n]*--force\b|\bgit\s+reset\s+--hard\b/i },
+  { label: "force file/recursive deletion", keywords: ["delet", "remove", "rm "], re: /\bRemove-Item\s+[^\n]*-Force\b|\brm\s+-\w*[rf]\w*/i },
+  { label: "dynamic code execution", keywords: ["eval", "exec", "invoke-expression", "iex"], re: /\bInvoke-Expression\b|\biex\s+[\$"']|(?<![\w.])eval\(|(?<![\w.])exec\(/i },
+  { label: "shell=True subprocess call", keywords: ["subprocess", "shell"], re: /subprocess\.\w+\([^)]*shell\s*=\s*True/i },
+  { label: "pipe remote script to a shell", keywords: ["curl", "pipe", "iwr"], re: /curl[^\n|]*\|\s*(sh|bash|pwsh)\b|iwr[^\n|]*\|\s*iex\b/i },
+  { label: "destructive disk/volume operation", keywords: ["format", "mkfs", "volume", "disk"], re: /\bFormat-Volume\b|\bmkfs\.\w+/i },
+  { label: "process termination", keywords: ["kill", "stop-process", "process"], re: /\bStop-Process\b|\bkill\s+-9\b/i },
+  { label: "destructive SQL", keywords: ["drop table", "drop database", "truncate", "sql"], re: /\bDROP\s+(TABLE|DATABASE)\b|\bTRUNCATE\s+TABLE\b/i },
+  { label: "force-push / history rewrite", keywords: ["force-push", "force push", "reset --hard", "history rewrite"], re: /\bgit\s+push\s+[^\n]*--force\b|\bgit\s+reset\s+--hard\b/i },
 ];
 
 // Signals that skill.md content (loaded verbatim into another agent's context by
@@ -51,14 +54,24 @@ function flushSummary() {
   fs.appendFileSync(SUMMARY_FILE, summaryLines.join("\n") + "\n");
 }
 
-// Deliberately coarse: any dangerous pattern found requires *some* non-trivial
-// declaration in metadata.destructive-operations, not an exact per-pattern string
-// match (label text and human-written declarations will never line up reliably —
-// the human-review sign-off already in place is what actually judges accuracy).
-function hasNonTrivialDeclaration(fm) {
+// Returns the declared-operations text (lowercased) for keyword matching, or null
+// if nothing non-trivial is declared at all.
+function declaredText(fm) {
   const list = fm?.metadata?.["destructive-operations"];
-  if (!Array.isArray(list) || list.length === 0) return false;
-  return !(list.length === 1 && /^none$/i.test(list[0]));
+  if (!Array.isArray(list) || list.length === 0) return null;
+  if (list.length === 1 && /^none$/i.test(list[0])) return null;
+  return list.join(" ").toLowerCase();
+}
+
+// A finding is "covered" only if the declaration mentions the script's own
+// filename or one of the pattern's keywords — not just any non-trivial
+// declaration (that would let declaring "deletes files" also silently cover an
+// unrelated eval()/Invoke-Expression call in the same skill).
+function isCovered(declared, scriptFile, pattern) {
+  if (!declared) return false;
+  const basename = path.basename(scriptFile).toLowerCase();
+  if (declared.includes(basename)) return true;
+  return pattern.keywords.some((k) => declared.includes(k));
 }
 
 const rawDirs = (process.env.CHANGED_DIRS || "").trim();
@@ -87,17 +100,18 @@ for (const dir of dirs) {
   const { fm, body, malformed } = parseFrontmatter(content);
   if (malformed || fm?.deprecated === true) continue; // already reported/skipped elsewhere
 
-  const declared = hasNonTrivialDeclaration(fm);
+  const declared = declaredText(fm);
 
   // Pass 1: dangerous patterns in bundled scripts.
   for (const file of listFilesRecursive(dir)) {
     if (!SCRIPT_EXTENSIONS.includes(path.extname(file))) continue;
     const scriptContent = fs.readFileSync(file, "utf8");
-    for (const { label, re } of DANGEROUS_PATTERNS) {
-      if (re.test(scriptContent) && !declared) {
+    for (const pattern of DANGEROUS_PATTERNS) {
+      if (pattern.re.test(scriptContent) && !isCovered(declared, file, pattern)) {
         findings.push(
-          `Undeclared destructive operation in \`${file}\`: ${label}. Add it to ` +
-          `\`metadata.destructive-operations\` (or remove the pattern if unintended).`
+          `Undeclared destructive operation in \`${file}\`: ${pattern.label}. Add it to ` +
+          `\`metadata.destructive-operations\` (mentioning the filename or the operation type) ` +
+          `or remove the pattern if unintended.`
         );
       }
     }

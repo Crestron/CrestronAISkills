@@ -23,16 +23,23 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
 
-      # Security: overwrite the validator/scanner scripts with the base-branch version
-      # so a PR that modifies them cannot run its own code with write access.
+      # Security: overwrite the validator/scanner scripts (and their inputs) with the
+      # base-branch version so a PR that modifies them cannot run its own code with
+      # write access. Each path is pinned individually and tolerantly — a path that
+      # doesn't exist yet on the base branch (e.g. the PR introducing it for the
+      # first time) is left as the PR's own copy for that one bootstrap PR only;
+      # every subsequent PR pins against the now-merged base version.
       - name: Pin validator scripts to base branch
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
           [[ "$BASE_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid BASE_REF"; exit 1; }
           git fetch origin "$BASE_REF" --depth=1
-          git checkout FETCH_HEAD -- .github/scripts/validate-skill.js .github/scripts/scan-skill-security.js .github/scripts/lib skill-schema.json
-          git checkout FETCH_HEAD -- .github/actions/changed-skill-dirs 2>/dev/null || true
+          for p in .github/scripts/validate-skill.js .github/scripts/scan-skill-security.js \
+                   .github/scripts/lib skill-schema.json package.json package-lock.json \
+                   .github/actions/changed-skill-dirs; do
+            git cat-file -e "FETCH_HEAD:$p" 2>/dev/null && git checkout FETCH_HEAD -- "$p" || true
+          done
 
       - uses: actions/setup-node@v4
         with:
@@ -44,8 +51,12 @@ jobs:
         with:
           base-ref: ${{ github.base_ref }}
 
+      # Deterministic install from the (now base-branch-pinned) lockfile, with
+      # lifecycle scripts disabled — this job has contents: write and pushes back
+      # to the PR branch, so a PR-controlled postinstall script must not be able
+      # to run with that access.
       - name: Install validator dependencies
-        run: npm install --no-fund --no-audit
+        run: npm ci --ignore-scripts --no-fund --no-audit
 
       - name: Validate skills
         env:
