@@ -1,7 +1,7 @@
 {
   "skill": "string-translator",
-  "validatedAt": "2026-09-02T12:44:24.416Z",
-  "commit": "281ef4e531d078cd4d41891ca451d5ca227210ae",
+  "validatedAt": "2026-09-02T15:07:17.056Z",
+  "commit": "824f1b849dd41d0485a5b054e1691c9787fa9a19",
   "pr": "refs/pull/16/merge",
   "validator": "CrestronAISkills CI",
   "status": "passed",
@@ -38,7 +38,12 @@
     }
   },
   "security": {
-    "scannedAt": "2026-09-02T12:44:24.485Z",
-    "findings": []
+    "scannedAt": "2026-09-02T15:07:17.123Z",
+    "findings": [],
+    "warnings": [
+      "`skills/string-translator/assets/scripts/merge-translations.ps1` contains a mutating command: file write — review before approving.",
+      "`skills/string-translator/tests/clear-locale-files.Tests.ps1` contains a mutating command: file write — review before approving.",
+      "`skills/string-translator/tests/merge-translations.Tests.ps1` contains a mutating command: file write — review before approving."
+    ]
   }
 }

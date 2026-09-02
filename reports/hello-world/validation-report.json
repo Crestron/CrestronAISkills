@@ -1,7 +1,7 @@
 {
   "skill": "hello-world",
-  "validatedAt": "2026-09-02T12:44:24.415Z",
-  "commit": "281ef4e531d078cd4d41891ca451d5ca227210ae",
+  "validatedAt": "2026-09-02T15:07:17.056Z",
+  "commit": "824f1b849dd41d0485a5b054e1691c9787fa9a19",
   "pr": "refs/pull/16/merge",
   "validator": "CrestronAISkills CI",
   "status": "passed",
@@ -37,7 +37,8 @@
     }
   },
   "security": {
-    "scannedAt": "2026-09-02T12:44:24.483Z",
-    "findings": []
+    "scannedAt": "2026-09-02T15:07:17.120Z",
+    "findings": [],
+    "warnings": []
   }
 }
