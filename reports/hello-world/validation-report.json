@@ -1,8 +1,8 @@
 {
   "skill": "hello-world",
-  "validatedAt": "2026-09-02T15:07:17.056Z",
-  "commit": "824f1b849dd41d0485a5b054e1691c9787fa9a19",
-  "pr": "refs/pull/16/merge",
+  "validatedAt": "2026-09-04T16:13:58.493Z",
+  "commit": "ebbdd04626838e5009a079e45cbb98cb73588ba5",
+  "pr": "refs/pull/18/merge",
   "validator": "CrestronAISkills CI",
   "status": "passed",
   "deprecated": false,
@@ -10,7 +10,7 @@
   "warnings": [],
   "frontmatter": {
     "name": "hello-world",
-    "version": "1.0.6",
+    "version": "1.0.8",
     "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
     "tags": [
       "test",
@@ -22,22 +22,47 @@
       "team": "crestron-ai",
       "maintainer": "sabtain.khan",
       "dependencies": "None",
-      "scope-allow": "[\"Respond in the current conversation with the fixed greeting text\"]",
-      "scope-deny": "[\"Any file, network, or shell access\"]",
+      "scope-allow": [
+        "Respond in the current conversation with the fixed greeting text"
+      ],
+      "scope-deny": [
+        "Any file, network, or shell access"
+      ],
       "input-schema": "None — this skill takes no parameters",
       "output-schema": "A single fixed plain-text greeting string",
       "output-max-size": "1KB",
       "test-strategy": "manual",
       "tested-by": "sabtain.khan",
       "test-date": "2026-09-01",
-      "idempotent": "true",
-      "destructive-operations": "[\"None\"]",
+      "idempotent": true,
+      "destructive-operations": [
+        "None"
+      ],
       "approved-by": "sabtain.khan",
-      "approval-date": "2026-09-01"
+      "approval-date": "2026-09-01",
+      "trigger-code": false,
+      "trigger-tool": false,
+      "trigger-fs": false,
+      "trigger-ext": false,
+      "trigger-fetch": false,
+      "risk-tier": "T1",
+      "runtime-surfaces": [
+        "Claude Code",
+        "IDE extension"
+      ],
+      "permissions": {
+        "file": "declined",
+        "network": "declined",
+        "shell": "declined",
+        "credential": "declined",
+        "memory": "declined",
+        "mcp": "declined",
+        "tool": "declined"
+      }
     }
   },
   "security": {
-    "scannedAt": "2026-09-02T15:07:17.120Z",
+    "scannedAt": "2026-09-04T16:13:58.563Z",
     "findings": [],
     "warnings": []
   }

@@ -53,6 +53,15 @@ jobs:
           REPORTS_DIR: reports
         run: node .github/scripts/scan-skill-security.js
 
+      # C.11 / Runtime Companion S.4.5. Deliberately does NOT set
+      # UPDATE_CONTENT_HASH on the step above — this job must compare against
+      # the baseline as committed, never regenerate it from current content
+      # first (that would make drift undetectable by construction).
+      - name: Check content-hash drift
+        env:
+          CHANGED_DIRS: ${{ steps.all.outputs.dirs }}
+        run: node .github/scripts/check-content-drift.js
+
       - name: File an issue on failure
         if: failure()
         uses: actions/github-script@v7

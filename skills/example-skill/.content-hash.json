@@ -1,0 +1,10 @@
+{
+  "skill": "example-skill",
+  "version": "1.0.3",
+  "sourceRef": null,
+  "computedAt": "2026-09-04T15:14:38.163Z",
+  "files": {
+    "skill.md": "443857d8c8b48f5d5fd44b69d841ca9beaf357e2522a0554ac12dcd036e7e3d1",
+    "tests/evals.md": "87375ac3339c58e09544e6ff1a944da5ba6e8a22513769672ed531fff9a879ac"
+  }
+}

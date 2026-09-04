@@ -57,14 +57,83 @@
     },
     "metadata": {
       "type": "object",
-      "description": "Registry-tracking fields required by the Skill Compliance Checklist (Confluence CAAD-2931658766, Appendix C1-C6).",
+      "description": "Registry-tracking fields required by the Skill Compliance Checklist (Confluence CAAD-2931658766, Appendix C, trigger/tier model) and the Skill Runtime Companion (CAAD-3186655238) baseline data contract.",
       "required": [
         "team", "maintainer", "dependencies",
         "scope-allow", "scope-deny", "input-schema", "output-schema", "output-max-size",
         "test-strategy", "idempotent", "destructive-operations",
-        "approved-by", "approval-date"
+        "approved-by", "approval-date",
+        "trigger-code", "trigger-tool", "trigger-fs", "trigger-ext", "trigger-fetch",
+        "risk-tier", "runtime-surfaces", "permissions"
       ],
       "properties": {
+        "trigger-code": {
+          "type": "boolean",
+          "description": "T-CODE (C.2.1): ships executable code, scripts, or binaries alongside skill.md. Must be true if the skill bundles any .ps1/.sh/.py/.js file."
+        },
+        "trigger-tool": {
+          "type": "boolean",
+          "description": "T-TOOL (C.2.1): invokes tools, MCP servers, or external APIs."
+        },
+        "trigger-fs": {
+          "type": "boolean",
+          "description": "T-FS (C.2.1): reads or writes files outside its own bundle."
+        },
+        "trigger-ext": {
+          "type": "boolean",
+          "description": "T-EXT (C.2.1): sourced from a marketplace or an external publisher. Must be true if metadata.source-repo is set."
+        },
+        "trigger-fetch": {
+          "type": "boolean",
+          "description": "T-FETCH (C.2.1): retrieves content at runtime that will enter agent context."
+        },
+        "risk-tier": {
+          "type": "string",
+          "enum": ["T1", "T2", "T3"],
+          "description": "C.2.2: set by what the skill can cause, not how it's built. T1 advisory/read-only. T2 writes files, modifies code, or handles internal-confidential material. T3 destructive, deployment, identity, financial, legal, externally visible, or customer-data effect."
+        },
+        "tier-trigger-reconciliation": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Required (C.4.2) when risk-tier is T3 but trigger-code/trigger-tool/trigger-fs are all false — a T3 skill with no code/tool/filesystem trigger reaches production effect only through instructions (C.5.3), which is possible but must be deliberately reconciled, not assumed by default."
+        },
+        "runtime-surfaces": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["Claude Code", "Cowork", "IDE extension", "API agent"] },
+          "minItems": 1,
+          "description": "C.3/C.5.1.5: approved runtime surfaces this skill may run on."
+        },
+        "permissions": {
+          "type": "object",
+          "description": "C.5.1.6 permission manifest. Every capability declared or explicitly declined — use the literal string 'declined' where not needed.",
+          "required": ["file", "network", "shell", "credential", "memory", "mcp", "tool"],
+          "properties": {
+            "file": { "type": "string", "minLength": 1 },
+            "network": { "type": "string", "minLength": 1 },
+            "shell": { "type": "string", "minLength": 1 },
+            "credential": { "type": "string", "minLength": 1 },
+            "memory": { "type": "string", "minLength": 1 },
+            "mcp": { "type": "string", "minLength": 1 },
+            "tool": { "type": "string", "minLength": 1 }
+          }
+        },
+        "publisher": {
+          "type": "string",
+          "minLength": 1,
+          "description": "C.9.1: required when trigger-ext is true and metadata.source-repo is not set (i.e. a marketplace-sourced skill that didn't come through sync-skill.yml)."
+        },
+        "invoked-tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "C.7.1: every tool, MCP server, and external service this skill invokes, enumerated. Required when trigger-tool is true."
+        },
+        "retrieval-sources": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "C.10.1: retrieved sources this skill pulls content from at runtime, inventoried and pinned. Required when trigger-fetch is true."
+        },
         "team": {
           "type": "string",
           "description": "Owning team name. Required for C1 checklist approval."
@@ -164,7 +233,8 @@
         },
         "source-ref": {
           "type": "string",
-          "description": "Commit SHA or tag in the source repo this mirror was last synced from. Set alongside source-repo."
+          "pattern": "^[0-9a-f]{40}$",
+          "description": "Full 40-character commit SHA the source repo was synced from — an immutable reference, never a branch name or working-tree path (C.5.6.3; Runtime Companion S.4.4). The content-hash baseline (C.5.1.3) is recorded against this exact commit, so a mutable reference here would silently defeat drift detection. Set alongside source-repo."
         },
         "source-path": {
           "type": "string",
@@ -189,6 +259,30 @@
         {
           "if": { "properties": { "test-strategy": { "enum": ["automated", "hybrid"] } }, "required": ["test-strategy"] },
           "then": { "required": ["test-coverage"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "risk-tier": { "const": "T3" },
+              "trigger-code": { "const": false },
+              "trigger-tool": { "const": false },
+              "trigger-fs": { "const": false }
+            },
+            "required": ["risk-tier", "trigger-code", "trigger-tool", "trigger-fs"]
+          },
+          "then": { "required": ["tier-trigger-reconciliation"] }
+        },
+        {
+          "if": { "properties": { "trigger-ext": { "const": true } }, "required": ["trigger-ext"] },
+          "then": { "anyOf": [{ "required": ["source-repo"] }, { "required": ["publisher"] }] }
+        },
+        {
+          "if": { "properties": { "trigger-tool": { "const": true } }, "required": ["trigger-tool"] },
+          "then": { "required": ["invoked-tools"] }
+        },
+        {
+          "if": { "properties": { "trigger-fetch": { "const": true } }, "required": ["trigger-fetch"] },
+          "then": { "required": ["retrieval-sources"] }
         }
       ]
     }

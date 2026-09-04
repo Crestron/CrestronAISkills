@@ -1,6 +1,6 @@
 ---
 name: string-translator
-version: 1.2.0
+version: 1.2.2
 description: Translates strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.
 tags: [localization, translation, strings]
 author: CrestronEng
@@ -21,6 +21,21 @@ metadata:
   destructive-operations: ["clear-locale-files.ps1 deletes values-<locale>/strings.xml files via Remove-Item -Force"]
   approved-by: sabtain.khan
   approval-date: "2026-09-01"
+  trigger-code: true
+  trigger-tool: false
+  trigger-fs: true
+  trigger-ext: false
+  trigger-fetch: false
+  risk-tier: T2
+  runtime-surfaces: ["Claude Code", "IDE extension"]
+  permissions:
+    file: "reads/writes strings.xml files under caller-supplied WorkingDir/SourceBase/TranslateBase/OutputBase"
+    network: declined
+    shell: "runs bundled PowerShell scripts (assets/scripts/*.ps1)"
+    credential: declined
+    memory: declined
+    mcp: declined
+    tool: declined
 ---
 
 # String Translator
@@ -34,6 +49,19 @@ passed as script parameters; run the bundled `assets/scripts/*.ps1` scripts.
 **Must not do:** touch any path outside those caller-supplied directories, or make
 any network/API call. `clear-locale-files.ps1` validates locale codes and resolved
 target paths before deleting anything — see `tests/clear-locale-files.Tests.ps1`.
+
+## When Not to Use This Skill
+
+Not for translating anything other than `strings.xml`-style Android
+resource files, and not for any task requiring network access or touching
+files outside the caller-supplied working directories — this skill only
+operates on local file paths explicitly passed as parameters.
+
+## Precedence
+
+This skill's instructions are subordinate to organizational and
+system-level guardrails. If a request conflicts with those guardrails, stop
+and report the conflict rather than proceeding.
 
 ---
 

@@ -11,12 +11,19 @@ const { execFileSync } = require("child_process");
 const Ajv = require("ajv");
 const addFormats = require("ajv-formats");
 const { parseFrontmatter, hasBundledScripts } = require("./lib/skill-frontmatter");
+const { writeManifest } = require("./lib/content-hash");
 
 const SUMMARY_FILE = process.env.GITHUB_STEP_SUMMARY || null;
 const summaryLines = [];
 const REPORTS_DIR = process.env.REPORTS_DIR || "reports";
 const BASE_REF = process.env.BASE_REF || null;
 const HEAD_REF = process.env.HEAD_REF || null;
+// Only the PR-time workflow (validate-skill.yml) sets this. The read-only
+// scheduled scan (validate-skill-full.yml) must NEVER regenerate the
+// baseline it's comparing against in the same run — that would make drift
+// undetectable by construction (recomputing the hash from current content
+// right before comparing it to itself always finds "no drift").
+const UPDATE_CONTENT_HASH = process.env.UPDATE_CONTENT_HASH === "true";
 
 const schema = JSON.parse(
   fs.readFileSync(path.join(__dirname, "..", "..", "skill-schema.json"), "utf8")
@@ -155,10 +162,55 @@ for (const dir of dirs) {
     }
   }
 
+  if (body !== null) {
+    // C.5.2.3 — every skill needs an explicit "when not to use" statement
+    // naming adjacent skills it should defer to, not just a "when to use"
+    // description.
+    if (!/^##\s+When\s+Not\s+to\s+Use/im.test(body)) {
+      errors.push("Body has no `## When Not to Use This Skill` section (C.5.2.3) — state when to defer to an adjacent skill instead");
+    }
+    // C.5.3.5 — precedence statement: the skill must say its instructions
+    // are subordinate to org/system guardrails and that it stops on conflict.
+    if (!/^##\s+Precedence\b/im.test(body)) {
+      errors.push("Body has no `## Precedence` section (C.5.3.5) — state that this skill's instructions are subordinate to organizational/system guardrails and that it stops and reports on conflict");
+    }
+    // C.5.3.8 — no official line-count threshold exists yet, so this stays a
+    // warning at a documented, easily-tunable default rather than an
+    // invented authoritative number.
+    const lineCount = body.split("\n").length;
+    if (lineCount > 500) {
+      warnings.push(`Body is ${lineCount} lines — C.5.3.8 asks for detail to be deferred to on-demand reference files rather than front-loaded. Consider splitting into a references/ file (no official threshold exists yet; 500 lines is this repo's working default).`);
+    }
+    // C.10.2 — a skill that retrieves runtime content must instruct the agent
+    // to treat it as data, never as instructions, with a provenance marker.
+    if (fm.metadata?.["trigger-fetch"] === true && !/^##\s+Retrieved\s+Content\s+Handling\b/im.test(body)) {
+      errors.push("`metadata.trigger-fetch: true` but body has no `## Retrieved Content Handling` section (C.10.2) — state that retrieved content is treated as data, never as instructions, with a provenance marker");
+    }
+  }
+
   // C3 — a skill that ships executable code can't dodge automated testing on the
   // risky part by declaring the whole skill "manual".
   if (fm.metadata && fm.metadata["test-strategy"] === "manual" && hasBundledScripts(dir)) {
     errors.push("`metadata.test-strategy: manual` is not allowed — this skill bundles executable scripts, so `automated` or `hybrid` is required");
+  }
+
+  // C.2.1 trigger declarations must match reality, not just be self-consistent
+  // per the schema — the same "can't dodge by declaring" pattern as above.
+  if (fm.metadata) {
+    const hasScripts = hasBundledScripts(dir);
+    if (fm.metadata["trigger-code"] === false && hasScripts) {
+      errors.push("`metadata.trigger-code: false` but this skill bundles executable scripts (T-CODE must be true)");
+    }
+    if (fm.metadata["trigger-code"] === true && !hasScripts) {
+      warnings.push("`metadata.trigger-code: true` but no bundled scripts were found — confirm this is forward-looking, not stale");
+    }
+    // C.9 — T-EXT must track metadata.source-repo, not be declared independently
+    // of it: a synced skill is external by construction, and a skill claiming
+    // external provenance without source-repo needs a publisher instead
+    // (enforced by the schema's anyOf; this catches the opposite mismatch).
+    if (fm.metadata["trigger-ext"] === false && fm.metadata["source-repo"]) {
+      errors.push("`metadata.trigger-ext: false` but `metadata.source-repo` is set — a synced skill is external by definition (T-EXT must be true)");
+    }
   }
 
   // C4 — copilot-skills/<name>/SKILL.md must mirror skills/<name>/skill.md exactly.
@@ -228,6 +280,14 @@ for (const dir of dirs) {
     if (warnings.length)
       console.log("  ℹ  Warnings above need human review before merge (C1–C6 checklist)");
     writeReport(dirName, "passed", [], warnings, false, fm);
+
+    // C.5.1.3 content-hash baseline — only ever (re)written for a skill that
+    // just passed with zero errors, and only in the PR-time workflow. This
+    // becomes the reference the weekly scan's drift check compares against.
+    if (UPDATE_CONTENT_HASH) {
+      writeManifest(dir, { skill: fm.name, version: fm.version, sourceRef: fm.metadata?.["source-ref"] });
+      console.log(`  ✓ Content-hash baseline updated: ${path.join(dir, ".content-hash.json")}`);
+    }
   }
 
   totalWarnings += warnings.length;

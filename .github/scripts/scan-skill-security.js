@@ -18,6 +18,14 @@
 //     HTTP verbs, git writes, env/registry changes, package installs. Lower
 //     severity than the destructive-op list — surfaced for human review, not
 //     declaration-gated.
+//  5. C.5.3 instruction-content bans on the body: approval-bypass language,
+//     privilege-escalation/identity-assumption language, live-URL-as-
+//     instruction-source, and environment/toolchain-modification language.
+//     Always blocking — these are C.13.2 automatic-rejection conditions.
+//  6. C.5.3.7 internal hostname/private IP (blocking) and possible PII email
+//     addresses (warning) in the body.
+//  7. C.8.3 credential-store/SSH-key/shell-history/env-file access in
+//     bundled scripts. Always blocking, like self-modification.
 //
 // Usage: CHANGED_DIRS="skills/foo skills/bar" node scan-skill-security.js
 
@@ -72,6 +80,46 @@ const SELF_REFERENCE_RE = {
 // validate it. Matched against both bundled scripts and the skill.md body.
 const GOVERNANCE_FILE_RE = /\bskill-schema\.json\b|\bvalidate-skill\.js\b|\bscan-skill-security\.js\b|\brun-skill-tests\.js\b|\bbuild-registry\.js\b|\.github[\\/]workflows[\\/]|\bCODEOWNERS\b/i;
 
+// C.5.3 instruction-content bans, checked against the skill.md body. Always
+// blocking, never declaration-gated — these are categorically the properties
+// C.13.2 lists as automatic-rejection conditions, not judgment calls a
+// maintainer could knowingly accept.
+const BODY_BAN_PATTERNS = [
+  {
+    label: "instructs bypassing an approval gate, review step, or guardrail (C.5.3.1)",
+    re: /\b(bypass|skip|disable|suppress|circumvent|work[\s-]?around)\b[^\n]{0,40}\b(approval|review|codeowners|guardrail|gate)\b|\b(approval|review|codeowners|guardrail|gate)\b[^\n]{0,40}\b(bypass|skip|disable|suppress|circumvent)\b/i,
+  },
+  {
+    label: "instructs escalating privilege, assuming an identity, or reusing credentials outside scope (C.5.3.2)",
+    re: /\b(assume|escalate|elevate)\b[^\n]{0,40}\b(privilege|role|identity|permission)\b|\brun\s+as\s+(admin(?:istrator)?|root)\b|\bsudo\b|\buse\s+admin(?:istrator)?\s+credentials\b|\bimpersonat\w*/i,
+  },
+  {
+    label: "instructs fetching further instructions from a live/mutable URL at runtime (C.5.3.3)",
+    re: /\b(fetch|load|retrieve|download|pull|read)\b[^\n]{0,60}https?:\/\/\S+[^\n]{0,60}\b(instructions?|steps?|prompts?|commands?)\b|https?:\/\/\S+[^\n]{0,60}\bcontains?\s+(further|additional|the)?\s*instructions?\b/i,
+  },
+  {
+    label: "instructs installing packages or modifying environment/toolchain config (C.5.3.4)",
+    re: /\b(install|modify|change|alter)\b[^\n]{0,40}\b(PATH\b|environment variable|toolchain|global config|system config)/i,
+  },
+];
+
+// C.5.3.7 — internal hostnames / private IP ranges. Blocking (unlike the
+// email/PII check below): a mechanically distinctive signal of internal
+// infrastructure exposure with low false-positive risk, unlike a public
+// company domain reference.
+const INTERNAL_HOSTNAME_RE = /\b(?:[\w-]+\.)*(?:internal|corp|vpn|intranet)\.[\w.-]+\b|\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})\b/i;
+
+// C.5.3.7 — possible PII. Kept as a warning, not a blocking error: an email
+// pattern has real false-positive risk (a legitimate "contact
+// support@crestron.com" reference), unlike the hostname/IP check above.
+const PII_EMAIL_RE = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/;
+
+// C.8.3 — a skill must never read credential stores, SSH keys, shell
+// history, or environment files. Checked against bundled scripts, blocking
+// and always, same tier as self-modification: this "escalates immediately,
+// at any tier" per the Runtime Companion doc's response matrix (S.6.4).
+const CREDENTIAL_STORE_ACCESS_RE = /~[\/\\]\.ssh\b|\bid_rsa\b|\bid_ed25519\b|\.aws[\/\\]credentials\b|\.netrc\b|\.bash_history\b|\.zsh_history\b|USERPROFILE[^\n]{0,20}\.ssh\b/i;
+
 // Non-destructive but still state-changing operations. Lower severity than
 // DANGEROUS_PATTERNS — surfaced as a warning for human review, not gated behind a
 // metadata declaration (too broad/common to require declaring every file write).
@@ -82,6 +130,13 @@ const MUTATING_PATTERNS = [
   { label: "environment/registry mutation", re: /\bSet-ItemProperty\b|\bNew-ItemProperty\b|\bsetx\s|SetEnvironmentVariable\(/i },
   { label: "package install", re: /\bnpm\s+(install|ci)\b|\bpip\s+install\b|\bInstall-Module\b/i },
 ];
+
+// C.10/T-FETCH cross-check: a GET-style network call in a bundled script that
+// pulls content likely to enter agent context. Kept as a warning, not an
+// error like the trigger-code cross-check in validate-skill.js — a network
+// GET can be pure infrastructure (e.g. a connectivity check) that never
+// reaches agent context, so this needs a human read rather than a hard block.
+const NETWORK_FETCH_RE = /\bInvoke-WebRequest\b|\bInvoke-RestMethod\b|\brequests\.get\(|\bfetch\(|\burllib\.request\b/i;
 
 function writeSummary(line) {
   summaryLines.push(line);
@@ -182,6 +237,17 @@ for (const dir of dirs) {
         warnings.push(`\`${file}\` contains a mutating command: ${pattern.label} — review before approving.`);
       }
     }
+
+    // C.8.3 — credential-store/SSH-key/shell-history/env-file access, in
+    // bundled scripts. Always blocking, never declaration-gated.
+    if (CREDENTIAL_STORE_ACCESS_RE.test(scriptContent)) {
+      findings.push(`\`${file}\` references a credential store, SSH key, or shell-history/env file (C.8.3) — a skill must never read these, at any tier.`);
+    }
+
+    // C.10/T-FETCH cross-check — warning, not an error (see NETWORK_FETCH_RE comment).
+    if (NETWORK_FETCH_RE.test(scriptContent) && fm.metadata?.["trigger-fetch"] !== true) {
+      warnings.push(`\`${file}\` makes a network GET-style call but \`metadata.trigger-fetch\` is not true — confirm whether retrieved content enters agent context (C.10) and declare it if so.`);
+    }
   }
 
   // Pass 2: prompt-injection and governance-edit-instruction signals in the
@@ -202,6 +268,22 @@ for (const dir of dirs) {
         "workflow, or CODEOWNERS) alongside a write operation. A skill's instructions " +
         "must never tell an agent to modify the checks that validate it."
       );
+    }
+
+    // C.5.3 instruction-content bans — always blocking.
+    for (const { label, re } of BODY_BAN_PATTERNS) {
+      if (re.test(body)) {
+        findings.push(`\`skill.md\` body ${label}.`);
+      }
+    }
+
+    // C.5.3.7 — internal hostnames/private IPs (blocking) and possible PII
+    // email addresses (warning — higher false-positive risk).
+    if (INTERNAL_HOSTNAME_RE.test(body)) {
+      findings.push("`skill.md` body references an internal hostname or private IP address (C.5.3.7) — remove it or confirm it's a placeholder/example, not a real internal address.");
+    }
+    if (PII_EMAIL_RE.test(body)) {
+      warnings.push("`skill.md` body contains what looks like an email address — confirm it isn't PII/customer data (C.5.3.7) before approving.");
     }
   }
 
