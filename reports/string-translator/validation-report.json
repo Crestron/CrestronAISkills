@@ -1,16 +1,24 @@
 {
   "skill": "string-translator",
-  "validatedAt": "2026-09-02T15:07:17.056Z",
-  "commit": "824f1b849dd41d0485a5b054e1691c9787fa9a19",
-  "pr": "refs/pull/16/merge",
+  "validatedAt": "2026-09-04T15:15:26.030Z",
+  "commit": "eb425259b3fbc2a9b9247c6303dc9d6eb35e9ad3",
+  "pr": "refs/pull/18/merge",
   "validator": "CrestronAISkills CI",
-  "status": "passed",
+  "status": "failed",
   "deprecated": false,
-  "errors": [],
+  "errors": [
+    "`metadata.trigger-code` must be string",
+    "`metadata.trigger-tool` must be string",
+    "`metadata.trigger-fs` must be string",
+    "`metadata.trigger-ext` must be string",
+    "`metadata.trigger-fetch` must be string",
+    "`metadata.runtime-surfaces` must be string",
+    "`metadata.permissions` must be string"
+  ],
   "warnings": [],
   "frontmatter": {
     "name": "string-translator",
-    "version": "1.2.0",
+    "version": "1.2.2",
     "description": "Translates strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.",
     "tags": [
       "localization",
@@ -24,26 +32,44 @@
       "team": "crestron-ai",
       "maintainer": "sabtain.khan",
       "dependencies": "PowerShell 7+ (pwsh)",
-      "scope-allow": "[\"Read/write strings.xml files under the working directories passed as script parameters\", \"Run the bundled assets/scripts/*.ps1 scripts\"]",
-      "scope-deny": "[\"Any path outside the caller-supplied WorkingDir/SourceBase/TranslateBase/OutputBase\", \"Network or API calls\"]",
+      "scope-allow": [
+        "Read/write strings.xml files under the working directories passed as script parameters",
+        "Run the bundled assets/scripts/*.ps1 scripts"
+      ],
+      "scope-deny": [
+        "Any path outside the caller-supplied WorkingDir/SourceBase/TranslateBase/OutputBase",
+        "Network or API calls"
+      ],
       "input-schema": "merge-translations.ps1: -SourceBase, -TranslateBase, -OutputBase, -Marker (all string, all mandatory). clear-locale-files.ps1: -WorkingDir (string, default $PWD), -LocalesFile (string), -Locales (comma-separated locale codes matching ^[A-Za-z0-9_-]+$).",
       "output-schema": "merge-translations.ps1 writes merged strings.xml files under -OutputBase. clear-locale-files.ps1 deletes values-<locale>/strings.xml files under -WorkingDir and prints a removed/skipped summary.",
       "output-max-size": "unbounded (bounded by input strings.xml size)",
       "test-strategy": "automated",
-      "test-coverage": "95.9",
-      "idempotent": "true",
-      "destructive-operations": "[\"clear-locale-files.ps1 deletes values-<locale>/strings.xml files via Remove-Item -Force\"]",
+      "test-coverage": 95.9,
+      "idempotent": true,
+      "destructive-operations": [
+        "clear-locale-files.ps1 deletes values-<locale>/strings.xml files via Remove-Item -Force"
+      ],
       "approved-by": "sabtain.khan",
-      "approval-date": "2026-09-01"
+      "approval-date": "2026-09-01",
+      "trigger-code": true,
+      "trigger-tool": false,
+      "trigger-fs": true,
+      "trigger-ext": false,
+      "trigger-fetch": false,
+      "risk-tier": "T2",
+      "runtime-surfaces": [
+        "Claude Code",
+        "IDE extension"
+      ],
+      "permissions": {
+        "file": "reads/writes strings.xml files under caller-supplied WorkingDir/SourceBase/TranslateBase/OutputBase",
+        "network": "declined",
+        "shell": "runs bundled PowerShell scripts (assets/scripts/*.ps1)",
+        "credential": "declined",
+        "memory": "declined",
+        "mcp": "declined",
+        "tool": "declined"
+      }
     }
-  },
-  "security": {
-    "scannedAt": "2026-09-02T15:07:17.123Z",
-    "findings": [],
-    "warnings": [
-      "`skills/string-translator/assets/scripts/merge-translations.ps1` contains a mutating command: file write — review before approving.",
-      "`skills/string-translator/tests/clear-locale-files.Tests.ps1` contains a mutating command: file write — review before approving.",
-      "`skills/string-translator/tests/merge-translations.Tests.ps1` contains a mutating command: file write — review before approving."
-    ]
   }
 }
