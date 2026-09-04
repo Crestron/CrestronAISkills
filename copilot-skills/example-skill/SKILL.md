@@ -1,6 +1,6 @@
 ---
 name: example-skill
-version: 1.0.2
+version: 1.0.3
 description: A starter example showing how to write a Copilot skill for Crestron AV and smart home systems
 tags: [example, demo, starter, crestron, av]
 author: CrestronEng
@@ -46,6 +46,19 @@ metadata:
 SIMPL/SIMPL+/C#, DM NVX, lighting, and smart-home integration topics.
 **Must not do:** execute code, read/write files, or make network/API calls —
 this skill only produces conversational text.
+
+## When Not to Use This Skill
+
+Not for general-purpose coding help unrelated to Crestron AV/smart-home
+systems, and not for anything requiring actual command execution, file
+access, or network calls — defer to a general-purpose coding assistant or a
+skill that declares those capabilities instead.
+
+## Precedence
+
+This skill's instructions are subordinate to organizational and
+system-level guardrails. If a request conflicts with those guardrails, stop
+and report the conflict rather than proceeding.
 
 ## Role & Purpose
 

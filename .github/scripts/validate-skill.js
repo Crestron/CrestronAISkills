@@ -162,6 +162,27 @@ for (const dir of dirs) {
     }
   }
 
+  if (body !== null) {
+    // C.5.2.3 — every skill needs an explicit "when not to use" statement
+    // naming adjacent skills it should defer to, not just a "when to use"
+    // description.
+    if (!/^##\s+When\s+Not\s+to\s+Use/im.test(body)) {
+      errors.push("Body has no `## When Not to Use This Skill` section (C.5.2.3) — state when to defer to an adjacent skill instead");
+    }
+    // C.5.3.5 — precedence statement: the skill must say its instructions
+    // are subordinate to org/system guardrails and that it stops on conflict.
+    if (!/^##\s+Precedence\b/im.test(body)) {
+      errors.push("Body has no `## Precedence` section (C.5.3.5) — state that this skill's instructions are subordinate to organizational/system guardrails and that it stops and reports on conflict");
+    }
+    // C.5.3.8 — no official line-count threshold exists yet, so this stays a
+    // warning at a documented, easily-tunable default rather than an
+    // invented authoritative number.
+    const lineCount = body.split("\n").length;
+    if (lineCount > 500) {
+      warnings.push(`Body is ${lineCount} lines — C.5.3.8 asks for detail to be deferred to on-demand reference files rather than front-loaded. Consider splitting into a references/ file (no official threshold exists yet; 500 lines is this repo's working default).`);
+    }
+  }
+
   // C3 — a skill that ships executable code can't dodge automated testing on the
   // risky part by declaring the whole skill "manual".
   if (fm.metadata && fm.metadata["test-strategy"] === "manual" && hasBundledScripts(dir)) {
