@@ -1,6 +1,6 @@
 ---
 name: string-translator
-version: 1.2.0
+version: 1.2.1
 description: Translates strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.
 tags: [localization, translation, strings]
 author: CrestronEng
@@ -21,6 +21,21 @@ metadata:
   destructive-operations: ["clear-locale-files.ps1 deletes values-<locale>/strings.xml files via Remove-Item -Force"]
   approved-by: sabtain.khan
   approval-date: "2026-09-01"
+  trigger-code: true
+  trigger-tool: false
+  trigger-fs: true
+  trigger-ext: false
+  trigger-fetch: false
+  risk-tier: T2
+  runtime-surfaces: ["Claude Code", "IDE extension"]
+  permissions:
+    file: "reads/writes strings.xml files under caller-supplied WorkingDir/SourceBase/TranslateBase/OutputBase"
+    network: declined
+    shell: "runs bundled PowerShell scripts (assets/scripts/*.ps1)"
+    credential: declined
+    memory: declined
+    mcp: declined
+    tool: declined
 ---
 
 # String Translator

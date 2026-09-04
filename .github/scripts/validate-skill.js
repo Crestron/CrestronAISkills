@@ -161,6 +161,25 @@ for (const dir of dirs) {
     errors.push("`metadata.test-strategy: manual` is not allowed — this skill bundles executable scripts, so `automated` or `hybrid` is required");
   }
 
+  // C.2.1 trigger declarations must match reality, not just be self-consistent
+  // per the schema — the same "can't dodge by declaring" pattern as above.
+  if (fm.metadata) {
+    const hasScripts = hasBundledScripts(dir);
+    if (fm.metadata["trigger-code"] === false && hasScripts) {
+      errors.push("`metadata.trigger-code: false` but this skill bundles executable scripts (T-CODE must be true)");
+    }
+    if (fm.metadata["trigger-code"] === true && !hasScripts) {
+      warnings.push("`metadata.trigger-code: true` but no bundled scripts were found — confirm this is forward-looking, not stale");
+    }
+    // C.9 — T-EXT must track metadata.source-repo, not be declared independently
+    // of it: a synced skill is external by construction, and a skill claiming
+    // external provenance without source-repo needs a publisher instead
+    // (enforced by the schema's anyOf; this catches the opposite mismatch).
+    if (fm.metadata["trigger-ext"] === false && fm.metadata["source-repo"]) {
+      errors.push("`metadata.trigger-ext: false` but `metadata.source-repo` is set — a synced skill is external by definition (T-EXT must be true)");
+    }
+  }
+
   // C4 — copilot-skills/<name>/SKILL.md must mirror skills/<name>/skill.md exactly.
   const mirrorPath = path.join("copilot-skills", dirName, "SKILL.md");
   if (fs.existsSync(mirrorPath)) {

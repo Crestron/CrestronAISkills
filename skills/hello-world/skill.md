@@ -1,6 +1,6 @@
 ---
 name: hello-world
-version: 1.0.6
+version: 1.0.7
 description: A test skill that responds with Hello World. Used to validate the auto-update pipeline.
 tags: [test, hello-world]
 author: CrestronEng
@@ -21,6 +21,21 @@ metadata:
   destructive-operations: ["None"]
   approved-by: sabtain.khan
   approval-date: "2026-09-01"
+  trigger-code: false
+  trigger-tool: false
+  trigger-fs: false
+  trigger-ext: false
+  trigger-fetch: false
+  risk-tier: T1
+  runtime-surfaces: ["Claude Code", "IDE extension"]
+  permissions:
+    file: declined
+    network: declined
+    shell: declined
+    credential: declined
+    memory: declined
+    mcp: declined
+    tool: declined
 ---
 
 # Hello World

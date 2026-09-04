@@ -1,6 +1,6 @@
 ---
 name: example-skill
-version: 1.0.1
+version: 1.0.2
 description: A starter example showing how to write a Copilot skill for Crestron AV and smart home systems
 tags: [example, demo, starter, crestron, av]
 author: CrestronEng
@@ -21,6 +21,21 @@ metadata:
   destructive-operations: ["None"]
   approved-by: sabtain.khan
   approval-date: "2026-09-01"
+  trigger-code: false
+  trigger-tool: false
+  trigger-fs: false
+  trigger-ext: false
+  trigger-fetch: false
+  risk-tier: T1
+  runtime-surfaces: ["Claude Code", "Cowork", "IDE extension", "API agent"]
+  permissions:
+    file: declined
+    network: declined
+    shell: declined
+    credential: declined
+    memory: declined
+    mcp: declined
+    tool: declined
 ---
 
 # Example Skill — Crestron AV & Smart Home Assistant
