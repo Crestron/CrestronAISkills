@@ -11,12 +11,19 @@ const { execFileSync } = require("child_process");
 const Ajv = require("ajv");
 const addFormats = require("ajv-formats");
 const { parseFrontmatter, hasBundledScripts } = require("./lib/skill-frontmatter");
+const { writeManifest } = require("./lib/content-hash");
 
 const SUMMARY_FILE = process.env.GITHUB_STEP_SUMMARY || null;
 const summaryLines = [];
 const REPORTS_DIR = process.env.REPORTS_DIR || "reports";
 const BASE_REF = process.env.BASE_REF || null;
 const HEAD_REF = process.env.HEAD_REF || null;
+// Only the PR-time workflow (validate-skill.yml) sets this. The read-only
+// scheduled scan (validate-skill-full.yml) must NEVER regenerate the
+// baseline it's comparing against in the same run — that would make drift
+// undetectable by construction (recomputing the hash from current content
+// right before comparing it to itself always finds "no drift").
+const UPDATE_CONTENT_HASH = process.env.UPDATE_CONTENT_HASH === "true";
 
 const schema = JSON.parse(
   fs.readFileSync(path.join(__dirname, "..", "..", "skill-schema.json"), "utf8")
@@ -247,6 +254,14 @@ for (const dir of dirs) {
     if (warnings.length)
       console.log("  ℹ  Warnings above need human review before merge (C1–C6 checklist)");
     writeReport(dirName, "passed", [], warnings, false, fm);
+
+    // C.5.1.3 content-hash baseline — only ever (re)written for a skill that
+    // just passed with zero errors, and only in the PR-time workflow. This
+    // becomes the reference the weekly scan's drift check compares against.
+    if (UPDATE_CONTENT_HASH) {
+      writeManifest(dir, { skill: fm.name, version: fm.version, sourceRef: fm.metadata?.["source-ref"] });
+      console.log(`  ✓ Content-hash baseline updated: ${path.join(dir, ".content-hash.json")}`);
+    }
   }
 
   totalWarnings += warnings.length;

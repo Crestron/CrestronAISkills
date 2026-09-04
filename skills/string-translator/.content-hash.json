@@ -1,0 +1,18 @@
+{
+  "skill": "string-translator",
+  "version": "1.2.1",
+  "sourceRef": null,
+  "computedAt": "2026-09-04T04:01:20.034Z",
+  "files": {
+    "assets/scripts/clear-locale-files.ps1": "f00a6caadcf3dafeba20b444d81b69af3e9d2463b6ece2315fd0ffce95fb9053",
+    "assets/scripts/merge-translations.ps1": "2fade9b8060b279e40401c2b16a04714621c6e9b231e10c9ba739a3d24b57e92",
+    "assets/target_languages_crestron.csv": "d24d36e1175b4f638744ccaf0e74f0c6b369b64eb95e8dcf8b2c86769667b5b9",
+    "assets/target_languages_crestron.txt": "59d48e835911aa9131aeecd0740dc59f1e3aa68513871abaf3d16bbec96c7f53",
+    "assets/translation_config.json": "77d2b6aebb257383945765fd7f2fc7e6f4ecdf87b2058df876a233783ca864f5",
+    "README.md": "a7ee05f9cb047af51c3071a54b402bb96ead06d7050afcf626e6ccf1a01eaccc",
+    "references/translation-rules.md": "ec6f5dcf5b1c5b381b983eac5e054c509345202f989d85bfbdcfe47b31db91d8",
+    "skill.md": "49f4287e2a1385712f4c75b584d599c70ff8596ea59f39a94d95500de39a7f3e",
+    "tests/clear-locale-files.Tests.ps1": "38809b544020f5a4000aca9e521d80414ef531ef0c9a79d0c9da426b721ee608",
+    "tests/merge-translations.Tests.ps1": "2360becbf749828601fec41608718416f27e4d29cd5385fff3db17e7192bf6a5"
+  }
+}
