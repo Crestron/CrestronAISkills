@@ -273,6 +273,71 @@ Delete the `skills/<skill-name>/` directory and open a PR. The registry and mark
 
 ---
 
+## Importing a Skill You Built in Another Repo
+
+Most teams build a skill in their own repo first and transfer it here once it's
+ready. `sync-skill.yml` mirrors it into `skills/<name>/` and opens a normal PR
+— it never pushes to `main` directly, and the resulting PR goes through the
+exact same `validate-skill.yml`/`test-skill.yml`/CODEOWNERS pipeline as a
+hand-written skill.
+
+### Running the sync
+
+From the **Actions** tab, run **Sync Skill From Source Repo**
+(`workflow_dispatch`) with:
+
+| Input | Meaning |
+|---|---|
+| `source_repo` | The team's repo, as `owner/repo` |
+| `source_ref` | Full 40-character commit SHA to sync from — **not a branch or tag name**. Run `git rev-parse <branch-or-tag>` in the source repo to resolve one. Required because the content-hash baseline (C.5.1.3) gets recorded against this exact reference; a mutable branch name would let it drift silently (C.5.6.3). |
+| `source_path` | Path within their repo to the skill's directory |
+| `target_name` | Optional — skill name here (`skills/<target_name>/`). Defaults to the last segment of `source_path`. |
+
+This requires a GitHub App (`SKILL_SYNC_APP_ID`/`SKILL_SYNC_APP_PRIVATE_KEY`
+repo secrets) to already be registered, and — separately, per source
+org — for that org's admin to have installed the app on the specific repo(s)
+being synced from. See
+[`docs/runbooks/github-app-setup.md`](docs/runbooks/github-app-setup.md) for
+both the one-time app setup and the per-org installation steps. If a run
+fails with "app not installed on this repository," that org just needs to
+run the Part C installation step once.
+
+### What happens
+
+- Every skill/file under `source_path` is copied into `skills/<target_name>/`
+  and mirrored to `copilot-skills/<target_name>/SKILL.md`.
+- `metadata.source-repo`, `source-ref`, `source-path`, and `synced-at` are
+  stamped from the sync inputs — always overwritten on every run.
+- **On a fresh import**, the Crestron-only compliance fields (`scope-allow`,
+  `test-strategy`, `approved-by`, etc.) are *not* scaffolded — they're simply
+  absent, and `validate-skill.js` will list them as missing on the PR, same as
+  any other new skill. Fill them in directly on the sync PR branch before
+  requesting review.
+- **On a re-sync**, any compliance fields already filled in from a previous
+  approval are preserved — only the content (name/description/version/tags/
+  author/body) and the `source-*`/`synced-at` fields update.
+- The workflow reuses one branch per skill (`sync/<target_name>`) and pushes
+  updates to the same open PR rather than opening duplicates.
+
+### The lock policy
+
+Once a skill has `metadata.source-repo` set, editing it from any branch other
+than `sync/<target_name>` triggers a warning from `validate-skill.js`: *"this
+skill is synced from `<repo>` — edits made directly here will be overwritten
+by the next sync."* This isn't a hard block — a deliberate, reviewed emergency
+patch is still possible — but the expectation is that changes belong in the
+source repo, and the next sync will otherwise silently overwrite a direct edit
+here.
+
+### Requesting a re-sync
+
+Re-run the same workflow with an updated `source_ref` whenever the team ships
+a new version. There is currently no automatic trigger for this — see
+[`docs/runbooks/skill-sync-webhook.md`](docs/runbooks/skill-sync-webhook.md)
+for the deferred webhook design if manual re-syncing becomes a frequent chore.
+
+---
+
 ## Testing Requirements (C3)
 
 Every skill declares `metadata.test-strategy: manual | automated | hybrid`.

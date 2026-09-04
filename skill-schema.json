@@ -156,6 +156,24 @@
           "type": "string",
           "format": "date",
           "description": "ISO date the skill will be removed. Must be >= deprecation-notice-date + 60 days (C4)."
+        },
+        "source-repo": {
+          "type": "string",
+          "format": "uri",
+          "description": "Set only for skills mirrored from a team's own repo via sync-skill.yml. URL of the source repository. Skills with this set are locked to sync-only — see CONTRIBUTING.md."
+        },
+        "source-ref": {
+          "type": "string",
+          "description": "Commit SHA or tag in the source repo this mirror was last synced from. Set alongside source-repo."
+        },
+        "source-path": {
+          "type": "string",
+          "description": "Path within the source repo to the skill's directory, if not at the repo root. Set alongside source-repo."
+        },
+        "synced-at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of the last sync from source-repo."
         }
       },
       "additionalProperties": { "type": "string" },
