@@ -33,6 +33,17 @@ jobs:
       # doesn't exist yet on the base branch (e.g. the PR introducing it for the
       # first time) is left as the PR's own copy for that one bootstrap PR only;
       # every subsequent PR pins against the now-merged base version.
+      #
+      # Deliberately NOT pinning skill-schema.json: a PR legitimately needs to
+      # evolve the schema and retrofit existing skills to match in the same PR
+      # (that's how every phase of the trigger/tier rewrite shipped) — pinning it
+      # here would validate the PR's new fields against the old schema and fail
+      # every time. skill-schema.json is a plain, legible list of field
+      # names/types, unlike validator logic — CODEOWNERS already requires
+      # @crestron/ai-workgroup review on it specifically, which is the right
+      # layer to catch a deliberately weakened requirement, the same way a
+      # human reviewer (not a second automated check) is what catches
+      # C1's "approved-by" field being dishonest.
       - name: Pin validator scripts to base branch
         env:
           BASE_REF: ${{ github.base_ref }}
@@ -40,7 +51,7 @@ jobs:
           [[ "$BASE_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid BASE_REF"; exit 1; }
           git fetch origin "$BASE_REF" --depth=1
           for p in .github/scripts/validate-skill.js .github/scripts/scan-skill-security.js \
-                   .github/scripts/lib skill-schema.json package.json package-lock.json \
+                   .github/scripts/lib package.json package-lock.json \
                    .github/actions/changed-skill-dirs; do
             git cat-file -e "FETCH_HEAD:$p" 2>/dev/null && git checkout FETCH_HEAD -- "$p" || true
           done
@@ -100,7 +111,7 @@ jobs:
         if: always()
         run: |
           git checkout HEAD -- .github/scripts/validate-skill.js .github/scripts/scan-skill-security.js \
-            .github/scripts/lib skill-schema.json package.json package-lock.json \
+            .github/scripts/lib package.json package-lock.json \
             .github/actions/changed-skill-dirs 2>/dev/null || true
 
       - name: Commit validation reports
