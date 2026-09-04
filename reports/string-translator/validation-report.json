@@ -1,20 +1,12 @@
 {
   "skill": "string-translator",
-  "validatedAt": "2026-09-04T15:15:26.030Z",
-  "commit": "eb425259b3fbc2a9b9247c6303dc9d6eb35e9ad3",
+  "validatedAt": "2026-09-04T16:13:58.498Z",
+  "commit": "ebbdd04626838e5009a079e45cbb98cb73588ba5",
   "pr": "refs/pull/18/merge",
   "validator": "CrestronAISkills CI",
-  "status": "failed",
+  "status": "passed",
   "deprecated": false,
-  "errors": [
-    "`metadata.trigger-code` must be string",
-    "`metadata.trigger-tool` must be string",
-    "`metadata.trigger-fs` must be string",
-    "`metadata.trigger-ext` must be string",
-    "`metadata.trigger-fetch` must be string",
-    "`metadata.runtime-surfaces` must be string",
-    "`metadata.permissions` must be string"
-  ],
+  "errors": [],
   "warnings": [],
   "frontmatter": {
     "name": "string-translator",
@@ -71,5 +63,14 @@
         "tool": "declined"
       }
     }
+  },
+  "security": {
+    "scannedAt": "2026-09-04T16:13:58.566Z",
+    "findings": [],
+    "warnings": [
+      "`skills/string-translator/assets/scripts/merge-translations.ps1` contains a mutating command: file write — review before approving.",
+      "`skills/string-translator/tests/clear-locale-files.Tests.ps1` contains a mutating command: file write — review before approving.",
+      "`skills/string-translator/tests/merge-translations.Tests.ps1` contains a mutating command: file write — review before approving."
+    ]
   }
 }

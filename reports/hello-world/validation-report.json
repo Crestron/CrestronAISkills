@@ -1,20 +1,12 @@
 {
   "skill": "hello-world",
-  "validatedAt": "2026-09-04T15:15:26.025Z",
-  "commit": "eb425259b3fbc2a9b9247c6303dc9d6eb35e9ad3",
+  "validatedAt": "2026-09-04T16:13:58.493Z",
+  "commit": "ebbdd04626838e5009a079e45cbb98cb73588ba5",
   "pr": "refs/pull/18/merge",
   "validator": "CrestronAISkills CI",
-  "status": "failed",
+  "status": "passed",
   "deprecated": false,
-  "errors": [
-    "`metadata.trigger-code` must be string",
-    "`metadata.trigger-tool` must be string",
-    "`metadata.trigger-fs` must be string",
-    "`metadata.trigger-ext` must be string",
-    "`metadata.trigger-fetch` must be string",
-    "`metadata.runtime-surfaces` must be string",
-    "`metadata.permissions` must be string"
-  ],
+  "errors": [],
   "warnings": [],
   "frontmatter": {
     "name": "hello-world",
@@ -68,5 +60,10 @@
         "tool": "declined"
       }
     }
+  },
+  "security": {
+    "scannedAt": "2026-09-04T16:13:58.563Z",
+    "findings": [],
+    "warnings": []
   }
 }
