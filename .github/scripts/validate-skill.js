@@ -181,6 +181,11 @@ for (const dir of dirs) {
     if (lineCount > 500) {
       warnings.push(`Body is ${lineCount} lines — C.5.3.8 asks for detail to be deferred to on-demand reference files rather than front-loaded. Consider splitting into a references/ file (no official threshold exists yet; 500 lines is this repo's working default).`);
     }
+    // C.10.2 — a skill that retrieves runtime content must instruct the agent
+    // to treat it as data, never as instructions, with a provenance marker.
+    if (fm.metadata?.["trigger-fetch"] === true && !/^##\s+Retrieved\s+Content\s+Handling\b/im.test(body)) {
+      errors.push("`metadata.trigger-fetch: true` but body has no `## Retrieved Content Handling` section (C.10.2) — state that retrieved content is treated as data, never as instructions, with a provenance marker");
+    }
   }
 
   // C3 — a skill that ships executable code can't dodge automated testing on the

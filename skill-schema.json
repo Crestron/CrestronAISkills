@@ -122,6 +122,18 @@
           "minLength": 1,
           "description": "C.9.1: required when trigger-ext is true and metadata.source-repo is not set (i.e. a marketplace-sourced skill that didn't come through sync-skill.yml)."
         },
+        "invoked-tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "C.7.1: every tool, MCP server, and external service this skill invokes, enumerated. Required when trigger-tool is true."
+        },
+        "retrieval-sources": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "C.10.1: retrieved sources this skill pulls content from at runtime, inventoried and pinned. Required when trigger-fetch is true."
+        },
         "team": {
           "type": "string",
           "description": "Owning team name. Required for C1 checklist approval."
@@ -263,6 +275,14 @@
         {
           "if": { "properties": { "trigger-ext": { "const": true } }, "required": ["trigger-ext"] },
           "then": { "anyOf": [{ "required": ["source-repo"] }, { "required": ["publisher"] }] }
+        },
+        {
+          "if": { "properties": { "trigger-tool": { "const": true } }, "required": ["trigger-tool"] },
+          "then": { "required": ["invoked-tools"] }
+        },
+        {
+          "if": { "properties": { "trigger-fetch": { "const": true } }, "required": ["trigger-fetch"] },
+          "then": { "required": ["retrieval-sources"] }
         }
       ]
     }

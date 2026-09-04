@@ -131,6 +131,13 @@ const MUTATING_PATTERNS = [
   { label: "package install", re: /\bnpm\s+(install|ci)\b|\bpip\s+install\b|\bInstall-Module\b/i },
 ];
 
+// C.10/T-FETCH cross-check: a GET-style network call in a bundled script that
+// pulls content likely to enter agent context. Kept as a warning, not an
+// error like the trigger-code cross-check in validate-skill.js — a network
+// GET can be pure infrastructure (e.g. a connectivity check) that never
+// reaches agent context, so this needs a human read rather than a hard block.
+const NETWORK_FETCH_RE = /\bInvoke-WebRequest\b|\bInvoke-RestMethod\b|\brequests\.get\(|\bfetch\(|\burllib\.request\b/i;
+
 function writeSummary(line) {
   summaryLines.push(line);
 }
@@ -235,6 +242,11 @@ for (const dir of dirs) {
     // bundled scripts. Always blocking, never declaration-gated.
     if (CREDENTIAL_STORE_ACCESS_RE.test(scriptContent)) {
       findings.push(`\`${file}\` references a credential store, SSH key, or shell-history/env file (C.8.3) — a skill must never read these, at any tier.`);
+    }
+
+    // C.10/T-FETCH cross-check — warning, not an error (see NETWORK_FETCH_RE comment).
+    if (NETWORK_FETCH_RE.test(scriptContent) && fm.metadata?.["trigger-fetch"] !== true) {
+      warnings.push(`\`${file}\` makes a network GET-style call but \`metadata.trigger-fetch\` is not true — confirm whether retrieved content enters agent context (C.10) and declare it if so.`);
     }
   }
 
