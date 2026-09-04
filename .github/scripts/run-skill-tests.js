@@ -1,6 +1,13 @@
 #!/usr/bin/env node
-// C3 checklist enforcement — per-skill, per-language test matrix.
-// - test-strategy: manual  -> require tests/evals.md (non-empty); no runner invoked.
+// C.12 checklist enforcement — per-skill, per-language test matrix, plus the
+// structured eval log every skill needs regardless of test-strategy.
+// - Every skill needs a non-empty tests/evals.md with Set A entries (X1-X4:
+//   activation, false-activation, behavioral, instruction-injection eval).
+//   T2/T3 skills also need Set B (X5-X7: scope-boundary/guardrail-conflict/
+//   sandbox eval); T3 skills also need Set C (X11-X12: idempotency/scope-
+//   boundary tests). X8-X10 are the script coverage/test-file matrix below
+//   (already the per-language enforcement); X13-X16 stay out of scope —
+//   they're runtime/agent properties, not something a skill file can prove.
 // - test-strategy: automated/hybrid -> for every bundled script, require a matching
 //   test file and run the matching language's runner; fail on missing test file,
 //   any test failure, or (Pester/pytest only) file coverage below COVERAGE_THRESHOLD.
@@ -89,6 +96,36 @@ function runBats(skillDir) {
   return { ok: result.status === 0, summary: { exitCode: result.status } };
 }
 
+// C.12 — every skill needs Set A (X1-X4) regardless of test-strategy; T2/T3
+// also need Set B (X5-X7); T3 also needs Set C (X11-X12, the two of X11-X16
+// that are properties of the skill itself rather than the agent runtime).
+const REQUIRED_X_NUMBERS = {
+  T1: ["X1", "X2", "X3", "X4"],
+  T2: ["X1", "X2", "X3", "X4", "X5", "X6", "X7"],
+  T3: ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X11", "X12"],
+};
+
+function checkEvalsLog(dir, fm) {
+  const errors = [];
+  const evalsPath = path.join(dir, "tests", "evals.md");
+  const tier = fm?.metadata?.["risk-tier"];
+  const required = REQUIRED_X_NUMBERS[tier] || REQUIRED_X_NUMBERS.T1;
+
+  if (!fs.existsSync(evalsPath) || fs.readFileSync(evalsPath, "utf8").trim().length === 0) {
+    errors.push(fail(`Every skill requires a non-empty ${evalsPath} (C.12 Set A) — got none`));
+    return errors;
+  }
+
+  const evalsContent = fs.readFileSync(evalsPath, "utf8");
+  const missing = required.filter((x) => !new RegExp(`^##\\s+${x}\\b`, "im").test(evalsContent));
+  if (missing.length) {
+    errors.push(fail(`${evalsPath} is missing required eval section(s) for tier ${tier || "T1"}: ${missing.join(", ")}`));
+  } else {
+    console.log(`  ✓ Eval log present with required sections (${required.join(", ")}): ${evalsPath}`);
+  }
+  return errors;
+}
+
 const rawDirs = (process.env.CHANGED_DIRS || "").trim();
 const dirs = rawDirs.split(/[\s\n]+/).filter(Boolean);
 
@@ -111,23 +148,9 @@ for (const dir of dirs) {
   if (malformed || fm?.deprecated === true) continue;
 
   const strategy = fm?.metadata?.["test-strategy"];
-  const errors = [];
+  const errors = [...checkEvalsLog(dir, fm)];
 
-  if (strategy === "manual") {
-    const evalsPath = path.join(dir, "tests", "evals.md");
-    if (!fs.existsSync(evalsPath) || fs.readFileSync(evalsPath, "utf8").trim().length === 0) {
-      errors.push(fail(`\`test-strategy: manual\` requires a non-empty ${evalsPath}`));
-    } else {
-      console.log(`  ✓ Manual eval log present: ${evalsPath}`);
-    }
-  } else if (strategy === "automated" || strategy === "hybrid") {
-    if (strategy === "hybrid") {
-      const evalsPath = path.join(dir, "tests", "evals.md");
-      if (!fs.existsSync(evalsPath) || fs.readFileSync(evalsPath, "utf8").trim().length === 0) {
-        errors.push(fail(`\`test-strategy: hybrid\` also requires a non-empty ${evalsPath}`));
-      }
-    }
-
+  if (strategy === "automated" || strategy === "hybrid") {
     const scripts = listFilesRecursive(dir).filter((f) => /\.(ps1|py|sh|js)$/.test(f) && !f.includes(`${path.sep}tests${path.sep}`));
     const byLang = { ps1: [], py: [], sh: [], js: [] };
     for (const s of scripts) {

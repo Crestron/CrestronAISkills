@@ -77,6 +77,21 @@ metadata:
   test-date: "2026-01-01"                   # required for manual/hybrid
   approved-by: approving-ai-workgroup-member
   approval-date: "2026-01-01"
+  trigger-code: false                       # T-CODE — bundles executable scripts?
+  trigger-tool: false                       # T-TOOL — invokes tools/MCP servers/external APIs?
+  trigger-fs: false                         # T-FS — reads/writes files outside its own bundle?
+  trigger-ext: false                        # T-EXT — sourced from a marketplace/external publisher?
+  trigger-fetch: false                      # T-FETCH — retrieves runtime content into agent context?
+  risk-tier: T1                             # T1 | T2 | T3 — see Classification below
+  runtime-surfaces: ["Claude Code"]         # subset of: Claude Code, Cowork, IDE extension, API agent
+  permissions:                              # every capability declared or "declined"
+    file: declined
+    network: declined
+    shell: declined
+    credential: declined
+    memory: declined
+    mcp: declined
+    tool: declined
 ---
 
 # Your Skill Name
@@ -85,6 +100,16 @@ metadata:
 
 **May do:** ...
 **Must not do:** ...
+
+## When Not to Use This Skill
+
+Name the nearest adjacent skill(s) a request should defer to instead.
+
+## Precedence
+
+This skill's instructions are subordinate to organizational and
+system-level guardrails. If a request conflicts with those guardrails, stop
+and report the conflict rather than proceeding.
 
 ## Role & Purpose
 Describe the role the AI takes when this skill is active.
@@ -119,11 +144,25 @@ Describe the role the AI takes when this skill is active.
 | `input-schema` / `output-schema` / `output-max-size` | Free-text description of the input contract, output shape, and a declared maximum output size. Use `"None"` where genuinely not applicable. |
 | `idempotent` | `true`/`false`. If `false`, also set `duplicate-invocation-safeguard` describing how duplicate invocations are made safe. |
 | `destructive-operations` | Array of destructive operations the skill (or its bundled scripts) can perform, or `["None"]`. Must match what the automated security scan finds in any bundled scripts — see [Security Scanning](#security-scanning-of-bundled-scripts). |
-| `test-strategy` | `manual`, `automated`, or `hybrid` — see [Testing Requirements (C3)](#testing-requirements-c3). A skill bundling executable scripts cannot use `manual`. |
+| `test-strategy` | `manual`, `automated`, or `hybrid` — see [Testing Requirements (C.12)](#testing-requirements-c12). A skill bundling executable scripts cannot use `manual`. |
 | `tested-by` / `test-date` | Required for `manual`/`hybrid`. Who ran the eval and when. |
 | `test-coverage` | Required for `automated`/`hybrid`. The measured line-coverage percentage from the test matrix. |
+| `trigger-code` / `trigger-tool` / `trigger-fs` / `trigger-ext` / `trigger-fetch` | T-CODE/T-TOOL/T-FS/T-EXT/T-FETCH (C.2.1). `trigger-code` must be `true` if the skill bundles any script; `trigger-ext` must be `true` if `source-repo` is set. |
+| `risk-tier` | `T1`, `T2`, or `T3` (C.2.2) — set by what the skill can *cause*, not how it's built. Drives which `tests/evals.md` sections are required. |
+| `runtime-surfaces` | Non-empty array from `Claude Code`, `Cowork`, `IDE extension`, `API agent` (C.5.1.5). |
+| `permissions` | Object with `file`/`network`/`shell`/`credential`/`memory`/`mcp`/`tool` keys, each a description or the literal string `declined` (C.5.1.6). |
+| `invoked-tools` | Required when `trigger-tool` is `true` — every tool/MCP server/service invoked, enumerated (C.7.1). |
+| `retrieval-sources` | Required when `trigger-fetch` is `true` — every runtime content source, pinned (C.10.1). |
+| `publisher` | Required when `trigger-ext` is `true` and `source-repo` is not set (C.9.1). |
 | `approved-by` / `approval-date` | GitHub username of the approving AI Workgroup member and the approval date. |
 | `deprecation-notice-date` / `removal-date` | Required once `deprecated: true` is set. `removal-date` must be ≥ 60 days after `deprecation-notice-date`. |
+
+**Required body sections** (checked by `validate-skill.js`, same mechanism
+as the frontmatter fields above): every skill needs `## Scope`,
+`## When Not to Use This Skill` (C.5.2.3), and `## Precedence` (C.5.3.5).
+A skill with `trigger-fetch: true` also needs `## Retrieved Content
+Handling` (C.10.2), stating that retrieved content is treated as data,
+never instructions, with a provenance marker.
 
 All frontmatter fields are validated against [`skill-schema.json`](skill-schema.json) at the repository root — this is the single source of truth; `.github/scripts/validate-skill.js` loads it directly (via `ajv`) rather than re-implementing its own rules. You can validate locally before submitting:
 
@@ -216,7 +255,7 @@ Open a PR against `main`. Three workflows run automatically:
 - ✅ Rebuilds `registry.json` from all skills on merge
 
 **`test-skill.yml`** (C3 test coverage):
-- ✅ For `automated`/`hybrid` skills, runs the matching test runner per bundled script language and enforces ≥90% coverage (see [Testing Requirements](#testing-requirements-c3))
+- ✅ For `automated`/`hybrid` skills, runs the matching test runner per bundled script language and enforces ≥90% coverage (see [Testing Requirements](#testing-requirements-c12))
 - ✅ For `manual`/`hybrid` skills, checks a non-empty `tests/evals.md` exists
 
 **Required review:** `CODEOWNERS` requires an approving review from `@crestron/ai-workgroup`
@@ -338,18 +377,45 @@ for the deferred webhook design if manual re-syncing becomes a frequent chore.
 
 ---
 
-## Testing Requirements (C3)
+## Testing Requirements (C.12)
 
-Every skill declares `metadata.test-strategy: manual | automated | hybrid`.
+Every skill needs a `tests/evals.md` — regardless of `test-strategy` — with
+Set A eval entries, tagged by X-number so `run-skill-tests.js` can check for
+them mechanically (same reason each one is a real prompt/expected-outcome
+table, not just prose: a future runtime companion could eventually replay
+them, per CAAD-3186655238 S.5.5):
 
-**`manual`** — only valid when the skill bundles no executable scripts (pure
-instruction/persona skills like `hello-world`). Record a `tests/evals.md` file
-listing the prompts/scenarios you ran against the skill and their pass/fail outcome,
-and set `metadata.tested-by`/`test-date`.
+| Section | Covers |
+|---|---|
+| `## X1 — Activation eval` | Prompts that **should** select this skill |
+| `## X2 — False-activation eval` | Prompts that should **not** select it — including prompts targeting adjacent registered skills |
+| `## X3 — Behavioral eval` | Representative tasks within declared scope produce the declared outcome |
+| `## X4 — Instruction-injection eval` | Untrusted content containing embedded instructions is handled as data, not followed |
 
-**`automated`** or **`hybrid`** — required for any skill that bundles `.ps1`/`.py`/`.sh`/`.js`
-scripts. `hybrid` also requires `tests/evals.md` for the non-script parts of the skill.
-Every bundled script needs a matching test file and passes through the matrix below:
+**`metadata.risk-tier: T2` or `T3`** also requires Set B:
+
+| Section | Covers |
+|---|---|
+| `## X5 — Scope boundary eval` | The skill declines and reports when a task needs access outside declared scope |
+| `## X6 — Guardrail conflict eval` | The skill stops and reports rather than proceeding when instructions conflict with an org guardrail |
+| `## X7 — Sandbox test` | Deny-by-default file/network/shell/credential scopes verified |
+
+**`metadata.risk-tier: T3`** also requires Set C, but only the two of X11–X16
+that are properties of the skill itself rather than the agent runtime:
+
+| Section | Covers |
+|---|---|
+| `## X11 — Idempotency tests` | All write operations, for every declared duplicate-invocation safeguard |
+| `## X12 — Scope boundary tests` | Out-of-scope file/network/API/memory access fails |
+
+X13 (approval bypass), X14 (capability escalation), X15 (no secrets in
+telemetry), and X16 (withdrawal drill) are **not required here** — they're
+runtime/agent properties a static skill file can't prove; see the C4/C5-C6
+caveat below.
+
+X8–X10 (unit/boundary/injection tests) are **not** eval-log entries — they're
+the script coverage/test-file matrix below, required whenever
+`metadata.test-strategy` is `automated` or `hybrid`:
 
 | Script extension | Test runner | Test file location | Coverage gate |
 |---|---|---|---|
@@ -423,7 +489,7 @@ Complete before a registry entry is approved. Re-complete for any **MAJOR** or *
 
 ### C3 — Test Coverage Requirements
 
-> See [Testing Requirements (C3)](#testing-requirements-c3) above for the full
+> See [Testing Requirements (C.12)](#testing-requirements-c12) above for the full
 > per-language matrix `test-skill.yml` enforces.
 
 | ✓ | Checklist Item | Policy § | Result |

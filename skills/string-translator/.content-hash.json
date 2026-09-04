@@ -2,7 +2,7 @@
   "skill": "string-translator",
   "version": "1.2.2",
   "sourceRef": null,
-  "computedAt": "2026-09-04T04:49:10.487Z",
+  "computedAt": "2026-09-04T04:56:14.893Z",
   "files": {
     "assets/scripts/clear-locale-files.ps1": "f00a6caadcf3dafeba20b444d81b69af3e9d2463b6ece2315fd0ffce95fb9053",
     "assets/scripts/merge-translations.ps1": "2fade9b8060b279e40401c2b16a04714621c6e9b231e10c9ba739a3d24b57e92",
@@ -13,6 +13,7 @@
     "references/translation-rules.md": "ec6f5dcf5b1c5b381b983eac5e054c509345202f989d85bfbdcfe47b31db91d8",
     "skill.md": "fb8b1bc71682a58e8b9ae5cd4e7fcbcaf135fd51421aa2254227efb8e280bfe9",
     "tests/clear-locale-files.Tests.ps1": "38809b544020f5a4000aca9e521d80414ef531ef0c9a79d0c9da426b721ee608",
+    "tests/evals.md": "1748d5567db74df6f363bf78a7edee3a5864f10a47fec26c7d26650f037f1157",
     "tests/merge-translations.Tests.ps1": "2360becbf749828601fec41608718416f27e4d29cd5385fff3db17e7192bf6a5"
   }
 }

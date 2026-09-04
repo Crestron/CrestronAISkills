@@ -2,9 +2,9 @@
   "skill": "example-skill",
   "version": "1.0.3",
   "sourceRef": null,
-  "computedAt": "2026-09-04T04:49:10.482Z",
+  "computedAt": "2026-09-04T04:56:14.835Z",
   "files": {
     "skill.md": "b696ffb5755d40afab4eb787f45b1aa6fbcd5c3ae1d7012de21354f180ae3fb1",
-    "tests/evals.md": "2664e426ccb9e72918980ea4ed6a85238d4f15b5ecebb835d3e4cf3b122c7ec5"
+    "tests/evals.md": "87375ac3339c58e09544e6ff1a944da5ba6e8a22513769672ed531fff9a879ac"
   }
 }

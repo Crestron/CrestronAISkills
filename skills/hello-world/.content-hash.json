@@ -2,9 +2,9 @@
   "skill": "hello-world",
   "version": "1.0.8",
   "sourceRef": null,
-  "computedAt": "2026-09-04T04:49:10.475Z",
+  "computedAt": "2026-09-04T04:56:14.777Z",
   "files": {
     "skill.md": "a1133097bec5fe853e927156197484ef57e319fb165105dee2bc25aa97e6988f",
-    "tests/evals.md": "ac6f4062f0be4a6e5ad5d412e5b2a53e545f97d9ae29832116c5d02e73394747"
+    "tests/evals.md": "b8bca8688d94e7338075f42bcd3218cd7721faa86465ef8985bca433ec6e2747"
   }
 }
