@@ -2,18 +2,18 @@
   "skill": "string-translator",
   "version": "1.2.2",
   "sourceRef": null,
-  "computedAt": "2026-09-04T04:56:14.893Z",
+  "computedAt": "2026-09-04T15:14:38.223Z",
   "files": {
-    "assets/scripts/clear-locale-files.ps1": "f00a6caadcf3dafeba20b444d81b69af3e9d2463b6ece2315fd0ffce95fb9053",
-    "assets/scripts/merge-translations.ps1": "2fade9b8060b279e40401c2b16a04714621c6e9b231e10c9ba739a3d24b57e92",
-    "assets/target_languages_crestron.csv": "d24d36e1175b4f638744ccaf0e74f0c6b369b64eb95e8dcf8b2c86769667b5b9",
-    "assets/target_languages_crestron.txt": "59d48e835911aa9131aeecd0740dc59f1e3aa68513871abaf3d16bbec96c7f53",
-    "assets/translation_config.json": "77d2b6aebb257383945765fd7f2fc7e6f4ecdf87b2058df876a233783ca864f5",
-    "README.md": "a7ee05f9cb047af51c3071a54b402bb96ead06d7050afcf626e6ccf1a01eaccc",
-    "references/translation-rules.md": "ec6f5dcf5b1c5b381b983eac5e054c509345202f989d85bfbdcfe47b31db91d8",
-    "skill.md": "fb8b1bc71682a58e8b9ae5cd4e7fcbcaf135fd51421aa2254227efb8e280bfe9",
-    "tests/clear-locale-files.Tests.ps1": "38809b544020f5a4000aca9e521d80414ef531ef0c9a79d0c9da426b721ee608",
+    "assets/scripts/clear-locale-files.ps1": "dceb8b8269da751f16b11028c1bca6a179a0c9253196fe3820a204115843d262",
+    "assets/scripts/merge-translations.ps1": "3ac562e6baf83d5d1f3030bffd85d28089ba0e678b37bf64fc41e4dad503ccfc",
+    "assets/target_languages_crestron.csv": "c2b936e4ef5999566c03633f6aaa112334e9166186dad7c82aa238994a41db81",
+    "assets/target_languages_crestron.txt": "bbf1ad829abebc09abc416666084f18a51224243b0c63e123d4ee1b3b34d7adb",
+    "assets/translation_config.json": "2b9f5beca1108824d1dbc1d7f769be1f48b0252ddb3a6fbc01f9dbc8740805d5",
+    "README.md": "6b1ea7643d66a8234ddea0bbfd31443bb0e25a49988f4b6ff457d7a40fe2c883",
+    "references/translation-rules.md": "91772058d4e0ea3a7cf0b54b4626240dbe5eb64a5410f630df847518bafc6069",
+    "skill.md": "e14b64d86edf12b676857cd9644310c93c65feadec5b52578dd656aac27e6da2",
+    "tests/clear-locale-files.Tests.ps1": "c6ebab9f02abfdc07ada6c609f40da032cf8172f77011ed5d0e5d8ec2efa590c",
     "tests/evals.md": "1748d5567db74df6f363bf78a7edee3a5864f10a47fec26c7d26650f037f1157",
-    "tests/merge-translations.Tests.ps1": "2360becbf749828601fec41608718416f27e4d29cd5385fff3db17e7192bf6a5"
+    "tests/merge-translations.Tests.ps1": "e731a7bc44bf6f445ef268ba42ba9c4003444462dd99b8dc68e3bdd5b5d9ccbe"
   }
 }

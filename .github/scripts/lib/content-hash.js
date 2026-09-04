@@ -11,8 +11,17 @@ const { listFilesRecursive } = require("./skill-frontmatter");
 
 const MANIFEST_FILENAME = ".content-hash.json";
 
+// Reads as text and normalizes CRLF -> LF before hashing. Without this, a
+// manifest generated on a Windows checkout (core.autocrlf=true, CRLF working
+// tree) would never match what a Linux CI runner computes from the same git
+// blob (stored + checked out as LF) - guaranteeing false "drift" findings on
+// every skill the moment the weekly scan ran. Line-ending conversion carries
+// no semantic meaning for the text-only files skill bundles contain, so
+// normalizing is the correct call here, same principle already applied to
+// the copilot-mirror-drift and version-bump checks in validate-skill.js.
 function sha256(filePath) {
-  return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+  const content = fs.readFileSync(filePath, "utf8").replace(/\r\n/g, "\n");
+  return crypto.createHash("sha256").update(content, "utf8").digest("hex");
 }
 
 function manifestPath(skillDir) {
