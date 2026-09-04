@@ -289,7 +289,7 @@ From the **Actions** tab, run **Sync Skill From Source Repo**
 | Input | Meaning |
 |---|---|
 | `source_repo` | The team's repo, as `owner/repo` |
-| `source_ref` | Branch, tag, or commit SHA to sync from |
+| `source_ref` | Full 40-character commit SHA to sync from — **not a branch or tag name**. Run `git rev-parse <branch-or-tag>` in the source repo to resolve one. Required because the content-hash baseline (C.5.1.3) gets recorded against this exact reference; a mutable branch name would let it drift silently (C.5.6.3). |
 | `source_path` | Path within their repo to the skill's directory |
 | `target_name` | Optional — skill name here (`skills/<target_name>/`). Defaults to the last segment of `source_path`. |
 
