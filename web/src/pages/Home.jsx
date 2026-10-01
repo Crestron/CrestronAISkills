@@ -2,12 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchRegistry } from "../utils/registry.js";
 import SkillCard from "../components/SkillCard.jsx";
-import Logo from "../components/Logo.jsx";
-
-const REPO_URL =
-    typeof __REPO_URL__ !== "undefined"
-        ? __REPO_URL__
-        : "https://github.com/CrestronEng/CrestronAISkills";
 
 const s = {
     hero: {
@@ -29,15 +23,6 @@ const s = {
         textDecoration: "none",
         cursor: "pointer",
     },
-    btnSecondary: {
-        background: "transparent",
-        color: "var(--text)",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius)",
-        padding: "10px 22px",
-        fontSize: "0.95rem",
-        textDecoration: "none",
-    },
     section: { padding: "48px 24px", maxWidth: "1100px", margin: "0 auto" },
     sectionTitle: { fontSize: "1.3rem", fontWeight: 700, marginBottom: "24px" },
     grid: {
@@ -47,7 +32,6 @@ const s = {
     },
     features: {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
         gap: "1px",
         marginTop: "48px",
         border: "1px solid var(--border)",
@@ -68,7 +52,7 @@ const FEATURES = [
     { title: "Search Skills", desc: "Find skills by keyword, tag, or author instantly." },
     { title: "One-Command Install", desc: "Install any skill directly from the Copilot CLI terminal." },
     { title: "Web Marketplace", desc: "Browse and discover skills in your browser." },
-    { title: "Publish Your Own", desc: "Share your skills with the team via a simple pull request." },
+    { title: "Auto-Updates", desc: "Installed skills stay current with weekly update checks." },
 ];
 
 export default function Home() {
@@ -87,23 +71,16 @@ export default function Home() {
     return (
         <div>
             <div style={s.hero}>
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
-                    <Logo size={56} color="var(--link)" />
-                </div>
-                <h1 style={s.heroTitle}>CrestronAISkills</h1>
+                <h1 style={s.heroTitle}>Crestron AI Skills</h1>
                 <p style={s.heroSub}>
-                    An internal marketplace for GitHub Copilot skills. Browse, install, and
-                    auto-update skills built for Crestron engineers.
+                    Browse, install, and auto-update AI skills built for Crestron.
                 </p>
                 <div style={s.heroBtns}>
                     <Link to="/search" style={s.btnPrimary}>
                         Browse Skills
                     </Link>
-                    <a href={`${REPO_URL}/blob/main/CONTRIBUTING.md`} target="_blank" rel="noopener noreferrer" style={s.btnSecondary}>
-                        Submit a Skill
-                    </a>
                 </div>
-                <div style={s.features}>
+                <div className="feature-grid" style={s.features}>
                     {FEATURES.map((f) => (
                         <div key={f.title} style={s.feature}>
                             <div style={s.featureTitle}>{f.title}</div>
@@ -126,12 +103,7 @@ export default function Home() {
                         ))}
                     </div>
                 ) : (
-                    <p style={{ color: "var(--text-muted)" }}>
-                        No skills in the registry yet.{" "}
-                        <a href={`${REPO_URL}/blob/main/CONTRIBUTING.md`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--link)" }}>
-                            Be the first to submit one!
-                        </a>
-                    </p>
+                    <p style={{ color: "var(--text-muted)" }}>No skills in the registry yet.</p>
                 )}
                 {!loading && skills.length > 6 && (
                     <div style={{ marginTop: "24px", textAlign: "center" }}>
