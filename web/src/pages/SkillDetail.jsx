@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import JSZip from "jszip";
 import { fetchRegistry } from "../utils/registry.js";
-
 const REPO_URL =
     typeof __REPO_URL__ !== "undefined"
         ? __REPO_URL__
@@ -93,7 +92,7 @@ const s = {
     },
     hint: { color: "var(--text-muted)", fontSize: "0.82rem", lineHeight: 1.6 },
     pre: {
-        background: "var(--bg)",
+        background: "#fff",
         border: "1px solid var(--border)",
         borderRadius: "var(--radius)",
         padding: "16px",
@@ -312,8 +311,7 @@ export default function SkillDetail() {
                     </div>
                     <p style={s.hint}>
                         Download the zip and run <code>install.ps1</code> (Windows) or <code>install.sh</code> (Mac/Linux) to install the skill and register automatic weekly updates.
-                    </p>
-                </div>
+                    </p>                </div>
             )}
         </div>
     );
