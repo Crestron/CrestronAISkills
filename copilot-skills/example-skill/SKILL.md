@@ -1,10 +1,10 @@
 ---
 name: example-skill
-version: 1.0.3
+version: 1.0.4
 description: A starter example showing how to write a Copilot skill for Crestron AV and smart home systems
 tags: [example, demo, starter, crestron, av]
 author: CrestronEng
-license: MIT
+license: See LICENSE
 metadata:
   team: crestron-ai
   maintainer: sabtain.khan

@@ -23,7 +23,7 @@ if (fs.existsSync(skillsDir)) {
     const mp = path.join(skillsDir, entry.name, 'skill.json');
     if (!fs.existsSync(mp)) continue;
     const m = JSON.parse(fs.readFileSync(mp, 'utf8'));
-    skills.push({ name: m.name, version: m.version, description: m.description, tags: m.tags, author: m.author, path: skillsDir+'/'+entry.name, entry: m.entry||'extension.mjs', license: m.license||'MIT', homepage: m.homepage||null });
+    skills.push({ name: m.name, version: m.version, description: m.description, tags: m.tags, author: m.author, path: skillsDir+'/'+entry.name, entry: m.entry||'extension.mjs', license: m.license||'See LICENSE', homepage: m.homepage||null });
     console.log('  +', m.name + '@' + m.version);
   }
 }

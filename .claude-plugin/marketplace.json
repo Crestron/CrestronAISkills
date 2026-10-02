@@ -11,7 +11,7 @@
     {
       "name": "crestron-ai-skills",
       "description": "Search, inspect, and install skills from the CrestronAISkills registry (github.com/Crestron/CrestronAISkills).",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "source": "./plugins/crestron-ai-skills",
       "category": "productivity",
       "keywords": ["crestron", "skills", "marketplace", "registry"]

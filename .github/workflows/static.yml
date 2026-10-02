@@ -55,8 +55,16 @@ jobs:
         run: node .github/scripts/build-registry.js
       - name: Copy scripts/ to dist
         run: cp -r scripts web/dist/scripts
-      - name: Copy skills/ to dist
-        run: cp -r skills web/dist/skills
+      - name: Copy skills/ to dist (excluding deprecated skills)
+        run: |
+          mkdir -p web/dist/skills
+          for dir in skills/*/; do
+            if grep -qE '^deprecated:[[:space:]]*true' "${dir}skill.md" 2>/dev/null; then
+              echo "Skipping deprecated skill: ${dir}"
+              continue
+            fi
+            cp -r "${dir%/}" web/dist/skills/
+          done
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

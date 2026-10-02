@@ -1,10 +1,11 @@
 ---
 name: string-translator
-version: 1.2.2
+version: 1.2.3
 description: Translates strings.xml files into multiple locales with marker-based incremental updates, brand-name exclusion, and QA back-translation.
 tags: [localization, translation, strings]
 author: CrestronEng
-license: MIT
+license: See LICENSE
+deprecated: true
 argument-hint: 'Optional: path to strings.xml or project name'
 metadata:
   team: crestron-ai

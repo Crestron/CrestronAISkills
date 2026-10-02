@@ -26,7 +26,7 @@ Note: the org is **Crestron**, not `CrestronEng` — an earlier placeholder valu
 
 1. Fetch the registry and find the skill whose `name` matches case-insensitively.
 2. If not found, say so and suggest running a search instead.
-3. Otherwise show: name, version, author, license (default "MIT" if absent), description, tags, homepage (if present).
+3. Otherwise show: name, version, author, license (default "See LICENSE" if absent), description, tags, homepage (if present).
 4. Note whether the skill is already installed (see "List installed skills" below) and, if not, mention it can be installed.
 
 ## Install a skill

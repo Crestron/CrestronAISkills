@@ -101,7 +101,7 @@ Start a new `copilot` session so the plugin loads. Confirm with `copilot plugin 
 The plugin adds a **registry browser** skill — it does not add slash commands or buttons, so it's normal to see no visible change after installing. Ask in plain language:
 
 - *"search the Crestron AI skills registry"*
-- *"show me info on string-translator"*
+- *"show me info on example-skill"*
 - *"install the hello-world skill"*
 
 **Troubleshooting**

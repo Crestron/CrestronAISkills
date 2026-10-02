@@ -1,10 +1,10 @@
 ---
 name: hello-world
-version: 1.0.8
+version: 1.0.9
 description: A test skill that responds with Hello World. Used to validate the auto-update pipeline.
 tags: [test, hello-world]
 author: CrestronEng
-license: MIT
+license: See LICENSE
 metadata:
   team: crestron-ai
   maintainer: sabtain.khan
