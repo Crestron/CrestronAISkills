@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { fetchRegistry } from "../utils/registry.js";
 import SkillCard from "../components/SkillCard.jsx";
 
@@ -45,6 +45,23 @@ const s = {
     },
     featureTitle: { fontWeight: 600, marginBottom: "6px", fontSize: "0.9rem" },
     featureDesc: { color: "var(--text-muted)", fontSize: "0.88rem", lineHeight: 1.5 },
+    sectionSub: { color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: 1.6, marginTop: "-14px", marginBottom: "24px" },
+    toolGrid: { display: "grid", gap: "16px" },
+    toolCard: {
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius)",
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        textDecoration: "none",
+        color: "var(--text)",
+        transition: "border-color 0.15s",
+    },
+    toolName: { fontWeight: 600, fontSize: "1.05rem", color: "var(--link)" },
+    toolDesc: { color: "var(--text-muted)", fontSize: "0.86rem", lineHeight: 1.5, flex: 1 },
+    toolLink: { color: "var(--link)", fontSize: "0.86rem", fontWeight: 600 },
     loading: { color: "var(--text-muted)", textAlign: "center", padding: "40px" },
 };
 
@@ -55,9 +72,29 @@ const FEATURES = [
     { title: "Auto-Updates", desc: "Installed skills stay current with weekly update checks." },
 ];
 
+const REPO_URL =
+    typeof __REPO_URL__ !== "undefined"
+        ? __REPO_URL__
+        : "https://github.com/Crestron/CrestronAISkills";
+
+// Anchors must match the "Add the Marketplace as a Plugin" headings in Readme.md.
+const TOOLS = [
+    { name: "Claude Code", desc: "Add the marketplace from the CLI or with /plugin in a session.", anchor: "claude-code-cli" },
+    { name: "Claude Desktop", desc: "Add the marketplace from Customize → Plugins in the Claude app.", anchor: "claude-desktop-app" },
+    { name: "GitHub Copilot CLI", desc: "Add the marketplace with copilot plugin commands.", anchor: "github-copilot-cli" },
+    { name: "VS Code", desc: "Add the marketplace to GitHub Copilot agent plugins in VS Code.", anchor: "github-copilot-in-vs-code" },
+];
+
 export default function Home() {
     const [skills, setSkills] = useState([]);
     const [loading, setLoading] = useState(true);
+    const location = useLocation();
+
+    // HashRouter owns the URL hash, so in-page jumps (e.g. header "Get Started") arrive via router state.
+    useEffect(() => {
+        const target = location.state?.scrollTo;
+        if (target) document.getElementById(target)?.scrollIntoView({ behavior: "smooth" });
+    }, [location.key]);
 
     useEffect(() => {
         fetchRegistry()
@@ -86,6 +123,31 @@ export default function Home() {
                             <div style={s.featureTitle}>{f.title}</div>
                             <div style={s.featureDesc}>{f.desc}</div>
                         </div>
+                    ))}
+                </div>
+            </div>
+
+            <div id="get-started" style={{ ...s.section, borderBottom: "1px solid var(--border)", scrollMarginTop: "64px" }}>
+                <div style={s.sectionTitle}>Get Started</div>
+                <p style={s.sectionSub}>
+                    Add Crestron AI Skills as a plugin marketplace in your AI tool, then install the{" "}
+                    <code>crestron-ai-skills</code> plugin.
+                </p>
+                <div className="feature-grid" style={s.toolGrid}>
+                    {TOOLS.map((t) => (
+                        <a
+                            key={t.anchor}
+                            href={`${REPO_URL}#${t.anchor}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={s.toolCard}
+                            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--link)")}
+                            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
+                        >
+                            <span style={s.toolName}>{t.name}</span>
+                            <span style={s.toolDesc}>{t.desc}</span>
+                            <span style={s.toolLink}>View instructions →</span>
+                        </a>
                     ))}
                 </div>
             </div>

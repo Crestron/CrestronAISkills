@@ -44,6 +44,9 @@ CrestronAISkills is a **skills marketplace** for AI coding assistants. Each skil
 
 ## Add the Marketplace as a Plugin
 
+<!-- The four tool headings below are linked from the web portal (web/src/pages/Home.jsx, TOOLS).
+     Renaming them changes their anchors — update the portal links too. -->
+
 The fastest way to get Crestron AI Skills is to add this repository as a **plugin marketplace** in your AI tool, then install the `crestron-ai-skills` plugin from it. Every tool follows the same two steps: **add the marketplace → install the plugin**.
 
 ### Claude Code (CLI)
