@@ -16,7 +16,7 @@ const s = {
 export default function Disclaimer({ style }) {
     return (
         <p style={{ ...s.text, ...style }}>
-            <strong style={s.label}>Disclaimer:</strong> Crestron AI Skills are licensed under Crestron’s Software Development Tools License
+            Crestron AI Skills are licensed under Crestron’s Software Development Tools License
             Agreement available at{" "}
             <a href={LICENSE_URL} target="_blank" rel="noopener noreferrer" style={s.link}>
                 {LICENSE_URL}
