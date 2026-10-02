@@ -84,6 +84,7 @@ const TOOLS = [
     { name: "Claude Desktop", desc: "Add the marketplace from Customize → Plugins in the Claude app.", anchor: "claude-desktop-app" },
     { name: "GitHub Copilot CLI", desc: "Add the marketplace with copilot plugin commands.", anchor: "github-copilot-cli" },
     { name: "VS Code", desc: "Add the marketplace to GitHub Copilot agent plugins in VS Code.", anchor: "github-copilot-in-vs-code" },
+    { name: "OpenAI Codex", desc: "Add the marketplace with codex plugin commands, then install from /plugins.", anchor: "openai-codex" },
 ];
 
 export default function Home() {
@@ -134,7 +135,7 @@ export default function Home() {
                     Add Crestron AI Skills as a plugin marketplace in your AI tool, then install the{" "}
                     <code>crestron-ai-skills</code> plugin.
                 </p>
-                <div className="feature-grid" style={s.toolGrid}>
+                <div className="tool-grid" style={s.toolGrid}>
                     {TOOLS.map((t) => (
                         <a
                             key={t.anchor}
