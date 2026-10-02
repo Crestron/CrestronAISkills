@@ -15,6 +15,7 @@
   - [Claude Desktop App](#claude-desktop-app)
   - [GitHub Copilot CLI](#github-copilot-cli)
   - [GitHub Copilot in VS Code](#github-copilot-in-vs-code)
+  - [OpenAI Codex](#openai-codex)
   - [Using the Plugin](#using-the-plugin)
 - [Installing a Skill](#installing-a-skill)
   - [Step 1 — Browse the Marketplace](#step-1--browse-the-marketplace)
@@ -38,13 +39,13 @@ CrestronAISkills is a **skills marketplace** for AI coding assistants. Each skil
 - Install skills with a one-click installer script
 - Auto-update via Task Scheduler (Windows) or cron/launchd (Mac/Linux)
 - Works with **GitHub Copilot** and **Claude Code**
-- Add the whole marketplace as a plugin in Claude Code, the Claude desktop app, GitHub Copilot CLI, or VS Code
+- Add the whole marketplace as a plugin in Claude Code, the Claude desktop app, GitHub Copilot CLI, VS Code, or OpenAI Codex
 
 ---
 
 ## Add the Marketplace as a Plugin
 
-<!-- The four tool headings below are linked from the web portal (web/src/pages/Home.jsx, TOOLS).
+<!-- The five tool headings below are linked from the web portal (web/src/pages/Home.jsx, TOOLS).
      Renaming them changes their anchors — update the portal links too. -->
 
 The fastest way to get Crestron AI Skills is to add this repository as a **plugin marketplace** in your AI tool, then install the `crestron-ai-skills` plugin from it. Every tool follows the same two steps: **add the marketplace → install the plugin**.
@@ -99,6 +100,14 @@ Start a new `copilot` session so the plugin loads. Confirm with `copilot plugin 
 2. In the Extensions view, search **`@agentPlugins`** (or run **Chat: Plugins** from the Command Palette) and install **crestron-ai-skills**.
 3. Use Copilot Chat in **Agent mode**.
 
+### OpenAI Codex
+
+```bash
+codex plugin marketplace add Crestron/CrestronAISkills
+```
+
+Then install the plugin from the plugin browser: run `/plugins` in a Codex session (or open the **Plugins** directory in the Codex / ChatGPT desktop app) and install **crestron-ai-skills**. Start a new session so the plugin loads. Confirm the marketplace with `codex plugin marketplace list`.
+
 ### Using the Plugin
 
 The plugin adds a **registry browser** skill — it does not add slash commands or buttons, so it's normal to see no visible change after installing. Ask in plain language:
@@ -111,6 +120,7 @@ The plugin adds a **registry browser** skill — it does not add slash commands 
 - **Nothing happens after installing** — plugins load at session start. Restart the tool or open a new session.
 - **Marketplace add fails** — make sure you can access `github.com/Crestron/CrestronAISkills` with your GitHub credentials (e.g. run `gh auth login`).
 - **Registry errors** — the skill reads https://crestron.github.io/CrestronAISkills/registry.json; confirm that URL loads in your browser.
+- **Network access blocked** — the skills need to reach `github.com`, `api.github.com`, `raw.githubusercontent.com`, and `crestron.github.io`. If your AI tool or organization blocks outside access, allow these hosts — see [NETWORK_ACCESS.md](NETWORK_ACCESS.md) for the steps in each tool.
 
 ---
 
