@@ -3,13 +3,19 @@
 > A marketplace for AI assistant skills — browse, install, and auto-update skills for **GitHub Copilot** and **Claude Code**.
 
 [![Skills](https://img.shields.io/badge/skills-registry-blue)](registry.json)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-see%20LICENSE-blue)](LICENSE)
 
 ---
 
 ## Table of Contents
 
 - [What Is This?](#what-is-this)
+- [Add the Marketplace as a Plugin](#add-the-marketplace-as-a-plugin)
+  - [Claude Code (CLI)](#claude-code-cli)
+  - [Claude Desktop App](#claude-desktop-app)
+  - [GitHub Copilot CLI](#github-copilot-cli)
+  - [GitHub Copilot in VS Code](#github-copilot-in-vs-code)
+  - [Using the Plugin](#using-the-plugin)
 - [Installing a Skill](#installing-a-skill)
   - [Step 1 — Browse the Marketplace](#step-1--browse-the-marketplace)
   - [Step 2 — Download the Installer](#step-2--download-the-installer)
@@ -19,9 +25,7 @@
   - [GitHub Copilot](#github-copilot)
   - [Claude Code](#claude-code)
 - [Updating Skills](#updating-skills)
-- [Publishing a Skill](#publishing-a-skill)
 - [Repository Structure](#repository-structure)
-- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -34,7 +38,76 @@ CrestronAISkills is a **skills marketplace** for AI coding assistants. Each skil
 - Install skills with a one-click installer script
 - Auto-update via Task Scheduler (Windows) or cron/launchd (Mac/Linux)
 - Works with **GitHub Copilot** and **Claude Code**
-- Publish your own skills via a pull request
+- Add the whole marketplace as a plugin in Claude Code, the Claude desktop app, GitHub Copilot CLI, or VS Code
+
+---
+
+## Add the Marketplace as a Plugin
+
+The fastest way to get Crestron AI Skills is to add this repository as a **plugin marketplace** in your AI tool, then install the `crestron-ai-skills` plugin from it. Every tool follows the same two steps: **add the marketplace → install the plugin**.
+
+### Claude Code (CLI)
+
+```bash
+claude plugin marketplace add Crestron/CrestronAISkills
+claude plugin install crestron-ai-skills@crestron-ai-skills
+```
+
+Or from inside a Claude Code session:
+
+```
+/plugin marketplace add Crestron/CrestronAISkills
+/plugin install crestron-ai-skills@crestron-ai-skills
+```
+
+Restart Claude Code (or start a new session) so the plugin loads. Confirm with `claude plugin list`.
+
+### Claude Desktop App
+
+1. Open **Customize** in the left sidebar → **Plugins**.
+2. Click **Add** → **Add marketplace** → **Add from a repository**.
+3. Enter `Crestron/CrestronAISkills` and install the **crestron-ai-skills** plugin.
+
+Requires a paid Claude plan. In the **Code** tab you can also run the `/plugin` commands shown above — the Code tab shares plugin settings with the Claude Code CLI, so installing in either makes the plugin available in both.
+
+### GitHub Copilot CLI
+
+```bash
+copilot plugin marketplace add Crestron/CrestronAISkills
+copilot plugin install crestron-ai-skills@crestron-ai-skills
+```
+
+Or from inside a `copilot` session:
+
+```
+/plugin marketplace add Crestron/CrestronAISkills
+/plugin install crestron-ai-skills@crestron-ai-skills
+```
+
+Start a new `copilot` session so the plugin loads. Confirm with `copilot plugin list`.
+
+### GitHub Copilot in VS Code
+
+1. Open **Settings (JSON)** and add the marketplace:
+   ```json
+   "chat.plugins.enabled": true,
+   "chat.plugins.marketplaces": ["Crestron/CrestronAISkills"]
+   ```
+2. In the Extensions view, search **`@agentPlugins`** (or run **Chat: Plugins** from the Command Palette) and install **crestron-ai-skills**.
+3. Use Copilot Chat in **Agent mode**.
+
+### Using the Plugin
+
+The plugin adds a **registry browser** skill — it does not add slash commands or buttons, so it's normal to see no visible change after installing. Ask in plain language:
+
+- *"search the Crestron AI skills registry"*
+- *"show me info on string-translator"*
+- *"install the hello-world skill"*
+
+**Troubleshooting**
+- **Nothing happens after installing** — plugins load at session start. Restart the tool or open a new session.
+- **Marketplace add fails** — make sure you can access `github.com/Crestron/CrestronAISkills` with your GitHub credentials (e.g. run `gh auth login`).
+- **Registry errors** — the skill reads https://crestron.github.io/CrestronAISkills/registry.json; confirm that URL loads in your browser.
 
 ---
 
@@ -149,18 +222,6 @@ Auto-updates also run daily in the background — no action needed.
 
 ---
 
-## Publishing a Skill
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
-
-**Quick summary:**
-1. Fork this repo
-2. Create `skills/<your-skill-name>/skill.md` with YAML frontmatter and instructions
-3. Open a pull request — CI will validate your skill automatically
-4. Once merged, the registry updates automatically and your skill appears in the marketplace
-
----
-
 ## Repository Structure
 
 ```
@@ -182,12 +243,6 @@ CrestronAISkills/
 
 ---
 
-## Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
-
----
-
 ## License
 
-MIT — see [LICENSE](LICENSE)
+See [LICENSE](LICENSE).
