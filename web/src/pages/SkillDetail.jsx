@@ -266,7 +266,14 @@ export default function SkillDetail() {
                     </div>
                     <div style={s.metaItem}>
                         <span style={s.metaLabel}>License</span>
-                        <span style={s.metaValue}>{skill.license || "MIT"}</span>
+                        <a
+                            href={`${REPO_URL}/blob/main/LICENSE`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ ...s.metaValue, color: "var(--link)", textDecoration: "none" }}
+                        >
+                            See LICENSE
+                        </a>
                     </div>
                     {skill.homepage && (
                         <div style={s.metaItem}>

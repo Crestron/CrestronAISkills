@@ -50,7 +50,7 @@ function formatSkillDetail(skill) {
     return [
         `## ${skill.name} v${skill.version}`,
         `**Author:** ${skill.author}`,
-        `**License:** ${skill.license || "MIT"}`,
+        `**License:** ${skill.license || "See LICENSE"}`,
         `**Description:** ${skill.description}`,
         `**Tags:** ${skill.tags?.join(", ") || "none"}`,
         skill.homepage ? `**Homepage:** ${skill.homepage}` : null,

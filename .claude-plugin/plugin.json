@@ -1,11 +1,11 @@
 {
   "name": "crestron-ai-skills",
-  "description": "Crestron AI skills registry: shared agent skills (string-translator, example-skill, hello-world) for use across Copilot CLI, VS Code, and Claude Code.",
-  "version": "1.0.1",
+  "description": "Crestron AI skills registry: shared agent skills (example-skill, hello-world) for use across Copilot CLI, VS Code, and Claude Code.",
+  "version": "1.0.2",
   "author": {
     "name": "Crestron"
   },
-  "license": "MIT",
+  "license": "See LICENSE",
   "keywords": ["crestron", "skills", "av", "smart-home"],
-  "skills": ["copilot-skills/"]
+  "skills": ["copilot-skills/example-skill/", "copilot-skills/hello-world/"]
 }

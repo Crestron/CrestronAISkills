@@ -34,8 +34,8 @@
     },
     "license": {
       "type": "string",
-      "default": "MIT",
-      "description": "License name or reference to a bundled license file (e.g. 'MIT', 'Apache-2.0'). Per agentskills.io spec."
+      "default": "See LICENSE",
+      "description": "Reference to the repository LICENSE file. Use 'See LICENSE'. Per agentskills.io spec."
     },
     "compatibility": {
       "type": "string",

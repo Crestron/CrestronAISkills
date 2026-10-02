@@ -34,7 +34,7 @@ if (fs.existsSync(skillsDir)) {
       tags: fm.tags || [],
       author: fm.author,
       path: `${skillsDir}/${entry.name}`,
-      license: fm.license || "MIT",
+      license: fm.license || "See LICENSE",
       homepage: fm.homepage || null,
       team: fm.metadata?.team || null,
       scopeAllow: fm.metadata?.["scope-allow"] || [],

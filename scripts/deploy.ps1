@@ -41,6 +41,10 @@ if (Test-Path $skillsDir) {
                 }
             }
         }
+        if ($fm['deprecated'] -eq 'true') {
+            Write-Host "  - skipping deprecated skill $($fm['name'])"
+            continue
+        }
         $skillEntry = [ordered]@{
             name        = $fm['name']
             version     = $fm['version']
@@ -48,7 +52,7 @@ if (Test-Path $skillsDir) {
             tags        = @($fm['tags'])
             author      = $fm['author']
             path        = "$skillsDir/$($entry.Name)"
-            license     = if ($fm['license']) { $fm['license'] } else { 'MIT' }
+            license     = if ($fm['license']) { $fm['license'] } else { 'See LICENSE' }
             homepage    = if ($fm['homepage']) { $fm['homepage'] } else { $null }
         }
         $skills += $skillEntry
