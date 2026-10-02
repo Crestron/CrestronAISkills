@@ -42,6 +42,7 @@ export default function Header() {
                 <span style={s.product}>AI Skills</span>
             </Link>
             <nav style={s.nav}>
+                <Link to="/" state={{ scrollTo: "get-started" }} style={s.navLink}>Get Started</Link>
                 <Link to="/search" style={s.navLink}>Browse</Link>
                 <a href={REPO_URL} target="_blank" rel="noopener noreferrer" style={s.navLink}>
                     GitHub
