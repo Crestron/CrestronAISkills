@@ -34,17 +34,18 @@ const s = {
         display: "grid",
         gap: "1px",
         marginTop: "48px",
-        border: "1px solid var(--border)",
+        border: "1px solid var(--accent)",
         borderRadius: "var(--radius)",
         overflow: "hidden",
-        background: "var(--border)",
+        background: "rgba(255, 255, 255, 0.25)",
     },
+    // Informational (non-clickable) tiles use solid Crestron blue to read differently from link cards.
     feature: {
-        background: "var(--surface)",
+        background: "var(--accent)",
         padding: "24px 20px",
     },
-    featureTitle: { fontWeight: 600, marginBottom: "6px", fontSize: "0.9rem" },
-    featureDesc: { color: "var(--text-muted)", fontSize: "0.88rem", lineHeight: 1.5 },
+    featureTitle: { fontWeight: 600, marginBottom: "6px", fontSize: "0.9rem", color: "#fff" },
+    featureDesc: { color: "rgba(255, 255, 255, 0.82)", fontSize: "0.88rem", lineHeight: 1.5 },
     sectionSub: { color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: 1.6, marginTop: "-14px", marginBottom: "24px" },
     toolGrid: { display: "grid", gap: "16px" },
     toolCard: {
