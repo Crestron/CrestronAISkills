@@ -1,6 +1,6 @@
 {
   "name": "hello-world",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
   "author": {
     "name": "CrestronEng"
