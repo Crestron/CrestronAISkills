@@ -5,7 +5,8 @@
 // plugin. Generates:
 //   plugins/<name>/.claude-plugin/plugin.json   Claude Code, Claude desktop, Copilot CLI, VS Code
 //   plugins/<name>/.codex-plugin/plugin.json    OpenAI Codex
-//   plugins/<name>/skills/<name>/...            copy of copilot-skills/<name>/ (minus tests/)
+//   plugins/<name>/skills/<name>/...            copy of copilot-skills/<name>/ (minus tests/),
+//                                               SKILL.md frontmatter reduced to the Agent Skills spec
 //   .claude-plugin/marketplace.json             registry-browser entry + one entry per skill
 //   .agents/plugins/marketplace.json            Codex equivalent
 //   .claude-plugin/plugin.json                  `skills` list synced (direct owner/repo installs)
@@ -17,6 +18,7 @@
 const fs = require("fs");
 const path = require("path");
 const { parseFrontmatter } = require("./lib/skill-frontmatter");
+const { serializeSkillMd } = require("./lib/sync-skill");
 
 const SOURCE_DIR = "copilot-skills";
 const PLUGINS_DIR = "plugins";
@@ -61,6 +63,28 @@ function copyDir(src, dest) {
 
 const json = (obj) => JSON.stringify(obj, null, 2) + "\n";
 
+// The plugin copy of a skill must use only Agent Skills spec frontmatter
+// (name, description, license, compatibility, allowed-tools, and a metadata map
+// of string values). claude.ai / Claude desktop silently hides plugins whose
+// skills carry extra top-level keys or non-string metadata — Claude Code and
+// Copilot CLI are lenient, so only desktop exposed it. The originals in skills/
+// and copilot-skills/ keep their full Crestron compliance frontmatter.
+function specFrontmatter(fm) {
+  const out = { name: fm.name, description: fm.description, license: "See LICENSE" };
+  if (fm.compatibility) out.compatibility = fm.compatibility;
+  if (fm["allowed-tools"]) out["allowed-tools"] = fm["allowed-tools"];
+  const metadata = { version: String(fm.version) };
+  if (fm.author) metadata.author = String(fm.author);
+  if (fm.tags?.length) metadata.tags = fm.tags.join(", ");
+  out.metadata = metadata;
+  return out;
+}
+
+function writeSpecSkillMd(skillMdPath, fm) {
+  const { body } = parseFrontmatter(fs.readFileSync(skillMdPath, "utf8"));
+  fs.writeFileSync(skillMdPath, serializeSkillMd(specFrontmatter(fm), body));
+}
+
 function writePlugin(root, fm) {
   const dir = path.join(root, PLUGINS_DIR, fm.name);
   const author = { name: fm.author || "Crestron" };
@@ -84,6 +108,7 @@ function writePlugin(root, fm) {
     extensions: { "com.openai": { interface: { displayName: fm.name, category: "Productivity" } } },
   }));
   copyDir(path.join(SOURCE_DIR, fm.name), path.join(dir, "skills", fm.name));
+  writeSpecSkillMd(path.join(dir, "skills", fm.name, "SKILL.md"), fm);
 }
 
 function claudeMarketplace(skills, deprecated) {

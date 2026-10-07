@@ -36,6 +36,20 @@ test("every published skill gets a plugin whose version matches its SKILL.md", (
   fs.rmSync(root, { recursive: true, force: true });
 });
 
+test("plugin SKILL.md uses only Agent Skills spec frontmatter with string metadata", () => {
+  const SPEC_KEYS = new Set(["name", "description", "license", "compatibility", "metadata", "allowed-tools"]);
+  const { root, result } = buildToTemp();
+  for (const skill of result.skills) {
+    const content = fs.readFileSync(path.join(root, "plugins", skill.name, "skills", skill.name, "SKILL.md"), "utf8");
+    const { fm, body } = parseFrontmatter(content);
+    for (const key of Object.keys(fm)) assert.ok(SPEC_KEYS.has(key), `${skill.name}: non-spec key "${key}"`);
+    for (const [k, v] of Object.entries(fm.metadata || {})) assert.equal(typeof v, "string", `${skill.name}: metadata.${k} must be a string`);
+    assert.equal(fm.metadata.version, String(skill.version));
+    assert.ok(body.trim().length > 0, `${skill.name}: skill body must be preserved`);
+  }
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
 test("marketplace entries carry no version (plugin.json owns it)", () => {
   const { root, read } = buildToTemp();
   for (const entry of read(".claude-plugin/marketplace.json").plugins) {

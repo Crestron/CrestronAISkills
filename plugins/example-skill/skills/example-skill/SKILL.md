@@ -1,41 +1,11 @@
 ---
 name: example-skill
-version: 1.0.4
 description: A starter example showing how to write a Copilot skill for Crestron AV and smart home systems
-tags: [example, demo, starter, crestron, av]
-author: CrestronEng
 license: See LICENSE
 metadata:
-  team: crestron-ai
-  maintainer: sabtain.khan
-  dependencies: None
-  scope-allow: ["Provide Crestron AV/SIMPL/C# guidance, code snippets, and troubleshooting steps in conversation"]
-  scope-deny: ["Executing code, accessing files, or making network/API calls on the user's behalf"]
-  input-schema: "None — this skill takes no parameters; it operates on conversational context"
-  output-schema: "Markdown-formatted text: explanations, code snippets, diagnostic steps"
-  output-max-size: "unbounded (conversational text)"
-  test-strategy: manual
-  tested-by: sabtain.khan
-  test-date: "2026-09-01"
-  idempotent: true
-  destructive-operations: ["None"]
-  approved-by: sabtain.khan
-  approval-date: "2026-09-01"
-  trigger-code: false
-  trigger-tool: false
-  trigger-fs: false
-  trigger-ext: false
-  trigger-fetch: false
-  risk-tier: T1
-  runtime-surfaces: ["Claude Code", "Cowork", "IDE extension", "API agent"]
-  permissions:
-    file: declined
-    network: declined
-    shell: declined
-    credential: declined
-    memory: declined
-    mcp: declined
-    tool: declined
+  version: 1.0.4
+  author: CrestronEng
+  tags: example, demo, starter, crestron, av
 ---
 
 # Example Skill — Crestron AV & Smart Home Assistant
