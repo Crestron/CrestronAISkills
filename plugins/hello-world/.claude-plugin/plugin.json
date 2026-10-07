@@ -1,0 +1,14 @@
+{
+  "name": "hello-world",
+  "version": "1.0.9",
+  "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
+  "author": {
+    "name": "CrestronEng"
+  },
+  "homepage": "https://github.com/Crestron/CrestronAISkills/tree/main/copilot-skills/hello-world",
+  "license": "See LICENSE",
+  "keywords": [
+    "test",
+    "hello-world"
+  ]
+}

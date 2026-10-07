@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "example-skill",
+  "version": "1.0.4",
+  "description": "A starter example showing how to write a Copilot skill for Crestron AV and smart home systems",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "example-skill",
+        "category": "Productivity"
+      }
+    }
+  }
+}

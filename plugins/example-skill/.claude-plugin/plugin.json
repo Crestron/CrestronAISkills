@@ -1,0 +1,17 @@
+{
+  "name": "example-skill",
+  "version": "1.0.4",
+  "description": "A starter example showing how to write a Copilot skill for Crestron AV and smart home systems",
+  "author": {
+    "name": "CrestronEng"
+  },
+  "homepage": "https://github.com/Crestron/CrestronAISkills/tree/main/copilot-skills/example-skill",
+  "license": "See LICENSE",
+  "keywords": [
+    "example",
+    "demo",
+    "starter",
+    "crestron",
+    "av"
+  ]
+}

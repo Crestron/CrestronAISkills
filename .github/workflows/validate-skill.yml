@@ -51,6 +51,7 @@ jobs:
           [[ "$BASE_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "Invalid BASE_REF"; exit 1; }
           git fetch origin "$BASE_REF" --depth=1
           for p in .github/scripts/validate-skill.js .github/scripts/scan-skill-security.js \
+                   .github/scripts/build-marketplace.js \
                    .github/scripts/lib package.json package-lock.json \
                    .github/actions/changed-skill-dirs; do
             git cat-file -e "FETCH_HEAD:$p" 2>/dev/null && git checkout FETCH_HEAD -- "$p" || true
@@ -91,6 +92,12 @@ jobs:
           REPORTS_DIR: reports
         run: node .github/scripts/scan-skill-security.js
 
+      # Publish each non-deprecated skill as its own marketplace plugin
+      # (plugins/<name>/ + both marketplace.json files). Runs the base-branch
+      # generator (pinned above); output is committed back with the reports.
+      - name: Build per-skill marketplace plugins
+        run: node .github/scripts/build-marketplace.js
+
       - name: Scan changed skill files for secrets (TruffleHog)
         uses: trufflesecurity/trufflehog@20652fbbdefffcdaa493a5bf57ab2ac6b1db715b # v3.97.1
         with:
@@ -111,6 +118,7 @@ jobs:
         if: always()
         run: |
           git checkout HEAD -- .github/scripts/validate-skill.js .github/scripts/scan-skill-security.js \
+            .github/scripts/build-marketplace.js \
             .github/scripts/lib package.json package-lock.json \
             .github/actions/changed-skill-dirs 2>/dev/null || true
 
@@ -127,9 +135,10 @@ jobs:
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO}.git"
           git add -- reports/
           git add -- 'skills/*/.content-hash.json'
+          git add -A -- plugins/ .claude-plugin/marketplace.json .claude-plugin/plugin.json .agents/plugins/marketplace.json
           if git diff --staged --quiet; then
             echo "No report changes to commit."
           else
-            git commit -m "ci: add validation reports [skip ci]"
+            git commit -m "ci: add validation reports and marketplace plugins [skip ci]"
             git push origin "HEAD:refs/heads/${HEAD_REF}"
           fi
