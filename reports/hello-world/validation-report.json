@@ -1,8 +1,8 @@
 {
   "skill": "hello-world",
-  "validatedAt": "2026-10-02T04:46:37.416Z",
-  "commit": "73aae8c6aec34b3df157717e657b8c83f9a7c1e2",
-  "pr": "refs/pull/21/merge",
+  "validatedAt": "2026-10-07T05:04:45.933Z",
+  "commit": "2d0c60194ee4c4d0de5cadec1f695576ad153892",
+  "pr": "refs/pull/26/merge",
   "validator": "CrestronAISkills CI",
   "status": "passed",
   "deprecated": false,
@@ -10,7 +10,7 @@
   "warnings": [],
   "frontmatter": {
     "name": "hello-world",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
     "tags": [
       "test",
@@ -62,7 +62,7 @@
     }
   },
   "security": {
-    "scannedAt": "2026-10-02T04:46:37.478Z",
+    "scannedAt": "2026-10-07T05:04:46.003Z",
     "findings": [],
     "warnings": []
   }
