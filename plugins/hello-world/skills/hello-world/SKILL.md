@@ -1,41 +1,11 @@
 ---
 name: hello-world
-version: 1.0.9
 description: A test skill that responds with Hello World. Used to validate the auto-update pipeline.
-tags: [test, hello-world]
-author: CrestronEng
 license: See LICENSE
 metadata:
-  team: crestron-ai
-  maintainer: sabtain.khan
-  dependencies: None
-  scope-allow: ["Respond in the current conversation with the fixed greeting text"]
-  scope-deny: ["Any file, network, or shell access"]
-  input-schema: "None — this skill takes no parameters"
-  output-schema: "A single fixed plain-text greeting string"
-  output-max-size: "1KB"
-  test-strategy: manual
-  tested-by: sabtain.khan
-  test-date: "2026-09-01"
-  idempotent: true
-  destructive-operations: ["None"]
-  approved-by: sabtain.khan
-  approval-date: "2026-09-01"
-  trigger-code: false
-  trigger-tool: false
-  trigger-fs: false
-  trigger-ext: false
-  trigger-fetch: false
-  risk-tier: T1
-  runtime-surfaces: ["Claude Code", "IDE extension"]
-  permissions:
-    file: declined
-    network: declined
-    shell: declined
-    credential: declined
-    memory: declined
-    mcp: declined
-    tool: declined
+  version: 1.0.9
+  author: CrestronEng
+  tags: test, hello-world
 ---
 
 # Hello World
