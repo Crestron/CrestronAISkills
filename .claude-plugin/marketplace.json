@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "crestron-ai-skills",
   "version": "1.0.0",
-  "description": "Marketplace for CrestronAISkills — browse, inspect, and install Crestron AI skills for Claude Code.",
+  "description": "Crestron AI Skills — install individual skills, or the registry browser to search them all.",
   "owner": {
     "name": "Crestron",
     "url": "https://github.com/Crestron"
@@ -11,10 +11,46 @@
     {
       "name": "crestron-ai-skills",
       "description": "Search, inspect, and install skills from the CrestronAISkills registry (github.com/Crestron/CrestronAISkills).",
-      "version": "0.1.1",
       "source": "./plugins/crestron-ai-skills",
       "category": "productivity",
-      "keywords": ["crestron", "skills", "marketplace", "registry"]
+      "keywords": [
+        "crestron",
+        "skills",
+        "marketplace",
+        "registry"
+      ]
+    },
+    {
+      "name": "example-skill",
+      "description": "A starter example showing how to write a Copilot skill for Crestron AV and smart home systems",
+      "source": "./plugins/example-skill",
+      "category": "productivity",
+      "keywords": [
+        "example",
+        "demo",
+        "starter",
+        "crestron",
+        "av"
+      ],
+      "author": {
+        "name": "CrestronEng"
+      }
+    },
+    {
+      "name": "hello-world",
+      "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
+      "source": "./plugins/hello-world",
+      "category": "productivity",
+      "keywords": [
+        "test",
+        "hello-world"
+      ],
+      "author": {
+        "name": "CrestronEng"
+      }
     }
-  ]
+  ],
+  "renames": {
+    "string-translator": null
+  }
 }

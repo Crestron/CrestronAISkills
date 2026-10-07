@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "hello-world",
+  "version": "1.0.9",
+  "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "hello-world",
+        "category": "Productivity"
+      }
+    }
+  }
+}

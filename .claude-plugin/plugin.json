@@ -6,6 +6,14 @@
     "name": "Crestron"
   },
   "license": "See LICENSE",
-  "keywords": ["crestron", "skills", "av", "smart-home"],
-  "skills": ["copilot-skills/example-skill/", "copilot-skills/hello-world/"]
+  "keywords": [
+    "crestron",
+    "skills",
+    "av",
+    "smart-home"
+  ],
+  "skills": [
+    "copilot-skills/example-skill/",
+    "copilot-skills/hello-world/"
+  ]
 }
