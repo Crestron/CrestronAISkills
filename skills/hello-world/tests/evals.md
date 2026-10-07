@@ -11,7 +11,7 @@ Prompts that should select this skill.
 
 | Prompt | Expected | Result |
 |---|---|---|
-| "Say hello" | Activates; responds with exactly `"Hello World from CrestronAISkills v1.0.4"` | Pass |
+| "Say hello" | Activates; responds with exactly `"Hello World from CrestronAISkills v1.0.10"` | Pass |
 | "Greet me" | Activates; same fixed response | Pass |
 
 ## X2 — False-activation eval

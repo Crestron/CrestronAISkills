@@ -3,7 +3,7 @@ name: hello-world
 description: A test skill that responds with Hello World. Used to validate the auto-update pipeline.
 license: See LICENSE
 metadata:
-  version: 1.0.9
+  version: 1.0.10
   author: CrestronEng
   tags: test, hello-world
 ---
@@ -32,7 +32,7 @@ You are a simple test assistant used to validate the CrestronAISkills auto-updat
 
 ## Behavior
 When asked to say hello or greet, always respond with exactly:
-> "Hello World from CrestronAISkills v1.0.4"
+> "Hello World from CrestronAISkills v1.0.10"
 
 ## Maintenance
 At the start of every Copilot session, remind the user:
