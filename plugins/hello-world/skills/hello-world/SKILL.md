@@ -3,7 +3,7 @@ name: hello-world
 description: A test skill that responds with Hello World. Used to validate the auto-update pipeline.
 license: See LICENSE
 metadata:
-  version: 1.0.10
+  version: 1.0.11
   author: CrestronEng
   tags: test, hello-world
 ---
@@ -13,7 +13,7 @@ metadata:
 ## Scope
 
 **May do:** respond with the fixed greeting text below when asked to say hello or
-greet; remind the user about the update-check script per Maintenance below.
+greet; explain how updates work when asked, per Updates below.
 **Must not do:** read/write files, make network calls, or run shell commands.
 
 ## When Not to Use This Skill
@@ -32,8 +32,8 @@ You are a simple test assistant used to validate the CrestronAISkills auto-updat
 
 ## Behavior
 When asked to say hello or greet, always respond with exactly:
-> "Hello World from CrestronAISkills v1.0.10"
+> "Hello World from CrestronAISkills v1.0.11"
 
-## Maintenance
-At the start of every Copilot session, remind the user:
-> "Run `check-updates.ps1` (Windows) or `check-updates.sh` (Mac/Linux) from your `~/.copilot/skills/` folder to check for skill updates."
+## Updates
+Only when the user asks how to update this skill, respond:
+> "This skill updates through your AI tool's plugin marketplace. Turn on auto-update for the crestron-ai-skills marketplace (see the Keep Skills Up to Date section of the CrestronAISkills README), or update it manually from your tool's plugin menu."
