@@ -109,6 +109,8 @@ const s = {
     missing: { color: "var(--text-muted)", fontStyle: "italic" },
 };
 
+const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
 // Plain text of a rendered code element, for the copy buttons.
 function textOf(node) {
     if (node == null || typeof node === "boolean") return "";
@@ -172,6 +174,7 @@ function Section({ title, markdown }) {
  * Pop-up with one tool's install and auto-update steps, rendered from Readme.md.
  */
 export default function InstallModal({ tool, install, update, onClose }) {
+    const dialogRef = useRef(null);
     const closeRef = useRef(null);
     const [copiedAll, copyAll] = useCopy();
 
@@ -180,7 +183,23 @@ export default function InstallModal({ tool, install, update, onClose }) {
         const overflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
         closeRef.current?.focus();
-        const onKey = (e) => e.key === "Escape" && onClose();
+        const onKey = (e) => {
+            if (e.key === "Escape") return onClose();
+            if (e.key !== "Tab" || !dialogRef.current) return;
+            // Keep Tab / Shift+Tab inside the dialog (aria-modal): wrap at either end.
+            const focusable = [...dialogRef.current.querySelectorAll(FOCUSABLE)];
+            if (!focusable.length) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            const outside = !dialogRef.current.contains(document.activeElement);
+            if (e.shiftKey && (document.activeElement === first || outside)) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && (document.activeElement === last || outside)) {
+                e.preventDefault();
+                first.focus();
+            }
+        };
         window.addEventListener("keydown", onKey);
         return () => {
             window.removeEventListener("keydown", onKey);
@@ -195,7 +214,7 @@ export default function InstallModal({ tool, install, update, onClose }) {
 
     return (
         <div style={s.backdrop} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-            <div style={s.dialog} role="dialog" aria-modal="true" aria-labelledby="install-modal-title">
+            <div ref={dialogRef} style={s.dialog} role="dialog" aria-modal="true" aria-labelledby="install-modal-title">
                 <div style={s.head}>
                     <span id="install-modal-title" style={s.title}>{tool.name}</span>
                     <button ref={closeRef} type="button" style={s.close} onClick={onClose} aria-label="Close">

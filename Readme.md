@@ -158,7 +158,7 @@ Turn on auto-update in your Copilot settings file:
 
 3. Save. Copilot CLI now updates the Crestron plugins at the start of each interactive session.
 
-To update immediately instead, run `copilot plugin marketplace update` followed by `copilot plugin update` (with no name, it updates every installed plugin).
+To update immediately instead, run `copilot plugin marketplace update` followed by `copilot plugin update --all` (or `copilot plugin update <skill-name>@crestron-ai-skills` for one skill).
 
 #### VS Code auto-update
 
