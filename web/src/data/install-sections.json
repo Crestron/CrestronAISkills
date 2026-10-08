@@ -1,0 +1,37 @@
+[
+  {
+    "id": "claude-code",
+    "name": "Claude Code",
+    "desc": "Add the marketplace from the CLI or with /plugin in a session.",
+    "install": "Claude Code (CLI)",
+    "update": "Claude Code (CLI) auto-update"
+  },
+  {
+    "id": "claude-desktop",
+    "name": "Claude Desktop",
+    "desc": "Add the marketplace from Customize → Plugins in the Claude app.",
+    "install": "Claude Desktop App",
+    "update": "Claude desktop app updates"
+  },
+  {
+    "id": "copilot-cli",
+    "name": "GitHub Copilot CLI",
+    "desc": "Add the marketplace with copilot plugin commands.",
+    "install": "GitHub Copilot CLI",
+    "update": "GitHub Copilot CLI auto-update"
+  },
+  {
+    "id": "vscode",
+    "name": "VS Code",
+    "desc": "Add the marketplace to GitHub Copilot agent plugins in VS Code.",
+    "install": "GitHub Copilot in VS Code",
+    "update": "VS Code auto-update"
+  },
+  {
+    "id": "codex",
+    "name": "OpenAI Codex",
+    "desc": "Add the marketplace with codex plugin commands, then install from /plugins.",
+    "install": "OpenAI Codex",
+    "update": "OpenAI Codex updates"
+  }
+]
