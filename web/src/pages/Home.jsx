@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { fetchRegistry } from "../utils/registry.js";
 import { extractSection } from "../utils/readmeSections.js";
-import SkillCard from "../components/SkillCard.jsx";
 import InstallModal from "../components/InstallModal.jsx";
 import TOOLS from "../data/install-sections.json";
 // Bundled at build time, so the pop-ups always match the README and never call GitHub.
@@ -30,11 +28,6 @@ const s = {
     },
     section: { padding: "48px 24px", maxWidth: "1100px", margin: "0 auto" },
     sectionTitle: { fontSize: "1.3rem", fontWeight: 700, marginBottom: "24px" },
-    grid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-        gap: "16px",
-    },
     features: {
         display: "grid",
         gap: "1px",
@@ -70,7 +63,6 @@ const s = {
     toolName: { fontWeight: 600, fontSize: "1.05rem", color: "var(--link)" },
     toolDesc: { color: "var(--text-muted)", fontSize: "0.86rem", lineHeight: 1.5, flex: 1 },
     toolLink: { color: "var(--link)", fontSize: "0.86rem", fontWeight: 600 },
-    loading: { color: "var(--text-muted)", textAlign: "center", padding: "40px" },
 };
 
 const FEATURES = [
@@ -81,8 +73,6 @@ const FEATURES = [
 ];
 
 export default function Home() {
-    const [skills, setSkills] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [activeTool, setActiveTool] = useState(null);
     const closeModal = useCallback(() => setActiveTool(null), []);
     const location = useLocation();
@@ -92,15 +82,6 @@ export default function Home() {
         const target = location.state?.scrollTo;
         if (target) document.getElementById(target)?.scrollIntoView({ behavior: "smooth" });
     }, [location.key]);
-
-    useEffect(() => {
-        fetchRegistry()
-            .then((r) => setSkills(r.skills || []))
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, []);
-
-    const featured = skills.slice(0, 6);
 
     return (
         <div>
@@ -124,7 +105,7 @@ export default function Home() {
                 </div>
             </div>
 
-            <div id="get-started" style={{ ...s.section, borderBottom: "1px solid var(--border)", scrollMarginTop: "64px" }}>
+            <div id="get-started" style={{ ...s.section, scrollMarginTop: "64px" }}>
                 <div style={s.sectionTitle}>Get Started</div>
                 <div className="tool-grid" style={s.toolGrid}>
                     {TOOLS.map((t) => (
@@ -152,29 +133,6 @@ export default function Home() {
                 />
             )}
 
-            <div style={s.section}>
-                <div style={s.sectionTitle}>
-                    {loading ? "Loading skills…" : `All Skills (${skills.length})`}
-                </div>
-                {loading ? (
-                    <div style={s.loading}>Fetching registry…</div>
-                ) : featured.length > 0 ? (
-                    <div style={s.grid}>
-                        {featured.map((skill) => (
-                            <SkillCard key={skill.name} skill={skill} />
-                        ))}
-                    </div>
-                ) : (
-                    <p style={{ color: "var(--text-muted)" }}>No skills in the registry yet.</p>
-                )}
-                {!loading && skills.length > 6 && (
-                    <div style={{ marginTop: "24px", textAlign: "center" }}>
-                        <Link to="/search" style={{ color: "var(--link)", fontSize: "0.9rem" }}>
-                            View all {skills.length} skills →
-                        </Link>
-                    </div>
-                )}
-            </div>
         </div>
     );
 }
