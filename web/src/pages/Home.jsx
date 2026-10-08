@@ -51,7 +51,6 @@ const s = {
     },
     featureTitle: { fontWeight: 600, marginBottom: "6px", fontSize: "0.9rem", color: "#fff" },
     featureDesc: { color: "rgba(255, 255, 255, 0.82)", fontSize: "0.88rem", lineHeight: 1.5 },
-    sectionSub: { color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: 1.6, marginTop: "-14px", marginBottom: "24px" },
     toolGrid: { display: "grid", gap: "16px" },
     toolCard: {
         background: "var(--surface)",
@@ -127,10 +126,6 @@ export default function Home() {
 
             <div id="get-started" style={{ ...s.section, borderBottom: "1px solid var(--border)", scrollMarginTop: "64px" }}>
                 <div style={s.sectionTitle}>Get Started</div>
-                <p style={s.sectionSub}>
-                    Add Crestron AI Skills as a plugin marketplace in your AI tool, then install the skills you need.
-                    Pick your tool for step-by-step instructions.
-                </p>
                 <div className="tool-grid" style={s.toolGrid}>
                     {TOOLS.map((t) => (
                         <button
