@@ -1,0 +1,32 @@
+name: Test Tooling
+
+# Runs the repo's tooling unit tests (npm test): content hashing, skill sync,
+# marketplace generation, and the README sections the web portal renders in its
+# Get Started pop-ups. Read-only — no write token, no commit-back.
+on:
+  pull_request:
+    paths:
+      - 'Readme.md'
+      - '.github/scripts/**'
+      - 'web/src/data/**'
+      - 'web/src/utils/**'
+      - 'copilot-skills/**'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: npm test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Run tests
+        run: npm test

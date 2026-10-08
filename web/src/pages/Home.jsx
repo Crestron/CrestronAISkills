@@ -1,7 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { fetchRegistry } from "../utils/registry.js";
+import { extractSection } from "../utils/readmeSections.js";
 import SkillCard from "../components/SkillCard.jsx";
+import InstallModal from "../components/InstallModal.jsx";
+import TOOLS from "../data/install-sections.json";
+// Bundled at build time, so the pop-ups always match the README and never call GitHub.
+import README from "../../../Readme.md?raw";
 
 const s = {
     hero: {
@@ -59,6 +64,9 @@ const s = {
         textDecoration: "none",
         color: "var(--text)",
         transition: "border-color 0.15s",
+        font: "inherit",
+        textAlign: "left",
+        cursor: "pointer",
     },
     toolName: { fontWeight: 600, fontSize: "1.05rem", color: "var(--link)" },
     toolDesc: { color: "var(--text-muted)", fontSize: "0.86rem", lineHeight: 1.5, flex: 1 },
@@ -68,28 +76,16 @@ const s = {
 
 const FEATURES = [
     { title: "Search Skills", desc: "Find skills by keyword, tag, or author instantly." },
-    { title: "One-Command Install", desc: "Install any skill directly from the Copilot CLI terminal." },
+    { title: "Install Per Skill", desc: "Every skill is its own plugin — install only the ones you need." },
     { title: "Web Marketplace", desc: "Browse and discover skills in your browser." },
-    { title: "Auto-Updates", desc: "Installed skills stay current with weekly update checks." },
-];
-
-const REPO_URL =
-    typeof __REPO_URL__ !== "undefined"
-        ? __REPO_URL__
-        : "https://github.com/Crestron/CrestronAISkills";
-
-// Anchors must match the "Add the Marketplace as a Plugin" headings in Readme.md.
-const TOOLS = [
-    { name: "Claude Code", desc: "Add the marketplace from the CLI or with /plugin in a session.", anchor: "claude-code-cli" },
-    { name: "Claude Desktop", desc: "Add the marketplace from Customize → Plugins in the Claude app.", anchor: "claude-desktop-app" },
-    { name: "GitHub Copilot CLI", desc: "Add the marketplace with copilot plugin commands.", anchor: "github-copilot-cli" },
-    { name: "VS Code", desc: "Add the marketplace to GitHub Copilot agent plugins in VS Code.", anchor: "github-copilot-in-vs-code" },
-    { name: "OpenAI Codex", desc: "Add the marketplace with codex plugin commands, then install from /plugins.", anchor: "openai-codex" },
+    { title: "Auto-Updates", desc: "Skills stay current through your AI tool's marketplace updates." },
 ];
 
 export default function Home() {
     const [skills, setSkills] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTool, setActiveTool] = useState(null);
+    const closeModal = useCallback(() => setActiveTool(null), []);
     const location = useLocation();
 
     // HashRouter owns the URL hash, so in-page jumps (e.g. header "Get Started") arrive via router state.
@@ -132,16 +128,15 @@ export default function Home() {
             <div id="get-started" style={{ ...s.section, borderBottom: "1px solid var(--border)", scrollMarginTop: "64px" }}>
                 <div style={s.sectionTitle}>Get Started</div>
                 <p style={s.sectionSub}>
-                    Add Crestron AI Skills as a plugin marketplace in your AI tool, then install the{" "}
-                    <code>crestron-ai-skills</code> plugin.
+                    Add Crestron AI Skills as a plugin marketplace in your AI tool, then install the skills you need.
+                    Pick your tool for step-by-step instructions.
                 </p>
                 <div className="tool-grid" style={s.toolGrid}>
                     {TOOLS.map((t) => (
-                        <a
-                            key={t.anchor}
-                            href={`${REPO_URL}#${t.anchor}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setActiveTool(t)}
                             style={s.toolCard}
                             onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--link)")}
                             onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
@@ -149,10 +144,18 @@ export default function Home() {
                             <span style={s.toolName}>{t.name}</span>
                             <span style={s.toolDesc}>{t.desc}</span>
                             <span style={s.toolLink}>View instructions →</span>
-                        </a>
+                        </button>
                     ))}
                 </div>
             </div>
+            {activeTool && (
+                <InstallModal
+                    tool={activeTool}
+                    install={extractSection(README, activeTool.install)}
+                    update={extractSection(README, activeTool.update)}
+                    onClose={closeModal}
+                />
+            )}
 
             <div style={s.section}>
                 <div style={s.sectionTitle}>

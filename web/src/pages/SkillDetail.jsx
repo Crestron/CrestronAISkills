@@ -2,11 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import JSZip from "jszip";
 import { fetchRegistry } from "../utils/registry.js";
-const REPO_URL =
-    typeof __REPO_URL__ !== "undefined"
-        ? __REPO_URL__
-        : "https://github.com/CrestronEng/CrestronAISkills";
-
 const s = {
     page: { maxWidth: "860px", margin: "0 auto", padding: "40px 24px" },
     back: { color: "var(--link)", textDecoration: "none", fontSize: "0.9rem", display: "inline-block", marginBottom: "24px" },
@@ -217,8 +212,6 @@ export default function SkillDetail() {
         );
     }
 
-    const skillRepoPath = `${REPO_URL}/tree/main/${skill.path}`;
-
     return (
         <div style={s.page}>
             <Link to="/search" style={s.back}>Back to search</Link>
@@ -255,24 +248,17 @@ export default function SkillDetail() {
                     </div>
                     <div style={s.metaItem}>
                         <span style={s.metaLabel}>Author</span>
-                        <a
-                            href={`https://github.com/${skill.author}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ ...s.metaValue, color: "var(--link)", textDecoration: "none" }}
-                        >
-                            @{skill.author}
-                        </a>
+                        <span style={s.metaValue}>{skill.author}</span>
                     </div>
                     <div style={s.metaItem}>
                         <span style={s.metaLabel}>License</span>
                         <a
-                            href={`${REPO_URL}/blob/main/LICENSE`}
+                            href="https://www.crestron.com/SWToolsLicensetxt"
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{ ...s.metaValue, color: "var(--link)", textDecoration: "none" }}
                         >
-                            See LICENSE
+                            Software Development Tools License
                         </a>
                     </div>
                     {skill.homepage && (
@@ -283,12 +269,6 @@ export default function SkillDetail() {
                             </a>
                         </div>
                     )}
-                    <div style={s.metaItem}>
-                        <span style={s.metaLabel}>Source</span>
-                        <a href={skillRepoPath} target="_blank" rel="noopener noreferrer" style={{ ...s.metaValue, color: "var(--link)", textDecoration: "none" }}>
-                            View on GitHub
-                        </a>
-                    </div>
                 </div>
             )}
 

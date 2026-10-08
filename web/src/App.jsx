@@ -42,11 +42,6 @@ const LEGAL_LINKS = [
     { label: "AI Terms of Use", href: "https://www.crestron.com/Legal/AITerms" },
 ];
 
-const REPO_URL =
-    typeof __REPO_URL__ !== "undefined"
-        ? __REPO_URL__
-        : "https://github.com/Crestron/CrestronAISkills";
-
 export default function App() {
     return (
         <HashRouter>
@@ -65,7 +60,6 @@ export default function App() {
                             <Logo height={18} />
                             <nav style={s.footerLinks}>
                                 <Link to="/search" style={s.footerLink}>Browse Skills</Link>
-                                <a href={REPO_URL} target="_blank" rel="noopener noreferrer" style={s.footerLink}>GitHub</a>
                                 {LEGAL_LINKS.map((l) => (
                                     <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" style={s.footerLink}>
                                         {l.label}

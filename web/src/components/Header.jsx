@@ -2,11 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Logo from "./Logo.jsx";
 
-const REPO_URL =
-    typeof __REPO_URL__ !== "undefined"
-        ? __REPO_URL__
-        : "https://github.com/Crestron/CrestronAISkills";
-
 const s = {
     header: {
         background: "#fff",
@@ -44,9 +39,6 @@ export default function Header() {
             <nav style={s.nav}>
                 <Link to="/" state={{ scrollTo: "get-started" }} style={s.navLink}>Get Started</Link>
                 <Link to="/search" style={s.navLink}>Browse</Link>
-                <a href={REPO_URL} target="_blank" rel="noopener noreferrer" style={s.navLink}>
-                    GitHub
-                </a>
             </nav>
         </header>
     );

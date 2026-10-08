@@ -7,6 +7,8 @@ export default defineConfig({
     build: {
         outDir: "dist",
     },
+    // Home.jsx imports ../Readme.md (repo root) for the Get Started pop-ups.
+    server: { fs: { allow: [".."] } },
     define: {
         __REGISTRY_URL__: JSON.stringify(
             process.env.VITE_REGISTRY_URL || "/registry.json"
