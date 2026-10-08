@@ -132,12 +132,21 @@ Turn on auto-update once:
 1. Start a session with `claude` and run `/plugin`.
 2. Open the **Marketplaces** tab and select **crestron-ai-skills**.
 3. Choose **Enable auto-update**.
+4. Open `~/.claude/settings.json` (Windows: `%USERPROFILE%\.claude\settings.json`) and add `FORCE_AUTOUPDATE_PLUGINS` to the `env` block. This keeps plugin updates on even when an updater setting such as `DISABLE_AUTOUPDATER` turns Claude Code's own auto-update off:
 
-Claude Code then refreshes the marketplace each time a session starts. When a skill updates you'll see `Plugin updated: <name> · Run /reload-plugins to apply`; new sessions load the new version automatically. To update immediately, select **Update marketplace** on the same screen.
+   ```json
+   "env": {
+     "FORCE_AUTOUPDATE_PLUGINS": "1"
+   }
+   ```
+
+   If the file already has an `env` block, add the line inside it, and keep a comma between top-level entries. Save, then start a new session.
+
+Auto-update runs in the background **after you send your first message** in a session, within about ten minutes. When a skill updates you'll see `Plugin updated: <name> · Run /reload-plugins to apply`; run `/reload-plugins` or start a new session to load it. To update immediately, select **Update marketplace** on the **Marketplaces** tab.
 
 #### Claude desktop app updates
 
-- **Code tab:** it uses the same settings as the Claude Code CLI — turn on auto-update with the Claude Code (CLI) steps and it covers the Code tab too.
+- **Code tab:** it uses the same settings as the Claude Code CLI, so follow all four Claude Code (CLI) steps above. **Step 4 is required here:** the desktop app turns off Claude Code's own auto-updater in Code tab sessions (`DISABLE_AUTOUPDATER`), which also stops plugin updates unless `FORCE_AUTOUPDATE_PLUGINS` is set. Updates arrive after your first message in a new Code tab session.
 - **Chat / Customize:** open **Customize → Plugins**, open the **Crestron AI Skills** marketplace, and select **Check for updates**. If **Sync automatically** is offered for the marketplace, turn it on.
 
 #### GitHub Copilot CLI auto-update
