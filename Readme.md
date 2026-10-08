@@ -123,7 +123,7 @@ Every skill change ships with a new version number, and each tool picks it up fr
 | Claude desktop app | Code tab: yes (shares Claude Code settings) · Chat: check manually | **Customize → Plugins** |
 | GitHub Copilot CLI | Yes — turn on once | `~/.copilot/settings.json` |
 | VS Code (GitHub Copilot) | Yes — every 24 hours | `extensions.autoUpdate` setting |
-| OpenAI Codex | Yes — turn on once | `/plugins` → **Marketplaces**, or `~/.codex/config.toml` |
+| OpenAI Codex | No — update manually | `codex plugin marketplace upgrade` |
 
 #### Claude Code (CLI) auto-update
 
@@ -164,28 +164,15 @@ To update immediately instead, run `copilot plugin marketplace update` followed 
 
 Plugins update automatically every 24 hours while VS Code's extension auto-update is on (the default). To confirm, open **Settings**, search for `extensions.autoUpdate`, and make sure it isn't set to off. To update immediately, run **Extensions: Check for Extension Updates** from the Command Palette.
 
-#### OpenAI Codex auto-update
+#### OpenAI Codex updates
 
-Turn on auto-update in the app or in your config file:
+Codex doesn't document an auto-update setting for plugin marketplaces, so update manually when you want the latest skills:
 
-- **Codex app or interactive CLI:**
-  1. In a Codex session, type `/side` to open the sidebar, or go directly to the **Plugins** UI.
-  2. Select **Marketplaces** and find **crestron-ai-skills**.
-  3. Turn on **Enable Auto-Update** for it.
+```bash
+codex plugin marketplace upgrade crestron-ai-skills
+```
 
-  Background updates then run as a startup task each time Codex starts.
-
-- **Config file:** open `~/.codex/config.toml` (Windows: `%USERPROFILE%\.codex\config.toml`) and add:
-
-  ```toml
-  check_for_update_on_startup = true
-
-  [updates]
-  mode = "automatic"
-  channel = "stable"
-  ```
-
-To update immediately instead, run `codex plugin marketplace upgrade crestron-ai-skills`.
+This refreshes the Crestron marketplace and the skills you installed from it. To browse or install skills, run `/plugins` in a Codex session. Start a new session after updating so the new versions load.
 
 ### Using the Skills
 

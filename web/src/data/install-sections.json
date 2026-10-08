@@ -32,6 +32,6 @@
     "name": "OpenAI Codex",
     "desc": "Add the marketplace with codex plugin commands, then install from /plugins.",
     "install": "OpenAI Codex",
-    "update": "OpenAI Codex auto-update"
+    "update": "OpenAI Codex updates"
   }
 ]
