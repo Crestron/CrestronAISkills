@@ -1,10 +1,10 @@
 {
   "skill": "hello-world",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "sourceRef": null,
-  "computedAt": "2026-10-07T05:04:45.933Z",
+  "computedAt": "2026-10-08T19:07:58.371Z",
   "files": {
-    "skill.md": "fe5950bb6927c9ea2829fce6df09fab8eebd91f28ccea1c971bc8c5b74a4ccb6",
-    "tests/evals.md": "093ca20993bfa1a723d536aa6bcb240936bff25ad58abfdf6219320f4284d4bd"
+    "skill.md": "e71507b7905d0b03387b2c914630546a66b4f506b635f63e56eb3d60ab7b6f4c",
+    "tests/evals.md": "f0ac240b3cc8d52a91633f15bdceb099cae1f2fa52155b6a54eb5c1d182bad23"
   }
 }
