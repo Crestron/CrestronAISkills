@@ -70,7 +70,8 @@ function normalizeSkillFileName(targetSkillDir) {
 }
 
 // Re-sync merge rule: content fields always come from the incoming (source
-// repo's) frontmatter; source-*/synced-at always come from provenance; every
+// repo's) frontmatter — version/tags/author top-level or, failing that, from
+// incoming metadata; source-*/synced-at always come from provenance; every
 // other existing metadata key (scope-allow, test-strategy, approved-by, etc.)
 // is preserved from what's already committed here if present, otherwise left
 // absent — validate-skill.js's existing required-field errors are what prompt
@@ -79,12 +80,17 @@ function mergeFrontmatter(existingFm, incomingFm, provenance) {
   if (!incomingFm || typeof incomingFm !== "object") {
     throw new Error("incoming frontmatter must be a parsed object");
   }
+  // Agent Skills-standard source files keep version/tags/author under
+  // `metadata`; this repo's schema wants them top-level. Prefer top-level,
+  // fall back to metadata, so teams can stay spec-compliant.
+  const incomingMeta = incomingFm.metadata && typeof incomingFm.metadata === "object" ? incomingFm.metadata : {};
+  const pick = (key) => (incomingFm[key] !== undefined ? incomingFm[key] : incomingMeta[key]);
   const merged = {
     name: incomingFm.name,
     description: incomingFm.description,
-    version: incomingFm.version,
-    tags: incomingFm.tags,
-    author: incomingFm.author,
+    version: pick("version"),
+    tags: pick("tags"),
+    author: pick("author"),
   };
   for (const passthrough of ["license", "compatibility", "allowed-tools", "homepage", "deprecated"]) {
     if (incomingFm[passthrough] !== undefined) merged[passthrough] = incomingFm[passthrough];
