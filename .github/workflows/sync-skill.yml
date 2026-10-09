@@ -3,7 +3,7 @@ name: Sync Skill From Source Repo
 # Mirrors a skill from a team's own repo into skills/<target_name>/ and opens a
 # PR here — never pushes to main directly. The resulting PR goes through the
 # exact same validate-skill.yml/test-skill.yml/CODEOWNERS pipeline as any other
-# skill PR. See CONTRIBUTING.md "Importing a Skill You Built in Another Repo".
+# skill PR. Setup: docs/runbooks/github-app-setup.md (Parts A–D).
 #
 # The sync/<target_name> branch is disposable and bot-owned: every run resets
 # it to main's current tip before reapplying the synced skill, then
@@ -25,9 +25,13 @@ on:
         description: 'Skill name in this repo (skills/<target_name>/). Defaults to the last segment of source_path.'
         required: false
 
+# GITHUB_TOKEN only reads. All writes (push sync/<name>, open the PR) use the
+# crestron-skill-sync-writer app token below: GitHub doesn't start other
+# workflows from GITHUB_TOKEN events, so a PR opened with it would skip
+# validate-skill.yml / test-skill.yml / plugin generation entirely.
+# See docs/runbooks/github-app-setup.md Part D.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   sync:
@@ -36,10 +40,24 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
+      # Write token for this repo only, from the writer app (installed solely on
+      # this repo). Minted first so the checkout below persists it for the push.
+      - name: Get writer token for this repository
+        id: writer-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.SKILL_SYNC_WRITER_APP_ID }}
+          private-key: ${{ secrets.SKILL_SYNC_WRITER_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Checkout CrestronAISkills
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ steps.writer-token.outputs.token }}
 
       # Reject anything that isn't a pinned commit SHA before doing any real
       # work — a branch name or tag is mutable, and the content-hash baseline
@@ -80,6 +98,8 @@ jobs:
           private-key: ${{ secrets.SKILL_SYNC_APP_PRIVATE_KEY }}
           owner: ${{ steps.source.outputs.owner }}
           repositories: ${{ steps.source.outputs.repo }}
+          # The reader app only ever reads team repos — request read explicitly.
+          permission-contents: read
 
       - name: Checkout source repo
         uses: actions/checkout@v4
@@ -156,7 +176,8 @@ jobs:
       - name: Open PR if one doesn't already exist
         if: steps.commit.outputs.changed == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Writer-app token (not GITHUB_TOKEN) so the new PR triggers CI.
+          GITHUB_TOKEN: ${{ steps.writer-token.outputs.token }}
           TARGET_NAME: ${{ steps.target.outputs.name }}
           BRANCH: ${{ steps.target.outputs.branch }}
           SOURCE_REPO: ${{ inputs.source_repo }}
@@ -167,5 +188,5 @@ jobs:
             echo "Pushed to existing PR #$EXISTING_PR"
             exit 0
           fi
-          BODY=$(printf 'Mirrors `%s` from [`%s`](https://github.com/%s)@`%s`.\n\nIf this is a new skill, `validate-skill.yml` will list the Crestron-only compliance metadata (scope, test-strategy, approved-by, etc.) that still needs filling in before this can merge -- this is expected, not a bug. See CONTRIBUTING.md "Importing a Skill You Built in Another Repo".\n' "$TARGET_NAME" "$SOURCE_REPO" "$SOURCE_REPO" "$SOURCE_REF")
+          BODY=$(printf 'Mirrors `%s` from [`%s`](https://github.com/%s)@`%s`.\n\nIf this is a new skill, `validate-skill.yml` will list the Crestron-only compliance metadata (scope, test-strategy, approved-by, etc.) that still needs filling in before this can merge -- this is expected, not a bug.\n' "$TARGET_NAME" "$SOURCE_REPO" "$SOURCE_REPO" "$SOURCE_REF")
           gh pr create --base main --head "$BRANCH" --title "sync: import ${TARGET_NAME} from ${SOURCE_REPO}" --body "$BODY"
