@@ -80,3 +80,62 @@ No secret exchange, no coordination with us beyond that click. If a repo
 hasn't had the app installed on it yet, a sync attempt against it fails with
 a clear "app not installed on this repository" error rather than a confusing
 auth failure.
+
+## Part D — Register the writer app (do this once)
+
+`crestron-skill-sync` (Parts A–C) only **reads** team repos. A second app,
+`crestron-skill-sync-writer`, is the only thing that **writes**: it pushes the
+`sync/<skill>` branch and opens the PR in `Crestron/CrestronAISkills`.
+
+Why a separate app: a PR opened with the workflow's built-in `GITHUB_TOKEN`
+doesn't start other workflows, so validation, security scanning, tests, and
+plugin generation would never run on sync PRs. An app token does trigger them.
+Keeping write access in its own app means the reader app installed across team
+orgs stays read-only, and the write key only works on this one repo.
+
+Like Part A, this needs a Crestron **organization owner**.
+
+1. Open: **https://github.com/organizations/Crestron/settings/apps/new**
+
+2. Fill in:
+   - **GitHub App name**: `crestron-skill-sync-writer`
+     (if taken, use `crestron-ai-skill-sync-writer`)
+   - **Homepage URL**: `https://github.com/Crestron/CrestronAISkills`
+   - **Webhook**: uncheck **"Active"** and leave the URL blank.
+
+3. **Permissions** → **Repository permissions** — set only these two:
+   - **Contents**: **Read and write**
+   - **Pull requests**: **Read and write**
+
+   Leave everything else at "No access" (*Metadata: Read-only* is added
+   automatically).
+
+4. **Where can this GitHub App be installed?** → **"Only on this account"**, so
+   it can never be installed in another org.
+
+5. Click **Create GitHub App**, note the **App ID**, then under
+   **Private keys** click **Generate a private key** (save the downloaded
+   `.pem` until step 7).
+
+6. In the left sidebar, **Install App** → **Install** next to "Crestron" →
+   **"Only select repositories"** → select **`CrestronAISkills`** only →
+   **Install**.
+
+7. Add the secrets without pasting them anywhere visible:
+
+   ```bash
+   gh secret set SKILL_SYNC_WRITER_APP_ID --repo Crestron/CrestronAISkills
+   # paste the App ID, press Enter, then Ctrl+D (Ctrl+Z then Enter on Windows)
+
+   gh secret set SKILL_SYNC_WRITER_APP_PRIVATE_KEY --repo Crestron/CrestronAISkills < path/to/the-writer-key.pem
+   ```
+
+   Then delete the downloaded `.pem` file.
+
+8. Confirm `gh secret list --repo Crestron/CrestronAISkills` shows all four:
+   `SKILL_SYNC_APP_ID`, `SKILL_SYNC_APP_PRIVATE_KEY`,
+   `SKILL_SYNC_WRITER_APP_ID`, `SKILL_SYNC_WRITER_APP_PRIVATE_KEY`.
+
+Team orgs are unaffected: they keep installing only the read-only app (Part C)
+and never see the writer app. Until the writer secrets exist, `sync-skill.yml`
+fails at its first step ("Get writer token for this repository").
