@@ -11,7 +11,7 @@
 // - test-strategy: automated/hybrid -> for every bundled script, require a matching
 //   test file and run the matching language's runner; fail on missing test file,
 //   any test failure, or (Pester/pytest only) file coverage below COVERAGE_THRESHOLD.
-//   Bash/.sh has no numeric coverage gate — see CONTRIBUTING.md for the documented
+//   Bash/.sh has no numeric coverage gate — this is the documented
 //   carve-out (bats has no line-coverage tool that's viable in a CI container).
 //
 // Usage: CHANGED_DIRS="skills/foo skills/bar" node run-skill-tests.js
@@ -176,7 +176,7 @@ for (const dir of dirs) {
     if (byLang.sh.length) {
       const r = runBats(dir);
       if (!r.ok) errors.push(fail(`bats: ${JSON.stringify(r.summary)}`));
-      else console.log(`  ✓ bats: all scenarios passed (no numeric coverage — see CONTRIBUTING.md)`);
+      else console.log(`  ✓ bats: all scenarios passed (no numeric coverage for bash/.sh)`);
     }
   } else {
     // validate-skill.js's schema/enum check already reports an invalid or missing

@@ -297,7 +297,7 @@ for (const dir of dirs) {
 console.log("");
 if (anyError) {
   console.log("❌ Validation failed — fix errors before requesting review.");
-  console.log("   Reference: skill-schema.json and CONTRIBUTING.md");
+  console.log("   Reference: skill-schema.json (field descriptions) and the validation report above");
 } else {
   console.log("✅ Schema validation passed.");
   if (totalWarnings > 0)
