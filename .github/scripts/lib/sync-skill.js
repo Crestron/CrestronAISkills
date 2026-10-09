@@ -53,6 +53,22 @@ function copySkillFiles(sourceRepoRoot, sourcePath, targetSkillDir) {
   copyDirRecursive(sourceDir, targetSkillDir);
 }
 
+// Team repos follow the Agent Skills standard and name the file SKILL.md; this
+// repo stores skills/<name>/skill.md (lowercase). After copying, rename an
+// uppercase SKILL.md to skill.md, replacing any skill.md left from a previous
+// sync (on case-sensitive Linux runners both can exist). The two-step rename
+// keeps it working on case-insensitive filesystems (Windows/macOS) too.
+function normalizeSkillFileName(targetSkillDir) {
+  const names = fs.readdirSync(targetSkillDir);
+  if (!names.includes("SKILL.md")) return;
+  const upper = path.join(targetSkillDir, "SKILL.md");
+  const lower = path.join(targetSkillDir, "skill.md");
+  const temp = path.join(targetSkillDir, ".skill.md.tmp");
+  fs.renameSync(upper, temp);
+  if (names.includes("skill.md")) fs.rmSync(lower, { force: true });
+  fs.renameSync(temp, lower);
+}
+
 // Re-sync merge rule: content fields always come from the incoming (source
 // repo's) frontmatter; source-*/synced-at always come from provenance; every
 // other existing metadata key (scope-allow, test-strategy, approved-by, etc.)
@@ -118,6 +134,7 @@ function syncSkill({ sourceRepoRoot, sourcePath, targetSkillDir, mirrorDir, prov
   }
 
   copySkillFiles(sourceRepoRoot, sourcePath, targetSkillDir);
+  normalizeSkillFileName(targetSkillDir);
 
   const incomingContent = fs.readFileSync(existingSkillMd, "utf8");
   const { fm: incomingFm, body: incomingBody, malformed } = parseFrontmatter(incomingContent);

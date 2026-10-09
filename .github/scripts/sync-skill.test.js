@@ -156,6 +156,37 @@ test("syncSkill: fresh import copies files, stamps provenance, writes copilot mi
   fs.rmSync(repoRoot, { recursive: true, force: true });
 });
 
+test("syncSkill: accepts an uppercase SKILL.md (Agent Skills standard) and stores skill.md", () => {
+  const sourceRoot = tempDir();
+  const repoRoot = tempDir();
+  fs.mkdirSync(path.join(sourceRoot, "skills/design-review"), { recursive: true });
+  fs.writeFileSync(
+    path.join(sourceRoot, "skills/design-review/SKILL.md"),
+    "---\nname: design-review\ndescription: Orchestrates a parallel design review\nmetadata:\n  version: \"3.18.0\"\n---\n# Design Review\n"
+  );
+  const targetSkillDir = path.join(repoRoot, "skills/design-review");
+  const mirrorDir = path.join(repoRoot, "copilot-skills/design-review");
+  const provenance = { sourceRepo: "https://github.com/Crestron/x", sourceRef: "abc", sourcePath: "skills/design-review", syncedAt: "2026-01-01T00:00:00.000Z" };
+
+  syncSkill({ sourceRepoRoot: sourceRoot, sourcePath: "skills/design-review", targetSkillDir, mirrorDir, provenance });
+
+  assert.deepEqual(fs.readdirSync(targetSkillDir), ["skill.md"]);
+  assert.equal(parseFrontmatter(fs.readFileSync(path.join(targetSkillDir, "skill.md"), "utf8")).fm.name, "design-review");
+  assert.ok(fs.existsSync(path.join(mirrorDir, "SKILL.md")));
+
+  // Re-sync from an updated SKILL.md replaces the previous skill.md content.
+  fs.writeFileSync(
+    path.join(sourceRoot, "skills/design-review/SKILL.md"),
+    "---\nname: design-review\ndescription: Orchestrates a parallel design review, updated\n---\n# Design Review v2\n"
+  );
+  syncSkill({ sourceRepoRoot: sourceRoot, sourcePath: "skills/design-review", targetSkillDir, mirrorDir, provenance });
+  assert.deepEqual(fs.readdirSync(targetSkillDir), ["skill.md"]);
+  assert.match(fs.readFileSync(path.join(targetSkillDir, "skill.md"), "utf8"), /Design Review v2/);
+
+  fs.rmSync(sourceRoot, { recursive: true, force: true });
+  fs.rmSync(repoRoot, { recursive: true, force: true });
+});
+
 test("syncSkill: re-sync preserves previously-approved compliance fields", () => {
   const sourceRoot = tempDir();
   const repoRoot = tempDir();
