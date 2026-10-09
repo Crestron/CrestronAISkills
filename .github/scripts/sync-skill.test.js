@@ -107,6 +107,26 @@ test("mergeFrontmatter on re-sync: preserves human-filled compliance fields, upd
   assert.equal(merged.metadata["approved-by"], "sabtain.khan");
 });
 
+test("mergeFrontmatter reads version/tags/author from incoming metadata when not top-level", () => {
+  const provenance = { sourceRepo: "https://github.com/x/y", sourceRef: "abc", sourcePath: "p", syncedAt: "t" };
+  const specStyle = {
+    name: "design-review",
+    description: "Parallel design review",
+    metadata: { version: "3.18.0", tags: ["design", "review"], author: "CrestronEng", "risk-tier": "low" },
+  };
+  const merged = mergeFrontmatter(null, specStyle, provenance);
+  assert.equal(merged.version, "3.18.0");
+  assert.deepEqual(merged.tags, ["design", "review"]);
+  assert.equal(merged.author, "CrestronEng");
+  // Other incoming metadata never leaks into this repo's compliance metadata.
+  assert.equal(merged.metadata["risk-tier"], undefined);
+
+  // Top-level wins over metadata when both are present.
+  const both = mergeFrontmatter(null, { ...specStyle, version: "4.0.0", author: "team-x" }, provenance);
+  assert.equal(both.version, "4.0.0");
+  assert.equal(both.author, "team-x");
+});
+
 test("serializeSkillMd round-trips through parseFrontmatter", () => {
   const fm = { name: "x", version: "1.0.0", metadata: { "source-repo": "https://github.com/a/b" } };
   const content = serializeSkillMd(fm, "# Body\n\nHello.\n");
