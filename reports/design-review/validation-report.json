@@ -1,0 +1,57 @@
+{
+  "skill": "design-review",
+  "validatedAt": "2026-10-12T15:13:54.994Z",
+  "commit": "873d2f71251c928509ee477c3206b6b9aa19acfb",
+  "pr": "refs/pull/33/merge",
+  "validator": "CrestronAISkills CI",
+  "status": "failed",
+  "deprecated": false,
+  "errors": [
+    "`metadata` must have required property 'team'",
+    "`metadata` must have required property 'maintainer'",
+    "`metadata` must have required property 'dependencies'",
+    "`metadata` must have required property 'scope-allow'",
+    "`metadata` must have required property 'scope-deny'",
+    "`metadata` must have required property 'input-schema'",
+    "`metadata` must have required property 'output-schema'",
+    "`metadata` must have required property 'output-max-size'",
+    "`metadata` must have required property 'test-strategy'",
+    "`metadata` must have required property 'idempotent'",
+    "`metadata` must have required property 'destructive-operations'",
+    "`metadata` must have required property 'approved-by'",
+    "`metadata` must have required property 'approval-date'",
+    "`metadata` must have required property 'trigger-code'",
+    "`metadata` must have required property 'trigger-tool'",
+    "`metadata` must have required property 'trigger-fs'",
+    "`metadata` must have required property 'trigger-ext'",
+    "`metadata` must have required property 'trigger-fetch'",
+    "`metadata` must have required property 'risk-tier'",
+    "`metadata` must have required property 'runtime-surfaces'",
+    "`metadata` must have required property 'permissions'"
+  ],
+  "warnings": [],
+  "frontmatter": {
+    "name": "design-review",
+    "description": "Orchestrate adversarial four-reviewer parallel design review (Design Critic / Tech Lead / Security / PM) before Gate 2, with dynamic re-review exit for mechanical-only fixes, and upstream requirements traceability enforcement at Gate 2 (v3.18.0)",
+    "version": "3.18.0",
+    "tags": [
+      "design",
+      "review",
+      "parallel-workflow",
+      "gate-2",
+      "design-critic",
+      "tech-lead",
+      "security",
+      "pm",
+      "adversarial",
+      "dynamic-exit"
+    ],
+    "author": "CrestronEng",
+    "metadata": {
+      "source-repo": "https://github.com/CrestronEng/CrestronAutoSDLC",
+      "source-ref": "67fd5a0f92f5754b29d26d204a3110c3e4d115e5",
+      "source-path": "dotgithub-contents/skills/design-review",
+      "synced-at": "2026-10-12T15:13:27.072Z"
+    }
+  }
+}
