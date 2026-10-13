@@ -14,7 +14,7 @@ permissions:
 jobs:
   test:
     name: Run per-language test matrix
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.STAGING_RUNS_ON || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
         with:

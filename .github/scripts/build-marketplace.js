@@ -23,6 +23,9 @@ const { serializeSkillMd } = require("./lib/sync-skill");
 const SOURCE_DIR = "copilot-skills";
 const PLUGINS_DIR = "plugins";
 const REGISTRY_PLUGIN = "crestron-ai-skills"; // hand-maintained registry-browser plugin
+// Environment identity. Staging values here; promote-to-production rewrites them
+// to the production marketplace/repo (.github/scripts/productionize.js).
+const MARKETPLACE_NAME = "crestron-ai-skills";
 const REPO_URL = "https://github.com/Crestron/CrestronAISkills";
 const EXCLUDE = new Set(["tests"]);
 const CHECK = process.argv.includes("--check");
@@ -114,7 +117,7 @@ function writePlugin(root, fm) {
 function claudeMarketplace(skills, deprecated) {
   const market = {
     $schema: "https://json.schemastore.org/claude-code-marketplace.json",
-    name: "crestron-ai-skills",
+    name: MARKETPLACE_NAME,
     version: "1.0.0",
     description: "Crestron AI Skills — install individual skills, or the registry browser to search them all.",
     owner: { name: "Crestron", url: "https://github.com/Crestron" },
@@ -149,7 +152,7 @@ function codexMarketplace(skills) {
     category: "Productivity",
   });
   return {
-    name: "crestron-ai-skills",
+    name: MARKETPLACE_NAME,
     interface: { displayName: "Crestron AI Skills" },
     plugins: [entry(REGISTRY_PLUGIN), ...skills.map((fm) => entry(fm.name))],
   };
