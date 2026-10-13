@@ -49,12 +49,10 @@ jobs:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_REGISTRY_URL: /${{ github.event.repository.name }}/registry.json
           VITE_REPO_URL: https://github.com/${{ github.repository }}
-      - name: Install registry-builder dependencies
-        run: npm install --no-fund --no-audit
+      # Installer/update scripts ship from web/public/scripts/ via the Vite build.
       - name: Generate registry.json from skills/
-        run: node .github/scripts/build-registry.js
-      - name: Copy scripts/ to dist
-        run: cp -r scripts web/dist/scripts
+        run: npm run build:registry
+        working-directory: web
       - name: Copy skills/ to dist (excluding deprecated skills)
         run: |
           mkdir -p web/dist/skills

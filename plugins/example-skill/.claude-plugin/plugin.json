@@ -5,7 +5,7 @@
   "author": {
     "name": "CrestronEng"
   },
-  "homepage": "https://github.com/Crestron/CrestronAISkills/tree/main/copilot-skills/example-skill",
+  "homepage": "https://github.com/Crestron/CrestronAISkills/tree/main/skills/example-skill",
   "license": "See LICENSE",
   "keywords": [
     "example",
