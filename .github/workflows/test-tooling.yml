@@ -20,7 +20,7 @@ permissions:
 jobs:
   test:
     name: npm test
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.STAGING_RUNS_ON || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
