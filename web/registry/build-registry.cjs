@@ -28,34 +28,57 @@ function parseFrontmatter(content) {
 
 const skills = [];
 
+// Agent Skills layout: SKILL.md (spec frontmatter; version/author/tags as strings under metadata)
+// plus compliance.yaml (Crestron compliance record). Skills published before that layout still
+// have a single skill.md with everything at the top level / under metadata, so read both.
+const splitTags = (t) => (Array.isArray(t) ? t : typeof t === "string" ? t.split(",") : []).map((x) => String(x).trim()).filter(Boolean);
+
+function readCompliance(dir) {
+  const file = path.join(dir, "compliance.yaml");
+  if (!fs.existsSync(file)) return {};
+  try {
+    const data = yaml.load(fs.readFileSync(file, "utf8"));
+    return data && typeof data === "object" && !Array.isArray(data) ? data : {};
+  } catch (e) {
+    console.log(`Ignoring unreadable ${file}: ${e.message}`);
+    return {};
+  }
+}
+
 if (fs.existsSync(skillsDir)) {
   for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const mp = path.join(skillsDir, entry.name, "skill.md");
-    if (!fs.existsSync(mp)) continue;
+    const dir = path.join(skillsDir, entry.name);
+    const names = fs.readdirSync(dir);
+    const skillFile = names.includes("SKILL.md") ? "SKILL.md" : names.includes("skill.md") ? "skill.md" : null;
+    if (!skillFile) continue;
 
-    const { fm, malformed } = parseFrontmatter(fs.readFileSync(mp, "utf8"));
+    const { fm, malformed } = parseFrontmatter(fs.readFileSync(path.join(dir, skillFile), "utf8"));
     if (malformed || !fm) {
       console.log(`Skipping ${entry.name}: ${malformed || "no frontmatter"}`);
       continue;
     }
-    if (fm.deprecated === true) {
+    const meta = fm.metadata && typeof fm.metadata === "object" ? fm.metadata : {};
+    const compliance = { ...meta, ...readCompliance(dir) };
+    if (fm.deprecated === true || compliance.deprecated === true) {
       console.log("Skipping deprecated skill:", entry.name);
       continue;
     }
 
+    const version = fm.version ?? meta.version;
     skills.push({
       name: fm.name,
-      version: fm.version,
+      version: version === undefined || version === null ? undefined : String(version),
       description: fm.description,
-      tags: fm.tags || [],
-      author: fm.author,
+      tags: splitTags(fm.tags ?? meta.tags),
+      author: fm.author ?? meta.author,
       path: `skills/${entry.name}`,
+      skillFile,
       license: fm.license || "See LICENSE",
-      homepage: fm.homepage || null,
-      team: fm.metadata?.team || null,
-      scopeAllow: fm.metadata?.["scope-allow"] || [],
-      testStrategy: fm.metadata?.["test-strategy"] || null,
+      homepage: fm.homepage || meta.homepage || null,
+      team: compliance.team || null,
+      scopeAllow: Array.isArray(compliance["scope-allow"]) ? compliance["scope-allow"] : [],
+      testStrategy: compliance["test-strategy"] || null,
     });
   }
 }

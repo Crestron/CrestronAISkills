@@ -123,13 +123,16 @@ export default function SkillDetail() {
             .finally(() => setLoading(false));
     }, [name]);
 
+    // registry.json records each skill's main file: SKILL.md (Agent Skills spec) or a legacy skill.md.
+    const skillFile = skill?.skillFile || "skill.md";
+
     useEffect(() => {
         if (!skill) return;
-        fetch(`${import.meta.env.BASE_URL}skills/${skill.name}/skill.md`)
+        fetch(`${import.meta.env.BASE_URL}skills/${skill.name}/${skillFile}`)
             .then((r) => r.ok ? r.text() : null)
             .then((text) => setContent(text))
             .catch(() => setContent(null));
-    }, [skill]);
+    }, [skill, skillFile]);
 
     const handleDownload = async () => {
         if (!content) return;
@@ -145,8 +148,8 @@ export default function SkillDetail() {
 
         const zip = new JSZip();
 
-        // Fetch file manifest; fall back to just skill.md if unavailable
-        let fileList = ["skill.md"];
+        // Fetch file manifest; fall back to just the skill's main file if unavailable
+        let fileList = [skillFile];
         const manifestResp = await fetch(`${base}skills/${skill.name}/files.json`);
         if (manifestResp.ok) {
             const parsed = await manifestResp.json();
@@ -293,7 +296,7 @@ export default function SkillDetail() {
                             {copied ? "Copied" : "Copy to Clipboard"}
                         </button>
                         <button style={s.btnSecondary} onClick={handleDownloadMdOnly} disabled={!content}>
-                            Download skill.md
+                            Download {skillFile}
                         </button>
                     </div>
                     <p style={s.hint}>

@@ -57,11 +57,17 @@ jobs:
         run: |
           mkdir -p web/dist/skills
           for dir in skills/*/; do
-            if grep -qE '^deprecated:[[:space:]]*true' "${dir}skill.md" 2>/dev/null; then
+            # Deprecated is set in compliance.yaml (Agent Skills layout) or, for legacy skills, in skill.md.
+            if grep -qE '^deprecated:[[:space:]]*true' "${dir}compliance.yaml" "${dir}skill.md" 2>/dev/null; then
               echo "Skipping deprecated skill: ${dir}"
               continue
             fi
             cp -r "${dir%/}" web/dist/skills/
+            # Serve the main file under both names: new installers fetch SKILL.md, installers already on
+            # users' machines fetch skill.md, and Pages is case-sensitive.
+            out="web/dist/skills/$(basename "$dir")"
+            if [ -f "$out/SKILL.md" ] && [ ! -e "$out/skill.md" ]; then cp "$out/SKILL.md" "$out/skill.md"; fi
+            if [ -f "$out/skill.md" ] && [ ! -e "$out/SKILL.md" ]; then cp "$out/skill.md" "$out/SKILL.md"; fi
           done
       - name: Setup Pages
         uses: actions/configure-pages@v5

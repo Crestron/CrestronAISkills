@@ -39,7 +39,7 @@ foreach ($configFile in $configs) {
     $config  = Get-Content $configFile.FullName | ConvertFrom-Json
     $name    = $config.name
     $version = $config.version
-    $copilotDest = Join-Path $config.projectPath ".github\skills\$name\skill.md"
+    $copilotDest = Join-Path $config.projectPath ".github\skills\$name\SKILL.md"
     $claudeDest  = Join-Path $config.projectPath ".claude\commands\$name.md"
 
     $entry = $registry.skills | Where-Object { $_.name -eq $name } | Select-Object -First 1
@@ -58,9 +58,10 @@ foreach ($configFile in $configs) {
         if ($answer -match '^[Yy]') {
             try {
                 $tmp = [System.IO.Path]::GetTempFileName()
-                Invoke-WebRequest "$PagesUrl/skills/$name/skill.md" -OutFile $tmp -UseBasicParsing
-                # Update Copilot skill
+                Invoke-WebRequest "$PagesUrl/skills/$name/SKILL.md" -OutFile $tmp -UseBasicParsing -ErrorAction Stop
+                # Update Copilot skill (replacing a legacy skill.md)
                 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $copilotDest) | Out-Null
+                Remove-Item (Join-Path (Split-Path -Parent $copilotDest) "skill.md") -Force -ErrorAction SilentlyContinue
                 Copy-Item $tmp $copilotDest -Force
                 # Update Claude Code command if present
                 if (Test-Path $claudeDest) {
