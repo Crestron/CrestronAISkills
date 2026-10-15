@@ -29,14 +29,11 @@ if ([string]::IsNullOrWhiteSpace($ProjectPath)) {
 if (-not (Test-Path $ProjectPath)) { Write-Host "ERROR: Path not found." -ForegroundColor Red; exit 1 }
 $ProjectPath = (Resolve-Path $ProjectPath).Path
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-# Agent Skills spec name; skills published before the spec layout ship skill.md.
 $srcFile = Join-Path $scriptDir "SKILL.md"
-if (-not (Test-Path $srcFile)) { $srcFile = Join-Path $scriptDir "skill.md" }
 
-# 2. Install for GitHub Copilot → .github\skills\<name>\SKILL.md (replacing a legacy skill.md)
+# 2. Install for GitHub Copilot → .github\skills\<name>\SKILL.md
 $copilotDest = Join-Path $ProjectPath ".github\skills\$skillName\SKILL.md"
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $copilotDest) | Out-Null
-Remove-Item (Join-Path (Split-Path -Parent $copilotDest) "skill.md") -Force -ErrorAction SilentlyContinue
 Copy-Item $srcFile $copilotDest -Force
 Write-Host "  Copilot: installed to $copilotDest"
 
@@ -88,10 +85,9 @@ try { `$r = Invoke-RestMethod `$c.registryUrl -UseBasicParsing } catch { exit 1 
 if (-not `$l -or `$l.version -eq `$c.version) { exit 0 }
 `$tmp = [System.IO.Path]::GetTempFileName()
 Invoke-WebRequest "`$(`$c.pagesUrl)/skills/`$(`$c.name)/SKILL.md" -OutFile `$tmp -UseBasicParsing -ErrorAction Stop
-# Update Copilot skill (replacing a legacy skill.md)
+# Update Copilot skill
 `$copilot = Join-Path `$c.projectPath ".github\skills\`$(`$c.name)\SKILL.md"
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent `$copilot) | Out-Null
-Remove-Item (Join-Path (Split-Path -Parent `$copilot) 'skill.md') -Force -ErrorAction SilentlyContinue
 Copy-Item `$tmp `$copilot -Force
 # Update Claude Code command if present
 `$claude = Join-Path `$c.projectPath ".claude\commands\`$(`$c.name).md"

@@ -28,20 +28,19 @@ function parseFrontmatter(content) {
 
 const skills = [];
 
-// Agent Skills layout: SKILL.md (spec frontmatter; version/author/tags as strings under metadata)
-// plus compliance.yaml (Crestron compliance record). Skills published before that layout still
-// have a single skill.md with everything at the top level / under metadata, so read both.
-const splitTags = (t) => (Array.isArray(t) ? t : typeof t === "string" ? t.split(",") : []).map((x) => String(x).trim()).filter(Boolean);
+// Agent Skills layout only: SKILL.md (spec frontmatter; version/author/tags are strings under
+// metadata, tags comma-separated) plus compliance.yaml (Crestron compliance record, incl. deprecated).
+const splitTags = (t) => (typeof t === "string" ? t.split(",") : []).map((x) => x.trim()).filter(Boolean);
 
 function readCompliance(dir) {
   const file = path.join(dir, "compliance.yaml");
-  if (!fs.existsSync(file)) return {};
+  if (!fs.existsSync(file)) return null;
   try {
     const data = yaml.load(fs.readFileSync(file, "utf8"));
-    return data && typeof data === "object" && !Array.isArray(data) ? data : {};
+    return data && typeof data === "object" && !Array.isArray(data) ? data : null;
   } catch (e) {
-    console.log(`Ignoring unreadable ${file}: ${e.message}`);
-    return {};
+    console.log(`Unreadable ${file}: ${e.message}`);
+    return null;
   }
 }
 
@@ -49,33 +48,37 @@ if (fs.existsSync(skillsDir)) {
   for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const dir = path.join(skillsDir, entry.name);
-    const names = fs.readdirSync(dir);
-    const skillFile = names.includes("SKILL.md") ? "SKILL.md" : names.includes("skill.md") ? "skill.md" : null;
-    if (!skillFile) continue;
+    // Exact name: the Pages build runs on a case-sensitive filesystem.
+    if (!fs.readdirSync(dir).includes("SKILL.md")) {
+      console.log(`Skipping ${entry.name}: no SKILL.md`);
+      continue;
+    }
 
-    const { fm, malformed } = parseFrontmatter(fs.readFileSync(path.join(dir, skillFile), "utf8"));
+    const { fm, malformed } = parseFrontmatter(fs.readFileSync(path.join(dir, "SKILL.md"), "utf8"));
     if (malformed || !fm) {
       console.log(`Skipping ${entry.name}: ${malformed || "no frontmatter"}`);
       continue;
     }
-    const meta = fm.metadata && typeof fm.metadata === "object" ? fm.metadata : {};
-    const compliance = { ...meta, ...readCompliance(dir) };
-    if (fm.deprecated === true || compliance.deprecated === true) {
+    const compliance = readCompliance(dir);
+    if (!compliance) {
+      console.log(`Skipping ${entry.name}: no valid compliance.yaml`);
+      continue;
+    }
+    if (compliance.deprecated === true) {
       console.log("Skipping deprecated skill:", entry.name);
       continue;
     }
 
-    const version = fm.version ?? meta.version;
+    const meta = fm.metadata && typeof fm.metadata === "object" ? fm.metadata : {};
     skills.push({
       name: fm.name,
-      version: version === undefined || version === null ? undefined : String(version),
+      version: meta.version,
       description: fm.description,
-      tags: splitTags(fm.tags ?? meta.tags),
-      author: fm.author ?? meta.author,
+      tags: splitTags(meta.tags),
+      author: meta.author,
       path: `skills/${entry.name}`,
-      skillFile,
       license: fm.license || "See LICENSE",
-      homepage: fm.homepage || meta.homepage || null,
+      homepage: meta.homepage || null,
       team: compliance.team || null,
       scopeAllow: Array.isArray(compliance["scope-allow"]) ? compliance["scope-allow"] : [],
       testStrategy: compliance["test-strategy"] || null,

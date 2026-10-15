@@ -59,9 +59,8 @@ foreach ($configFile in $configs) {
             try {
                 $tmp = [System.IO.Path]::GetTempFileName()
                 Invoke-WebRequest "$PagesUrl/skills/$name/SKILL.md" -OutFile $tmp -UseBasicParsing -ErrorAction Stop
-                # Update Copilot skill (replacing a legacy skill.md)
+                # Update Copilot skill
                 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $copilotDest) | Out-Null
-                Remove-Item (Join-Path (Split-Path -Parent $copilotDest) "skill.md") -Force -ErrorAction SilentlyContinue
                 Copy-Item $tmp $copilotDest -Force
                 # Update Claude Code command if present
                 if (Test-Path $claudeDest) {

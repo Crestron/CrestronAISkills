@@ -39,14 +39,11 @@ PROJECT_PATH=$(cd "$PROJECT_PATH" && pwd)
 echo "  Project path: $PROJECT_PATH"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Agent Skills spec name; skills published before the spec layout ship skill.md.
 SRC_FILE="$SCRIPT_DIR/SKILL.md"
-[ -f "$SRC_FILE" ] || SRC_FILE="$SCRIPT_DIR/skill.md"
 
-# 2. Install for GitHub Copilot → .github/skills/<name>/SKILL.md (replacing a legacy skill.md)
+# 2. Install for GitHub Copilot → .github/skills/<name>/SKILL.md
 COPILOT_DEST="$PROJECT_PATH/.github/skills/$SKILL_NAME/SKILL.md"
 mkdir -p "$(dirname "$COPILOT_DEST")"
-rm -f "$(dirname "$COPILOT_DEST")/skill.md" "$COPILOT_DEST"
 cp "$SRC_FILE" "$COPILOT_DEST"
 echo "  Copilot: installed to $COPILOT_DEST"
 
@@ -94,10 +91,9 @@ if [ -z "$LATEST_VER" ] || [ "$LATEST_VER" = "$INSTALLED_VER" ]; then exit 0; fi
 TMP=$(mktemp)
 # Never overwrite the installed skill with a failed (empty) download.
 curl -sf "$PAGES_URL/skills/$SKILL_NAME/SKILL.md" -o "$TMP" || { rm -f "$TMP"; exit 1; }
-# Update Copilot skill (replacing a legacy skill.md)
+# Update Copilot skill
 COPILOT_DEST="$PROJECT_PATH/.github/skills/$SKILL_NAME/SKILL.md"
 mkdir -p "$(dirname "$COPILOT_DEST")"
-rm -f "$(dirname "$COPILOT_DEST")/skill.md" "$COPILOT_DEST"
 cp "$TMP" "$COPILOT_DEST"
 # Update Claude Code command (body only)
 CLAUDE_DEST="$PROJECT_PATH/.claude/commands/$SKILL_NAME.md"

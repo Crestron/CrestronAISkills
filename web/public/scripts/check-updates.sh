@@ -64,9 +64,8 @@ for CONFIG_FILE in "${ALL_CONFIGS[@]}"; do
                 echo "     ERROR: could not download $NAME — skipped, nothing changed."
                 continue
             fi
-            # Update Copilot skill (replacing a legacy skill.md)
+            # Update Copilot skill
             mkdir -p "$(dirname "$COPILOT_DEST")"
-            rm -f "$(dirname "$COPILOT_DEST")/skill.md" "$COPILOT_DEST"
             cp "$TMP" "$COPILOT_DEST"
             # Update Claude Code command if present
             if [ -f "$CLAUDE_DEST" ]; then
