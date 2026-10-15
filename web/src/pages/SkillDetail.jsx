@@ -125,7 +125,7 @@ export default function SkillDetail() {
 
     useEffect(() => {
         if (!skill) return;
-        fetch(`${import.meta.env.BASE_URL}skills/${skill.name}/skill.md`)
+        fetch(`${import.meta.env.BASE_URL}skills/${skill.name}/SKILL.md`)
             .then((r) => r.ok ? r.text() : null)
             .then((text) => setContent(text))
             .catch(() => setContent(null));
@@ -145,8 +145,8 @@ export default function SkillDetail() {
 
         const zip = new JSZip();
 
-        // Fetch file manifest; fall back to just skill.md if unavailable
-        let fileList = ["skill.md"];
+        // Fetch file manifest; fall back to just SKILL.md if unavailable
+        let fileList = ["SKILL.md"];
         const manifestResp = await fetch(`${base}skills/${skill.name}/files.json`);
         if (manifestResp.ok) {
             const parsed = await manifestResp.json();
@@ -293,7 +293,7 @@ export default function SkillDetail() {
                             {copied ? "Copied" : "Copy to Clipboard"}
                         </button>
                         <button style={s.btnSecondary} onClick={handleDownloadMdOnly} disabled={!content}>
-                            Download skill.md
+                            Download SKILL.md
                         </button>
                     </div>
                     <p style={s.hint}>

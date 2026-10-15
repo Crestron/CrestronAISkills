@@ -39,17 +39,18 @@ PROJECT_PATH=$(cd "$PROJECT_PATH" && pwd)
 echo "  Project path: $PROJECT_PATH"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SRC_FILE="$SCRIPT_DIR/SKILL.md"
 
-# 2. Install for GitHub Copilot → .github/skills/<name>/skill.md
-COPILOT_DEST="$PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
+# 2. Install for GitHub Copilot → .github/skills/<name>/SKILL.md
+COPILOT_DEST="$PROJECT_PATH/.github/skills/$SKILL_NAME/SKILL.md"
 mkdir -p "$(dirname "$COPILOT_DEST")"
-cp "$SCRIPT_DIR/skill.md" "$COPILOT_DEST"
+cp "$SRC_FILE" "$COPILOT_DEST"
 echo "  Copilot: installed to $COPILOT_DEST"
 
 # 3. Install for Claude Code → .claude/commands/<name>.md (body only, no frontmatter)
 CLAUDE_DEST="$PROJECT_PATH/.claude/commands/$SKILL_NAME.md"
 mkdir -p "$(dirname "$CLAUDE_DEST")"
-awk '/^---$/{n++; next} n>=2{print}' "$SCRIPT_DIR/skill.md" > "$CLAUDE_DEST"
+awk '/^---$/{n++; next} n>=2{print}' "$SRC_FILE" > "$CLAUDE_DEST"
 echo "  Claude Code: installed to $CLAUDE_DEST (available as /$SKILL_NAME)"
 
 # 4. Save config (to both Copilot and Claude Code config dirs)
@@ -88,9 +89,10 @@ if [ -z "$REGISTRY" ]; then exit 1; fi
 LATEST_VER=$(echo "$REGISTRY" | python3 -c "import json,sys; r=json.load(sys.stdin); s=[x for x in r['skills'] if x['name']=='$SKILL_NAME']; print(s[0]['version'] if s else '')" 2>/dev/null)
 if [ -z "$LATEST_VER" ] || [ "$LATEST_VER" = "$INSTALLED_VER" ]; then exit 0; fi
 TMP=$(mktemp)
-curl -sf "$PAGES_URL/skills/$SKILL_NAME/skill.md" -o "$TMP"
+# Never overwrite the installed skill with a failed (empty) download.
+curl -sf "$PAGES_URL/skills/$SKILL_NAME/SKILL.md" -o "$TMP" || { rm -f "$TMP"; exit 1; }
 # Update Copilot skill
-COPILOT_DEST="$PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
+COPILOT_DEST="$PROJECT_PATH/.github/skills/$SKILL_NAME/SKILL.md"
 mkdir -p "$(dirname "$COPILOT_DEST")"
 cp "$TMP" "$COPILOT_DEST"
 # Update Claude Code command (body only)
@@ -134,7 +136,7 @@ fi
 
 echo ""
 echo "✅ Done!"
-echo "   GitHub Copilot: $PROJECT_PATH/.github/skills/$SKILL_NAME/skill.md"
+echo "   GitHub Copilot: $PROJECT_PATH/.github/skills/$SKILL_NAME/SKILL.md"
 echo "   Claude Code:    $PROJECT_PATH/.claude/commands/$SKILL_NAME.md  (use as /$SKILL_NAME)"
 echo "   Metadata:       $CONFIG_DIR/ and $CLAUDE_CONFIG_DIR/"
 echo "   Auto-updates scheduled daily at 9am."

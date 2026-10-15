@@ -57,7 +57,11 @@ jobs:
         run: |
           mkdir -p web/dist/skills
           for dir in skills/*/; do
-            if grep -qE '^deprecated:[[:space:]]*true' "${dir}skill.md" 2>/dev/null; then
+            if [ ! -f "${dir}SKILL.md" ]; then
+              echo "Skipping ${dir}: no SKILL.md"
+              continue
+            fi
+            if grep -qE '^deprecated:[[:space:]]*true' "${dir}compliance.yaml" 2>/dev/null; then
               echo "Skipping deprecated skill: ${dir}"
               continue
             fi

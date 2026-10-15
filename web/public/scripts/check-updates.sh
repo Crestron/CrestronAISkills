@@ -41,7 +41,7 @@ for CONFIG_FILE in "${ALL_CONFIGS[@]}"; do
     NAME=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(d['name'])" 2>/dev/null || grep '"name"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
     VERSION=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(d['version'])" 2>/dev/null || grep '"version"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
     PROJECT_PATH=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(d['projectPath'])" 2>/dev/null || grep '"projectPath"' "$CONFIG_FILE" | sed 's/.*: *"\(.*\)".*/\1/')
-    COPILOT_DEST="$PROJECT_PATH/.github/skills/$NAME/skill.md"
+    COPILOT_DEST="$PROJECT_PATH/.github/skills/$NAME/SKILL.md"
     CLAUDE_DEST="$PROJECT_PATH/.claude/commands/$NAME.md"
 
     LATEST=$(echo "$REGISTRY" | python3 -c "import json,sys; r=json.load(sys.stdin); s=[x for x in r['skills'] if x['name']=='$NAME']; print(s[0]['version'] if s else '')" 2>/dev/null)
@@ -59,7 +59,11 @@ for CONFIG_FILE in "${ALL_CONFIGS[@]}"; do
         read -rp "     Update now? (y/n): " answer
         if [[ "$answer" =~ ^[Yy] ]]; then
             TMP=$(mktemp)
-            curl -sf "$PAGES_URL/skills/$NAME/skill.md" -o "$TMP"
+            if ! curl -sf "$PAGES_URL/skills/$NAME/SKILL.md" -o "$TMP"; then
+                rm -f "$TMP"
+                echo "     ERROR: could not download $NAME — skipped, nothing changed."
+                continue
+            fi
             # Update Copilot skill
             mkdir -p "$(dirname "$COPILOT_DEST")"
             cp "$TMP" "$COPILOT_DEST"
