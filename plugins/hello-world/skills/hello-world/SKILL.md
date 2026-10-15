@@ -1,9 +1,9 @@
 ---
 name: hello-world
 description: A test skill that responds with Hello World. Used to validate the auto-update pipeline.
-license: See LICENSE
+license: Crestron Software Development Tools License Agreement
 metadata:
-  version: 1.0.11
+  version: "1.0.12"
   author: CrestronEng
   tags: test, hello-world
 ---
