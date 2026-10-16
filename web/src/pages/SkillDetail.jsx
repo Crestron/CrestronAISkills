@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import JSZip from "jszip";
 import { fetchRegistry } from "../utils/registry.js";
 const s = {
     page: { maxWidth: "860px", margin: "0 auto", padding: "40px 24px" },
@@ -58,33 +57,6 @@ const s = {
         marginBottom: "24px",
     },
     boxTitle: { fontWeight: 600, marginBottom: "16px", fontSize: "0.85rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" },
-    btnRow: { display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "16px" },
-    btnPrimary: {
-        background: "var(--accent)",
-        color: "#fff",
-        border: "none",
-        borderRadius: "var(--radius)",
-        padding: "9px 18px",
-        fontSize: "0.88rem",
-        fontWeight: 600,
-        cursor: "pointer",
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-    },
-    btnSecondary: {
-        background: "transparent",
-        color: "var(--text)",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius)",
-        padding: "9px 18px",
-        fontSize: "0.88rem",
-        cursor: "pointer",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-    },
     hint: { color: "var(--text-muted)", fontSize: "0.82rem", lineHeight: 1.6 },
     pre: {
         background: "#fff",
@@ -111,7 +83,6 @@ export default function SkillDetail() {
     const [skill, setSkill] = useState(null);
     const [loading, setLoading] = useState(true);
     const [content, setContent] = useState(null);
-    const [copied, setCopied] = useState(false);
     const [activeTab, setActiveTab] = useState("Overview");
 
     useEffect(() => {
@@ -130,72 +101,6 @@ export default function SkillDetail() {
             .then((text) => setContent(text))
             .catch(() => setContent(null));
     }, [skill]);
-
-    const handleDownload = async () => {
-        if (!content) return;
-        const base = import.meta.env.BASE_URL;
-        const PAGES_URL = (window.location.origin + base).replace(/\/$/, "");
-        const REGISTRY_URL = `${PAGES_URL}/registry.json`;
-
-        const replacePlaceholders = (tmpl) => tmpl
-            .replace(/__SKILL_NAME__/g, skill.name)
-            .replace(/__SKILL_VERSION__/g, skill.version)
-            .replace(/__REGISTRY_URL__/g, REGISTRY_URL)
-            .replace(/__PAGES_URL__/g, PAGES_URL);
-
-        const zip = new JSZip();
-
-        // Fetch file manifest; fall back to just SKILL.md if unavailable
-        let fileList = ["SKILL.md"];
-        const manifestResp = await fetch(`${base}skills/${skill.name}/files.json`);
-        if (manifestResp.ok) {
-            const parsed = await manifestResp.json();
-            if (Array.isArray(parsed) && parsed.length > 0) fileList = parsed;
-        }
-
-        // Add all skill files to zip
-        for (const filePath of fileList) {
-            const resp = await fetch(`${base}skills/${skill.name}/${filePath}`);
-            if (resp.ok) zip.file(filePath, await resp.text());
-        }
-
-        // Add install scripts
-        const [psResp, shResp] = await Promise.allSettled([
-            fetch(`${base}scripts/install-skill-template.ps1`),
-            fetch(`${base}scripts/install-skill-template.sh`),
-        ]);
-        const psTemplate = psResp.status === "fulfilled" && psResp.value.ok ? await psResp.value.text() : "";
-        const shTemplate = shResp.status === "fulfilled" && shResp.value.ok ? await shResp.value.text() : "";
-        if (psTemplate) zip.file("install.ps1", replacePlaceholders(psTemplate));
-        if (shTemplate) zip.file("install.sh", replacePlaceholders(shTemplate));
-
-        const blob = await zip.generateAsync({ type: "blob" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${skill.name}.zip`;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    const handleDownloadMdOnly = () => {
-        if (!content) return;
-        const blob = new Blob([content], { type: "text/markdown" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${skill.name}.md`;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    const handleCopy = () => {
-        if (!content) return;
-        navigator.clipboard.writeText(content).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        });
-    };
 
     const bodyContent = content
         ? content.replace(/^---[\s\S]*?---\n?/, "").trim()
@@ -285,20 +190,12 @@ export default function SkillDetail() {
             {activeTab === "Install" && (
                 <div style={s.box}>
                     <div style={s.boxTitle}>Install This Skill</div>
-                    <div style={s.btnRow}>
-                        <button style={s.btnPrimary} onClick={handleDownload} disabled={!content}>
-                            Download &amp; Install
-                        </button>
-                        <button style={s.btnSecondary} onClick={handleCopy} disabled={!content}>
-                            {copied ? "Copied" : "Copy to Clipboard"}
-                        </button>
-                        <button style={s.btnSecondary} onClick={handleDownloadMdOnly} disabled={!content}>
-                            Download SKILL.md
-                        </button>
-                    </div>
                     <p style={s.hint}>
-                        Download the zip and run <code>install.ps1</code> (Windows) or <code>install.sh</code> (Mac/Linux) to install the skill and register automatic weekly updates.
-                    </p>                </div>
+                        Install <code>{skill.name}@crestron-ai-skills</code> from the Crestron AI Skills plugin marketplace in your AI tool.
+                        It updates through your tool's marketplace updates. To add the marketplace, see the steps for your tool
+                        on the <Link to="/" style={{ color: "var(--link)" }}>home page</Link>.
+                    </p>
+                </div>
             )}
         </div>
     );

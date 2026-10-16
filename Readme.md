@@ -19,15 +19,6 @@
   - [Keep Skills Up to Date](#keep-skills-up-to-date)
   - [Using the Skills](#using-the-skills)
 - [Network Access](#network-access)
-- [Alternative: Installer Script](#alternative-installer-script)
-  - [Step 1 — Browse the Marketplace](#step-1--browse-the-marketplace)
-  - [Step 2 — Download the Installer](#step-2--download-the-installer)
-  - [Step 3 — Run the Installer](#step-3--run-the-installer)
-  - [Step 4 — Use the Skill](#step-4--use-the-skill)
-- [Alternative: Manual Install](#alternative-manual-install)
-  - [GitHub Copilot](#github-copilot)
-  - [Claude Code](#claude-code)
-- [Updating Script and Manual Installs](#updating-script-and-manual-installs)
 - [Repository Structure](#repository-structure)
 - [License](#license)
 
@@ -40,7 +31,6 @@ CrestronAISkills is a **skills marketplace** for AI coding assistants. Each skil
 - Every skill published as its own **plugin** — install just the skills you need in Claude Code, the Claude desktop app, GitHub Copilot CLI, VS Code, or OpenAI Codex
 - Automatic updates through each tool's marketplace auto-update
 - Search and browse skills by keyword, tag, or author in the web portal
-- Alternative install paths: a downloadable installer script or manual copy
 
 ---
 
@@ -207,7 +197,7 @@ If you installed the optional **`crestron-ai-skills`** registry browser, ask in 
 
 ## Network Access
 
-The registry browser and installer reach four hosts: `github.com`, `api.github.com`, `raw.githubusercontent.com`, and `crestron.github.io`. If your tool prompts for or blocks them, allow them once:
+The registry browser reaches four hosts: `github.com`, `api.github.com`, `raw.githubusercontent.com`, and `crestron.github.io`. If your tool prompts for or blocks them, allow them once:
 
 - **Claude Code / Claude desktop (Code tab)** — in `~/.claude/settings.json`, add `"WebFetch(domain:<host>)"` for each host to `permissions.allow`, and the hosts to `sandbox.network.allowedDomains` (used for shell commands on macOS, Linux, and WSL2).
 - **GitHub Copilot CLI** — choose "always allow" at the prompt, or add the hosts to `allowedUrls` in `~/.copilot/settings.json`.
@@ -219,121 +209,6 @@ On managed machines, your organization's policy may override these settings; ask
 
 ---
 
-## Alternative: Installer Script
-
-For tools or projects where you can't use the plugin marketplace, each skill can also be installed into a single project with a downloadable installer. Marketplace installs (above) are recommended — they update through your tool and don't need a scheduled task.
-
-### Step 1 — Browse the Marketplace
-
-Open the web UI: **https://crestron.github.io/CrestronAISkills/**
-
-Find a skill and click it to open the detail page.
-
-### Step 2 — Download the Installer
-
-On the skill's detail page, go to the **Install** tab and click **"Download & Install"**.
-
-This downloads a zip file containing:
-- `install.ps1` — Windows installer
-- `install.sh` — Mac/Linux installer
-- `skill.md` — the skill file itself
-
-Extract the zip, then run the installer from a terminal.
-
-### Step 3 — Run the Installer
-
-**Windows (PowerShell):**
-```powershell
-.\install.ps1 -ProjectPath "C:\path\to\your\project"
-```
-
-**Mac/Linux (bash):**
-```bash
-chmod +x install.sh
-./install.sh --project /path/to/your/project
-```
-
-Set the project path to the root of the repo you want the skill installed into.
-
-The installer will:
-1. Copy the skill to `.github/skills/<skill-name>/skill.md` for GitHub Copilot
-2. Copy the skill to `.claude/commands/<skill-name>.md` for Claude Code
-3. Save install metadata and update scripts to `~/.copilot/skills/` (Copilot) and `~/.claude/skills/` (Claude Code)
-4. Register a **daily auto-update check** (Task Scheduler on Windows, cron/launchd on Mac/Linux)
-
-### Step 4 — Use the Skill
-
-**GitHub Copilot** picks up skills automatically from `.github/skills/` in your project.
-
-**Claude Code** makes the skill available as a slash command — type `/<skill-name>` in Claude Code to activate it.
-
----
-
-## Alternative: Manual Install
-
-If you prefer not to use the marketplace or the installer, clone the repo and copy the skill file manually.
-
-```bash
-git clone https://github.com/Crestron/CrestronAISkills
-```
-
-### GitHub Copilot
-
-Copy the skill file into your project:
-
-```bash
-mkdir -p <your-project>/.github/skills/<skill-name>
-cp CrestronAISkills/skills/<skill-name>/skill.md <your-project>/.github/skills/<skill-name>/skill.md
-```
-
-GitHub Copilot automatically reads instruction files from `.github/skills/` in your project root.
-
-### Claude Code
-
-Copy the skill body (the content below the `---` frontmatter) into your project's Claude commands folder:
-
-```bash
-mkdir -p <your-project>/.claude/commands
-# Strip the YAML frontmatter, keep only the instruction body
-awk '/^---$/{n++; next} n>=2{print}' CrestronAISkills/skills/<skill-name>/skill.md \
-  > <your-project>/.claude/commands/<skill-name>.md
-```
-
-The skill will be available as `/<skill-name>` in Claude Code.
-
-**Windows (PowerShell):**
-```powershell
-New-Item -ItemType Directory -Force "<your-project>\.claude\commands" | Out-Null
-$lines = Get-Content "CrestronAISkills\skills\<skill-name>\skill.md"
-$start = ($lines | Select-String '^---$').LineNumber[1]
-$lines[$start..($lines.Length-1)] | Set-Content "<your-project>\.claude\commands\<skill-name>.md"
-```
-
----
-
-## Updating Script and Manual Installs
-
-This section applies only to skills installed with the installer script. **Marketplace installs update through your AI tool** — see [Keep Skills Up to Date](#keep-skills-up-to-date). Manual copies don't update; re-copy to refresh.
-
-**Check script-installed skills for updates manually:**
-
-```powershell
-# Windows — Copilot path
-~\.copilot\skills\check-updates.ps1
-# Windows — Claude Code path
-~\.claude\skills\check-updates.ps1
-```
-```bash
-# Mac/Linux — Copilot path
-~/.copilot/skills/check-updates.sh
-# Mac/Linux — Claude Code path
-~/.claude/skills/check-updates.sh
-```
-
-The installer also registers a daily background check, so script installs update without action.
-
----
-
 ## Repository Structure
 
 ```
@@ -342,13 +217,13 @@ CrestronAISkills/
 ├── .agents/plugins/           # Marketplace catalog (OpenAI Codex)
 ├── skills/
 │   └── <skill-name>/
-│       └── skill.md           # Skill file (YAML frontmatter + instructions)
+│       ├── SKILL.md           # Skill file (Agent Skills frontmatter + instructions)
+│       └── compliance.yaml    # Crestron compliance record (not shipped in plugins)
 ├── plugins/
 │   ├── crestron-ai-skills/    # Registry-browser plugin
 │   └── <skill-name>/          # One plugin per published skill
 ├── web/                       # Web portal (GitHub Pages)
 │   ├── src/                   # React + Vite app
-│   ├── public/scripts/        # Installer and update-check scripts, served at /scripts/
 │   └── registry/              # Builds registry.json from skills/
 └── .github/workflows/
     └── static.yml             # Builds and deploys the portal on every push to main
