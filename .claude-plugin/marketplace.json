@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "crestron-ai-skills",
-      "description": "Search, inspect, and install skills from the CrestronAISkills registry (github.com/Crestron/CrestronAISkills).",
+      "description": "Search and inspect skills in the CrestronAISkills marketplace (github.com/Crestron/CrestronAISkills), and get the install steps for your tool.",
       "source": "./plugins/crestron-ai-skills",
       "category": "productivity",
       "keywords": [
