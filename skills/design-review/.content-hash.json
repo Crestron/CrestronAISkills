@@ -1,0 +1,10 @@
+{
+  "skill": "design-review",
+  "version": "3.18.0",
+  "sourceRef": "2e4641509750f45637a956c550e667d56b5c6b0f",
+  "computedAt": "2026-10-16T16:07:16.866Z",
+  "files": {
+    "SKILL.md": "fa993256623753ab9fbfa6e165d044463789cc1fc92ac78399223987ba01d8ee",
+    "compliance.yaml": "a2d2499190b96a9b77230cba4933dc547d310a3b7bb9cc08c490b0d929f0ed4c"
+  }
+}
