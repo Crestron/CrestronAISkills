@@ -19,6 +19,19 @@
         "marketplace",
         "registry"
       ]
+    },
+    {
+      "name": "hello-world",
+      "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
+      "source": "./plugins/hello-world",
+      "category": "productivity",
+      "keywords": [
+        "test",
+        "hello-world"
+      ],
+      "author": {
+        "name": "CrestronEng"
+      }
     }
   ],
   "renames": {
