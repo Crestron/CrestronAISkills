@@ -1,0 +1,22 @@
+{
+  "name": "design-review",
+  "version": "3.18.0",
+  "description": "Orchestrate adversarial four-reviewer parallel design review (Design Critic / Tech Lead / Security / PM) before Gate 2, with dynamic re-review exit for mechanical-only fixes, and upstream requirements traceability enforcement at Gate 2 (v3.18.0)",
+  "author": {
+    "name": "CrestronEng"
+  },
+  "homepage": "https://github.com/Crestron/CrestronAISkills/tree/main/skills/design-review",
+  "license": "Crestron Software Development Tools License Agreement",
+  "keywords": [
+    "design",
+    "review",
+    "parallel-workflow",
+    "gate-2",
+    "design-critic",
+    "tech-lead",
+    "security",
+    "pm",
+    "adversarial",
+    "dynamic-exit"
+  ]
+}

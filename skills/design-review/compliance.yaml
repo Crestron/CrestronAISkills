@@ -1,0 +1,55 @@
+# Crestron registry compliance record for this skill (schema: compliance-schema.json).
+# Kept out of SKILL.md so that file stays a pure Agent Skills spec file. Authored next to SKILL.md
+# in the source repo (or by maintainers here); source-*/synced-at are written by the sync,
+# approved-by/approval-date on merge.
+team: CrestronAutoSDLC
+maintainer: sabtain-khan-crestron
+dependencies: CrestronAutoSDLC framework scripts (set-work-item.sh / set-work-item.ps1), git, agent runtime subagent support
+scope-allow:
+  - Dispatch the four design reviewer subagents (Design Critic, Tech Lead, Security, PM) in parallel
+  - Read the story's Gate 1 design artifacts (architecture docs, ADRs)
+  - Write docs/reviews/{story_id}-design-review.md
+  - Write {STATE_FOLDER}/pre-flight/design-signoff.md
+  - Set design_review_status only through set-work-item.sh / set-work-item.ps1
+scope-deny:
+  - Editing work-item.yaml or other state files directly
+  - Changing source code or the design under review
+  - Recording approved before every reviewer has approved
+  - Network, credential, memory or MCP access
+input-schema: None — no parameters; acts on the active story, which must have Gate 1 complete (architecture documented, ADRs written)
+output-schema: Review report at docs/reviews/{story_id}-design-review.md (per-reviewer verdicts, findings, iteration count); on approval, signoff at {STATE_FOLDER}/pre-flight/design-signoff.md; design_review_status set to approved or changes_requested via set-work-item
+output-max-size: Bounded by at most 3 review iterations of four reviewer verdicts; full findings go to the report file, chat status stays compact
+test-strategy: manual
+tested-by: sabtain-khan-crestron
+test-date: '2026-10-15'
+idempotent: false
+duplicate-invocation-safeguard: review_iteration_count is recorded in the review report and capped at 3; the skill is not run once all reviewers have approved in the current iteration; set-work-item refuses approved until the design signoff exists
+destructive-operations:
+  - None
+trigger-code: false
+trigger-tool: true
+trigger-fs: true
+trigger-ext: true
+trigger-fetch: false
+invoked-tools:
+  - Reviewer subagents via the runtime's subagent mechanism (VS Code runSubagent, Copilot CLI Task tool, Claude Code @agent-<slug>)
+  - set-work-item.sh / set-work-item.ps1 (framework status writer)
+  - git rev-parse HEAD (records the reviewed commit in the signoff)
+risk-tier: T2
+runtime-surfaces:
+  - Claude Code
+  - IDE extension
+permissions:
+  file: Reads Gate 1 design artifacts; writes docs/reviews/{story_id}-design-review.md and {STATE_FOLDER}/pre-flight/design-signoff.md
+  network: declined
+  shell: Runs set-work-item.sh / set-work-item.ps1 and git rev-parse HEAD
+  credential: declined
+  memory: declined
+  mcp: declined
+  tool: Dispatches the four design reviewer subagents
+source-repo: https://github.com/CrestronEng/CrestronAutoSDLC
+source-ref: 2e4641509750f45637a956c550e667d56b5c6b0f
+source-path: dotgithub-contents/skills/design-review
+synced-at: '2026-10-16T13:29:52.598Z'
+approved-by: "sabtain-khan-crestron"
+approval-date: "2026-10-16"
