@@ -1,0 +1,11 @@
+{
+  "skill": "example-skill",
+  "version": "1.0.5",
+  "sourceRef": null,
+  "computedAt": "2026-10-15T20:09:43.768Z",
+  "files": {
+    "SKILL.md": "8b4627a1d6d1864d156db6e02517b5cc2c8a8242aa70a18a71f113ffe19351c5",
+    "compliance.yaml": "3611379c90eee908925a9f3123328ef7edd6f764b8fb49d9085c15fe6cb511ef",
+    "tests/evals.md": "87375ac3339c58e09544e6ff1a944da5ba6e8a22513769672ed531fff9a879ac"
+  }
+}
