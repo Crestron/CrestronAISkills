@@ -19,6 +19,22 @@
         "marketplace",
         "registry"
       ]
+    },
+    {
+      "name": "example-skill",
+      "description": "A starter example showing how to write a Copilot skill for Crestron AV and smart home systems",
+      "source": "./plugins/example-skill",
+      "category": "productivity",
+      "keywords": [
+        "example",
+        "demo",
+        "starter",
+        "crestron",
+        "av"
+      ],
+      "author": {
+        "name": "CrestronEng"
+      }
     }
   ],
   "renames": {
