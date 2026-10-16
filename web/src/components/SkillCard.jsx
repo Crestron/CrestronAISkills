@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 
 const s = {
     card: {
@@ -10,12 +9,9 @@ const s = {
         display: "flex",
         flexDirection: "column",
         gap: "10px",
-        textDecoration: "none",
         color: "var(--text)",
-        transition: "border-color 0.15s",
-        cursor: "pointer",
     },
-    name: { fontSize: "1.05rem", fontWeight: 600, color: "var(--link)" },
+    name: { fontSize: "1.05rem", fontWeight: 600, color: "var(--text)" },
     desc: { fontSize: "0.9rem", color: "var(--text-muted)", lineHeight: 1.5 },
     meta: { fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", gap: "12px" },
     tags: { display: "flex", gap: "6px", flexWrap: "wrap" },
@@ -31,12 +27,7 @@ const s = {
 
 export default function SkillCard({ skill }) {
     return (
-        <Link
-            to={`/skills/${skill.name}`}
-            style={s.card}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--link)")}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
-        >
+        <div style={s.card}>
             <div style={s.name}>{skill.name}</div>
             <div style={s.desc}>{skill.description}</div>
             <div style={s.tags}>
@@ -51,6 +42,6 @@ export default function SkillCard({ skill }) {
                 <span>by {skill.author}</span>
                 {skill.license && <span>{skill.license}</span>}
             </div>
-        </Link>
+        </div>
     );
 }

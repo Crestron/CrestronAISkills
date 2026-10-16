@@ -5,7 +5,6 @@ import Disclaimer from "./components/Disclaimer.jsx";
 import Logo from "./components/Logo.jsx";
 import Home from "./pages/Home.jsx";
 import Search from "./pages/Search.jsx";
-import SkillDetail from "./pages/SkillDetail.jsx";
 
 const s = {
     app: { display: "flex", flexDirection: "column", minHeight: "100vh" },
@@ -51,7 +50,6 @@ export default function App() {
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/search" element={<Search />} />
-                        <Route path="/skills/:name" element={<SkillDetail />} />
                     </Routes>
                 </main>
                 <footer style={s.footer}>
