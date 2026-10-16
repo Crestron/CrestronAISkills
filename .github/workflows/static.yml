@@ -27,8 +27,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    # JSON runs-on value, e.g. {"group":"sabtain"} for the self-hosted runner group; unset = GitHub-hosted.
-    runs-on: ${{ fromJSON(vars.STAGING_RUNS_ON || '"ubuntu-latest"') }}
+    runs-on: ${{ vars.STAGING_RUNS_ON || 'ubuntu-latest' }}
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
