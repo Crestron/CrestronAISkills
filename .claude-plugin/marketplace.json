@@ -19,35 +19,6 @@
         "marketplace",
         "registry"
       ]
-    },
-    {
-      "name": "example-skill",
-      "description": "A starter example showing how to write a Copilot skill for Crestron AV and smart home systems",
-      "source": "./plugins/example-skill",
-      "category": "productivity",
-      "keywords": [
-        "example",
-        "demo",
-        "starter",
-        "crestron",
-        "av"
-      ],
-      "author": {
-        "name": "CrestronEng"
-      }
-    },
-    {
-      "name": "hello-world",
-      "description": "A test skill that responds with Hello World. Used to validate the auto-update pipeline.",
-      "source": "./plugins/hello-world",
-      "category": "productivity",
-      "keywords": [
-        "test",
-        "hello-world"
-      ],
-      "author": {
-        "name": "CrestronEng"
-      }
     }
   ],
   "renames": {
