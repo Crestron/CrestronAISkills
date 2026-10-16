@@ -52,21 +52,6 @@ jobs:
       - name: Generate registry.json from skills/
         run: npm run build:registry
         working-directory: web
-      # The skill page only reads SKILL.md, so nothing else in a skill folder is published here.
-      - name: Copy each skill's SKILL.md to dist (excluding deprecated skills)
-        run: |
-          for dir in skills/*/; do
-            if [ ! -f "${dir}SKILL.md" ]; then
-              echo "Skipping ${dir}: no SKILL.md"
-              continue
-            fi
-            if grep -qE '^deprecated:[[:space:]]*true' "${dir}compliance.yaml" 2>/dev/null; then
-              echo "Skipping deprecated skill: ${dir}"
-              continue
-            fi
-            mkdir -p "web/dist/${dir}"
-            cp "${dir}SKILL.md" "web/dist/${dir}SKILL.md"
-          done
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
