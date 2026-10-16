@@ -1,0 +1,11 @@
+{
+  "skill": "hello-world",
+  "version": "1.0.12",
+  "sourceRef": null,
+  "computedAt": "2026-10-15T20:09:43.803Z",
+  "files": {
+    "SKILL.md": "a16dd9889232619a89b5b59c57ef4a8ad73c6fac6988218e80e78bf902b11bde",
+    "compliance.yaml": "a2a388547adf1d4f22830b4de393c2d85824716223d300b3a0ddd188b075586d",
+    "tests/evals.md": "f0ac240b3cc8d52a91633f15bdceb099cae1f2fa52155b6a54eb5c1d182bad23"
+  }
+}
