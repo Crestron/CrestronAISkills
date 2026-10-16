@@ -2,7 +2,7 @@
 
 > A marketplace for AI assistant skills — browse, install, and auto-update skills for **Claude**, **GitHub Copilot**, and **OpenAI Codex**.
 
-[![Skills](https://img.shields.io/badge/skills-registry-blue)](https://crestron.github.io/CrestronAISkills/registry.json)
+[![Skills](https://img.shields.io/badge/skills-browse-blue)](https://crestroneng.github.io/CrestronAISkills-portal/)
 [![License](https://img.shields.io/badge/license-see%20LICENSE-blue)](LICENSE)
 
 ---
@@ -30,19 +30,19 @@ CrestronAISkills is a **skills marketplace** for AI coding assistants. Each skil
 
 - Every skill published as its own **plugin** — install just the skills you need in Claude Code, the Claude desktop app, GitHub Copilot CLI, VS Code, or OpenAI Codex
 - Automatic updates through each tool's marketplace auto-update
-- Search and browse skills by keyword, tag, or author in the web portal
+- Search and browse skills by keyword, tag, or author in the [web portal](https://crestroneng.github.io/CrestronAISkills-portal/)
 
 ---
 
 ## Add the Marketplace as a Plugin
 
-<!-- The web portal renders the five tool install sections below and the "… auto-update" / "… updates"
-     sections under "Keep Skills Up to Date" in pop-ups (headings listed in web/src/data/install-sections.json).
-     If you rename one of those headings, update that file too — CI fails if a heading is missing. -->
+<!-- The web portal (CrestronEng/CrestronAISkills-portal) renders the five tool install sections below and the
+     "… auto-update" / "… updates" sections under "Keep Skills Up to Date" in pop-ups, by the headings listed in
+     that repo's src/data/install-sections.json. If you rename one of those headings, update that file too. -->
 
 The fastest way to get Crestron AI Skills is to add this repository as a **plugin marketplace** in your AI tool, then install the skills you want. Every tool follows the same two steps: **add the marketplace → install skills**.
 
-**Every published skill is its own plugin**, named after the skill — for example `hello-world` or `example-skill`. Install each one as `<skill-name>@crestron-ai-skills`. Browse the full list in the [web portal](https://crestron.github.io/CrestronAISkills/) or in your tool's plugin browser after adding the marketplace.
+**Every published skill is its own plugin**, named after the skill — for example `hello-world` or `example-skill`. Install each one as `<skill-name>@crestron-ai-skills`. Browse the full list in the [web portal](https://crestroneng.github.io/CrestronAISkills-portal/) or in your tool's plugin browser after adding the marketplace.
 
 Optionally, also install **`crestron-ai-skills`** — a registry browser skill that searches the catalog and answers questions like *"what Crestron skills are available?"*.
 
@@ -190,14 +190,14 @@ If you installed the optional **`crestron-ai-skills`** registry browser, ask in 
 - **Nothing happens after installing** — plugins load at session start. Restart the tool, open a new session, or run `/reload-plugins` in Claude Code.
 - **A skill is missing from the plugin list** — refresh the marketplace (see [Keep Skills Up to Date](#keep-skills-up-to-date)); new skills appear after a refresh.
 - **Marketplace add fails** — the repository is public, so no GitHub account is needed, but `git` must be installed and `github.com` must be reachable from your network.
-- **Registry errors** — the skill reads https://crestron.github.io/CrestronAISkills/registry.json; confirm that URL loads in your browser.
-- **Network access blocked** — the skills need to reach `github.com`, `api.github.com`, `raw.githubusercontent.com`, and `crestron.github.io`. If your AI tool or organization blocks outside access, allow these hosts — see [Network Access](#network-access) for the steps in each tool.
+- **Registry errors** — the registry browser reads https://raw.githubusercontent.com/Crestron/CrestronAISkills/main/.claude-plugin/marketplace.json; confirm that URL loads in your browser.
+- **Network access blocked** — adding the marketplace needs `github.com`, and the registry browser reads `raw.githubusercontent.com`. If your AI tool or organization blocks outside access, allow these hosts — see [Network Access](#network-access) for the steps in each tool.
 
 ---
 
 ## Network Access
 
-The registry browser reaches four hosts: `github.com`, `api.github.com`, `raw.githubusercontent.com`, and `crestron.github.io`. If your tool prompts for or blocks them, allow them once:
+Adding the marketplace reaches `github.com`; the registry browser reads `raw.githubusercontent.com`. If your tool prompts for or blocks them, allow them once:
 
 - **Claude Code / Claude desktop (Code tab)** — in `~/.claude/settings.json`, add `"WebFetch(domain:<host>)"` for each host to `permissions.allow`, and the hosts to `sandbox.network.allowedDomains` (used for shell commands on macOS, Linux, and WSL2).
 - **GitHub Copilot CLI** — choose "always allow" at the prompt, or add the hosts to `allowedUrls` in `~/.copilot/settings.json`.
@@ -205,7 +205,7 @@ The registry browser reaches four hosts: `github.com`, `api.github.com`, `raw.gi
 - **OpenAI Codex** — in `~/.codex/config.toml`, set `network_access = true` under `[sandbox_workspace_write]`, set `enabled = true` under `[features.network_proxy]`, and add `"<host>" = "allow"` for each host under `[features.network_proxy.domains]`.
 - **GitHub Copilot coding agent** — a repo or org admin adds the hosts under **Settings → Copilot → Coding agent** → custom allowlist.
 
-On managed machines, your organization's policy may override these settings; ask your admin to allow the same four hosts.
+On managed machines, your organization's policy may override these settings; ask your admin to allow the same two hosts.
 
 ---
 
@@ -222,12 +222,9 @@ CrestronAISkills/
 ├── plugins/
 │   ├── crestron-ai-skills/    # Registry-browser plugin
 │   └── <skill-name>/          # One plugin per published skill
-├── web/                       # Web portal (GitHub Pages)
-│   ├── src/                   # React + Vite app
-│   └── registry/              # Builds registry.json from skills/
-└── .github/workflows/
-    └── static.yml             # Builds and deploys the portal on every push to main
 ```
+
+The web portal lives in [CrestronEng/CrestronAISkills-portal](https://github.com/CrestronEng/CrestronAISkills-portal) and reads the marketplace catalog from this repository.
 ---
 
 ## License
