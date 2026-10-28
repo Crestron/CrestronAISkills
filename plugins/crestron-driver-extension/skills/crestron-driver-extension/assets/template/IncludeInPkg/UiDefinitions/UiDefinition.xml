@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<uidefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://prd-use-rad-assets.azurewebsites.net/ExtensionsSchemaDefinition.xsd">
+  <version ver="3.0"/>
+  <tile icon="#icQuestionmark" status="{exampleProperty}" action="command:changeExampleProperty" navigation="show:MainPage" showinhomepage="#false" showinroompage="#true"/>
+  <layouts>
+    <layout id="MainPage" isdefaultlayout="#true">
+      <controls>
+        <textentry id="SetExampleTextEntry" label="^SetExampleText" value="{exampleProperty}"/>
+      </controls>
+    </layout>
+  </layouts>
+  <alerts></alerts>
+</uidefinition>

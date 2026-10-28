@@ -1,0 +1,57 @@
+{
+    "SchemaVersion": "2.0",
+    "GeneralInformation": {
+        "MinSdkVersion": "24.0000.0000",
+        "DriverVersion": "1.0000.0000",
+        "DeviceType": "TemplateDeviceType",
+        "Manufacturer": "TemplateManufacturer",
+        "BaseModel": "TemplateBaseModel",
+        "OtherSupportedModels": [],
+        "SupportedSeries": [],
+        "DependencyGroup": "",
+        "Dependencies": [],
+        "Developer": {
+            "Company": "TemplateCompany",
+            "Contact": "TemplateContact",
+            "Email": "TemplateEmail",
+            "Website": "TemplateWebsite",
+            "PhoneNumber": "TemplatePhoneNumber"
+        }
+    },
+    "ConfigurationSteps": {
+        "Items": [
+            {
+                "Id": "_Host_",
+                "UsageContext": "Network.Address",
+                "Title": "IP Address / Hostname",
+                "Description": "Enter the IP address or hostname of the device",
+                "Required": true,
+                "Persistent": true,
+                "ValueType": "String"
+            },
+            {
+                "Id": "_Port_",
+                "UsageContext": "Network.Port",
+                "Title": "Port",
+                "Description": "Enter the network port used by the device",
+                "Required": true,
+                "MaxValue": 65535,
+                "MinValue": 1,
+                "Persistent": true,
+                "ValueType": "Number",
+                "DefaultValue": "443"
+            }
+        ],
+        "Steps": [
+            {
+                "StepId": "Transport",
+                "Items": [
+                    "_Host_",
+                    "_Port_"
+                ],
+                "NextStep": null
+            }
+        ],
+        "FirstStep": "Transport"
+    }
+}

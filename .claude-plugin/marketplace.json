@@ -19,6 +19,16 @@
         "marketplace",
         "registry"
       ]
+    },
+    {
+      "name": "crestron-driver-extension",
+      "description": "How to create Crestron Home Extension drivers which provide custom user interfaces and device control. This uses the Entity Model (v2) Crestron Device Driver SDK. Also includes references and domain knowledge for creating and working with these drivers. Use this whenever the user is building or editing a Crestron Home extension driver, its UiDefinition.xml, tile/room-page UI, or Entity Model v2 properties/commands — even if they don't say the word extension.",
+      "source": "./plugins/crestron-driver-extension",
+      "category": "productivity",
+      "keywords": [],
+      "author": {
+        "name": "Crestron Electronics, Inc."
+      }
     }
   ],
   "renames": {

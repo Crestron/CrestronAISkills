@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net47</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Crestron.DeviceDrivers.DevKit">
+      <Version>24.0.12</Version>
+    </PackageReference>
+    <PackageReference Include="Crestron.DeviceDrivers.ManifestUtil">
+      <Version>29.0.10</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(TargetName).json" />
+    <None Include="IncludeInPkg\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

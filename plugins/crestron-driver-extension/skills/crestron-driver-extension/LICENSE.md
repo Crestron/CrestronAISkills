@@ -1,0 +1,7 @@
+# Licensing
+
+By enabling, accessing, downloading, installing, activating or otherwise using the Crestron AI Skill or any portion thereof, in whole or in part, you agree to be bound both on your own behalf and as an authorized representative of any third party for which you are using the Crestron AI Skill, to the following license terms and conditions:
+
+A. Software Development Tools License Agreement, available at https://www.crestron.com/SWToolsLicensetxt
+
+B. Artificial Intelligence Terms of Use, available at https://www.crestron.com/Legal/AITermstxt
