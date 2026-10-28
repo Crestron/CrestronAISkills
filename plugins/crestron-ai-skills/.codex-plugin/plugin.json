@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "crestron-ai-skills",
+  "version": "0.2.0",
+  "description": "Search and inspect skills in the CrestronAISkills marketplace, and get the install steps for your tool.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Crestron AI Skills",
+        "category": "Productivity"
+      }
+    }
+  }
+}

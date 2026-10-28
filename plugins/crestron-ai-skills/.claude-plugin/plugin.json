@@ -1,0 +1,11 @@
+{
+  "name": "crestron-ai-skills",
+  "version": "0.2.0",
+  "description": "Search and inspect skills in the CrestronAISkills marketplace, and get the install steps for your tool.",
+  "author": {
+    "name": "Crestron"
+  },
+  "homepage": "https://github.com/Crestron/CrestronAISkills",
+  "license": "See LICENSE",
+  "keywords": ["crestron", "skills", "marketplace", "registry"]
+}

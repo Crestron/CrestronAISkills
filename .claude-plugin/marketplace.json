@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "crestron-ai-skills",
+  "version": "1.0.0",
+  "description": "Crestron AI Skills — install individual skills, or the registry browser to search them all.",
+  "owner": {
+    "name": "Crestron",
+    "url": "https://github.com/Crestron"
+  },
+  "plugins": [
+    {
+      "name": "crestron-ai-skills",
+      "description": "Search and inspect skills in the CrestronAISkills marketplace (github.com/Crestron/CrestronAISkills), and get the install steps for your tool.",
+      "source": "./plugins/crestron-ai-skills",
+      "category": "productivity",
+      "keywords": [
+        "crestron",
+        "skills",
+        "marketplace",
+        "registry"
+      ]
+    }
+  ],
+  "renames": {
+    "string-translator": null
+  }
+}
